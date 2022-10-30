@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>WAFishBiology_vignette</title>
+
+<script src="data:application/javascript;base64,Ly8gUGFuZG9jIDIuOSBhZGRzIGF0dHJpYnV0ZXMgb24gYm90aCBoZWFkZXIgYW5kIGRpdi4gV2UgcmVtb3ZlIHRoZSBmb3JtZXIgKHRvCi8vIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgYmVoYXZpb3Igb2YgUGFuZG9jIDwgMi44KS4KZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKGUpIHsKICB2YXIgaHMgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCJkaXYuc2VjdGlvbltjbGFzcyo9J2xldmVsJ10gPiA6Zmlyc3QtY2hpbGQiKTsKICB2YXIgaSwgaCwgYTsKICBmb3IgKGkgPSAwOyBpIDwgaHMubGVuZ3RoOyBpKyspIHsKICAgIGggPSBoc1tpXTsKICAgIGlmICghL15oWzEtNl0kL2kudGVzdChoLnRhZ05hbWUpKSBjb250aW51ZTsgIC8vIGl0IHNob3VsZCBiZSBhIGhlYWRlciBoMS1oNgogICAgYSA9IGguYXR0cmlidXRlczsKICAgIHdoaWxlIChhLmxlbmd0aCA+IDApIGgucmVtb3ZlQXR0cmlidXRlKGFbMF0ubmFtZSk7CiAgfQp9KTsK"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+
+
+
+<link rel="stylesheet" href="data:text/css,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" type="text/css" />
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">WAFishBiology_vignette</h1>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#introduction">Introduction</a>
+<ul>
+<li><a href="#growth-curves">Growth curves</a>
+<ul>
+<li><a href="#von-bertalanffy-growth-model">von Bertalanffy growth model</a></li>
+<li><a href="#schnute-growth-model">Schnute growth model</a></li>
+<li><a href="#somers-1988-seasonal-growth-curve">Somers (1988) seasonal growth curve</a></li>
+<li><a href="#objective-function-for-fitting-growth-curves-to-length-at-age-data">Objective function for fitting growth curves to length-at-age data</a></li>
+<li><a href="#objective-function-for-fitting-growth-curves-to-data-derived-from-mixture-distribution-analysis">Objective function for fitting growth curves to data derived from mixture distribution analysis</a></li>
+</ul></li>
+<li><a href="#mixture-analyses-using-fish-length-data">Mixture analyses (using fish length data)</a></li>
+<li><a href="#available-functions-related-to-fish-growth-analysis-using-length-or-length-at-age-data">Available functions related to fish growth analysis using length or length-at-age data</a></li>
+<li><a href="#growth-analysis-from-tagging-data">Growth analysis from tagging data</a>
+<ul>
+<li><a href="#available-functions-related-to-fish-growth-analysis-using-length-or-length-at-age-data-1">Available functions related to fish growth analysis using length or length-at-age data</a></li>
+</ul></li>
+<li><a href="#analysis-of-fish-weight-length-data">Analysis of fish weight-length data</a>
+<ul>
+<li><a href="#available-functions-related-to-analysis-of-fish-weight-and-length-data">Available functions related to analysis of fish weight and length data</a></li>
+</ul></li>
+<li><a href="#reproductive-analyses">Reproductive analyses</a>
+<ul>
+<li><a href="#logistic-size-and-age-at-maturity-or-sex-change-curves">Logistic size and age at maturity (or sex change) curves</a></li>
+<li><a href="#objective-function-for-fitting-size-or-age-at-maturity-or-sex-change-curves">Objective function for fitting size or age at maturity (or sex change) curves</a></li>
+<li><a href="#available-functions-related-to-analysis-of-fish-length-at-maturity-and-age-at-maturity-or-sex-change-data">Available functions related to analysis of fish length at maturity and age at maturity (or sex change) data</a></li>
+<li><a href="#available-functions-related-to-monthly-gonadosomatic-indices-gsis-with-95-confidence-limits">Available functions related to monthly gonadosomatic indices, GSIs (with 95% confidence limits)</a></li>
+<li><a href="#available-functions-related-to-monthly-prevalences-of-fish-at-different-gonadal-development-stages">Available functions related to monthly prevalences of fish at different gonadal development stages</a></li>
+</ul></li>
+<li><a href="#references">References:</a></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<div id="last-updated-july-2022-alex-hesp---dpird" class="section level4">
+<h4>Last updated July 2022 (Alex Hesp - DPIRD)</h4>
+<p>This package is intended as a toolbox of methods for describing various biological traits of fish and invertebrate species, including growth, size/age at maturity, weight-length relationships etc., which represent key information for many model-based fisheries assessments. The various R functions output a range of statistics and diagnostic plots. The various biological relationships and associated parameters are required inputs a range of assessment models, e.g. per recruit analysis and statistical catch at age (and length) models.</p>
+<p>Please note that this is a ‘trial version’ with testing of the various routines continuing. Please report any identified issues to Alex Hesp asap <span class="math inline">\((\mathrm{Alex.Hesp@dpird.wa.gov.au})\)</span>.</p>
+</div>
+<div id="growth-curves" class="section level2">
+<h2>Growth curves</h2>
+<p>Several functions are available that relate to fitting growth curves to length-at-age data or data derived from length mixture distribution analysis. The alternative growth models include the von Bertalanffy growth model (von Bertalanffy, 1938), the generalised growth model of Schnute (1981) and the seasonal growth curve of Somers (1988). The routines implemented allow for either a single curve to be fitted to the data, or two curves (i.e. females and males, or area 1 and area 2) to be fitted simultaneously. In the latter case, common variance is assumed for the two curves.</p>
+<div id="von-bertalanffy-growth-model" class="section level3">
+<h3>von Bertalanffy growth model</h3>
+<p>Fitting a single von Bertalanffy growth curve to data, <span class="math inline">\(L_t\)</span>, the estimated mean length of fish at age <span class="math inline">\(t\)</span>, is</p>
+<p><span class="math display">\[
+L_t = L_\infty(1-\exp(-k(t-t_0)))
+\]</span> where <span class="math inline">\(L_\infty\)</span> is the asymptotic length, <span class="math inline">\(k\)</span> is the growth coefficient and <span class="math inline">\(t_0\)</span> is the hypothetical age at zero length.</p>
+</div>
+<div id="schnute-growth-model" class="section level3">
+<h3>Schnute growth model</h3>
+<p>Schnute’s growth model includes four parameters, including <span class="math inline">\(a\)</span> (1/time), <span class="math inline">\(b\)</span> (dimensionless) and two sizes <span class="math inline">\(L_1\)</span> and <span class="math inline">\(L_2\)</span>, corresponding to references ages <span class="math inline">\(\tau_1\)</span> and <span class="math inline">\(\tau_2\)</span>, respectively. Depending on whether or not <span class="math inline">\(a\)</span> and/or <span class="math inline">\(b\)</span> are equal to zero, the Schnute growth functions takes one of the following four forms:</p>
+<p><span class="math inline">\(a\)</span> &lt;&gt; 0, <span class="math inline">\(b\)</span> &lt;&gt; 0 <span class="math display">\[
+L_t =\biggl[{L_1}^b+({L_2}^b-{L_1}^b)\frac{(1-\exp(-a(t-\tau_1)))}{(1-\exp(-a(\tau_2-\tau_1))}\biggr]^\frac{1}{b}
+\]</span> <span class="math inline">\(a\)</span> &lt;&gt; 0, <span class="math inline">\(b\)</span> = 0 <span class="math display">\[
+L_t ={L_1}\biggl[\ln(L_2/L_1)\frac{(1-\exp(-a(t-\tau_1)))}{(1-\exp(-a(\tau_2-\tau_1))}\biggr]
+\]</span> <span class="math inline">\(a\)</span> = 0, <span class="math inline">\(b\)</span> &lt;&gt; 0 <span class="math display">\[
+L_t =\biggl[{L_1}^b+({L_2}^b-{L_1}^b)\frac{(t-\tau_1)}{(\tau_2-\tau_1)}\biggr]^\frac{1}{b}
+\]</span> <span class="math inline">\(a\)</span> = 0, <span class="math inline">\(b\)</span> = 0 <span class="math display">\[
+L_t ={L_1}\biggl[\ln(L_2/L_1)\frac{(t-\tau_1)}{(\tau_2-\tau_1)}\biggr]^\frac{1}{b}
+\]</span></p>
+</div>
+<div id="somers-1988-seasonal-growth-curve" class="section level3">
+<h3>Somers (1988) seasonal growth curve</h3>
+<p>Somers (1988) seasonal growth curve is <span class="math display">\[
+L_t = L_\infty(1-\exp(-k(t-t_0)))-S(t)+S(t_0)
+\]</span> where <span class="math display">\[
+S(t)=\frac{CK}{2\pi} \sin{2\pi}(t-t_s)
+\]</span> <span class="math display">\[
+S(t_0)=\frac{CK}{2\pi} \sin{2\pi}(t_0-t_s)
+\]</span> In the above equations, <span class="math inline">\(C\)</span> modifies the amplitude of the growth oscillations and <span class="math inline">\(t_s\)</span> represents the time between time 0 and the start of the convex portion of the first sinusoidal growth oscillation, i.e. the inflection point (see Garcia-Berthou et al., 2012). If C = 0, then there is no seasonal oscillation and the model reduces to the typical von Bertalanffy growth model. If C = 1, then growth completely ceases during one part of the year.</p>
+</div>
+<div id="objective-function-for-fitting-growth-curves-to-length-at-age-data" class="section level3">
+<h3>Objective function for fitting growth curves to length-at-age data</h3>
+<p>The objective function minimised by nlminb is the negative log-likelihood, calculated as <span class="math display">\[
+\lambda=\frac{n}{2}\bigg[\ln(2\pi)+2\ln(\hat{\sigma})+1\bigg]
+\]</span> see (e.g. Haddon, 2011). Non-linear regression (employing the optimisation routine nlminb) is used to fit the growth curve, given a set of age and length data, and a set of starting values for the von Bertalanffy growth parameters (Linf, vbK, and tzero):</p>
+</div>
+<div id="objective-function-for-fitting-growth-curves-to-data-derived-from-mixture-distribution-analysis" class="section level3">
+<h3>Objective function for fitting growth curves to data derived from mixture distribution analysis</h3>
+<p>The objective function minimised by nlminb is the negative log-likelihood, calculated as</p>
+<p><span class="math display">\[
+\lambda=0.5\log_e(\sigma_M^2+\sigma_P^2)+0.5\log_e(2\pi)+\frac{(X-\mu)^2}{2(\sigma_M^2+\sigma_P^2)}
+\]</span> where <span class="math inline">\(X\)</span> is the “observed” mean size-at-age calculated from the mixture analysis, <span class="math inline">\(\sigma_M^2\)</span> is the variance associated with the “observed” mean size-at-age from the mixture analysis, <span class="math inline">\(\sigma_P^2\)</span> is an additional process error variance estimated in the growth curve analysis, and <span class="math inline">\(\mu\)</span> is the estimated mean size-at-age, according to the growth curve.</p>
+</div>
+</div>
+<div id="mixture-analyses-using-fish-length-data" class="section level2">
+<h2>Mixture analyses (using fish length data)</h2>
+<p>The model allows mixture distributions to be fitted to length composition data with up to three modes (assumed to represent different fish cohorts). Following Marks et al. (2020), for a given length sample with a single mode (assumed to represent a single age cohort), the expected relative proportion of fish in each size class is</p>
+<p><span class="math display">\[
+\hat{P}_{S_i} = \int_{S_i^-}^{\mathrm{S_i^+}}\frac{1}{\sigma\sqrt{2{\pi}}}\exp\bigg[\frac{(l-\mu^2)}{2\sigma{^2}}\bigg]dl
+\]</span> where <span class="math inline">\(l\)</span> is the length of the fish, <span class="math inline">\(S_i^-\)</span> and <span class="math inline">\(S_i^+\)</span> are the lower and upper bounds of size class <span class="math inline">\(S_i\)</span>, respectively, and <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span> are the mean and standard deviation, respectively, of the normal distribution describing the size distribution.</p>
+<p>When two modes are present (assumed to represent 2 age cohorts), the size frequency data is assumed to represent a random sample from a multinomial distribution, with the overall size distribution being comprised of two normal distributions. Using <span class="math inline">\(0^+\)</span> and <span class="math inline">\(1^+\)</span> to represent the values of the smaller and larger cohort, respectively, <span class="math inline">\(\hat{f}_{S_i}\)</span>, the overall expected frequency of fish in size class <span class="math inline">\(S_i\)</span> in the sample is calculated as</p>
+<p><span class="math display">\[
+\hat{f}_{S_i} = n\bigg[\hat{P_{S_i,0+}}\phi_{0+}+\hat{P_{S_i,1+}}(1-\phi_{0+})\bigg]
+\]</span> where <span class="math inline">\(n\)</span> is the sample size for the month and <span class="math inline">\(\phi_{0+}\)</span> is the proportion of fish belonging to the 0+ cohort (estimated as a model parameter). Where three cohorts are present, <span class="math inline">\(\hat{f}_{S_i}\)</span> is calculated as</p>
+<p><span class="math display">\[
+\hat{f}_{S_i} = n\bigg[\hat{P_{S_i,0+}}\phi_{0+}+\hat{P_{S_i,1+}}\phi_{1+}+\hat{P_{S_i,2+}}(1-\phi_{0+}-\phi_{1_+})\bigg]
+\]</span> The expected relative proportion of fish in size class <span class="math inline">\(S_i\)</span> is be calculated as</p>
+<p><span class="math display">\[
+\hat{P_{S_i}}=\hat{f_{S_i}}/\sum_{S_i}\hat{f_{S_i}}
+\]</span> The mixture distribution model is fitted to the sample data by minimizing the negative log-likelihood, calculated as</p>
+<p><span class="math display">\[
+\lambda=\sum{S_i}{f_{S_i}}\log_e(\hat{P_{S_i}})
+\]</span> where <span class="math inline">\(f_{S_i}\)</span> is the observed frequency of fish in size class <span class="math inline">\(S_i\)</span>. Estimates of asymptotic standard errors (used to calculate approximate 95% confidence limits) for the estimated model parameters are derived from a variance-covariance matrix, calculated from the Hessian matrix outputted by nlminb in R. The estimated model parameter include mean and standard deviation for each cohort, and also proportion of the catch in the 0+ cohort (when two cohorts are present) or proportions in the 1+ and 2+ cohorts (when three cohorts are present).</p>
+</div>
+<div id="available-functions-related-to-fish-growth-analysis-using-length-or-length-at-age-data" class="section level2">
+<h2>Available functions related to fish growth analysis using length or length-at-age data</h2>
+<p>Available functions for visualising length-at-age data, and visualising growth curves fitted to these data are:<br />
+SimulateLengthAtAgeData_vonBert()<br />
+SimulateLengthAtAgeData_Schnute()<br />
+SimulateLengthAtAgeData_SomersSeasonal()<br />
+PlotLengthAtAgeData()<br />
+PlotFittedGrowthCurve()<br />
+CalcLengthAtAge_SomersSeasonalGrowthCurve()<br />
+SchnuteGrowthfunction()</p>
+<p>The available functions for fitting growth curves to length-at-age data are:<br />
+GetvonBertalanffyGrowthResults()<br />
+GetSchnuteGrowthResults()<br />
+GetSeasonalGrowthResults()</p>
+<p>Related to mixture distribution analyses:<br />
+GetMixtureModelResults()<br />
+PlotMixtureDistnResults()</p>
+</div>
+<div id="growth-analysis-from-tagging-data" class="section level2">
+<h2>Growth analysis from tagging data</h2>
+<p>Four models are available in this R package for describing growth from tagging data. As described in Strain et al. (2017), these include the von Bertalanffy growth model (assuming a linear pattern of change in growth rate with respect to initial length), the Gompertz growth model (allows for initially increasing and then decreasing growth rates as the initial lengths of animals increase), a Gaussian function (allowing for low growth rates over a range of both small and large initial lengths) and a double-logistic curve (which incorporates the “inverse logistic” curve described by Haddon et al. (2008) but also contains an ascending logistic curve for describing the growth of the very small individuals).</p>
+<p>Applying the von Bertalanffy growth model, <span class="math inline">\(dL_t/dt\)</span>, the instantaneous rate of change in length of an individual, given its length at age <span class="math inline">\(t\)</span> years, <span class="math inline">\(L_t\)</span>, is</p>
+<p><span class="math display">\[
+dL_t/dt=(L_{\infty}-L_t)(1-\exp(-k\Delta_t))
+\]</span> where <span class="math inline">\(L_\infty\)</span> is the average maximum length of individuals in the population, <span class="math inline">\(k\)</span> is the growth coefficient, and <span class="math inline">\(\Delta_t\)</span> is a minute number between capture and recapture (e.g. Haddon, 2011). Fitting the Gompertz growth model, <span class="math inline">\(dL_t/dt\)</span> is estimated as</p>
+<p><span class="math display">\[
+dL_t/dt=L_{\infty}\bigg(\frac{L_t}{L_{\infty}}\bigg)\exp(-g\Delta_t)
+\]</span> where <span class="math inline">\(g\)</span> is a growth constant (Heliodoniotis et al. 2011). Using the Gaussian function, <span class="math inline">\(dL_t/dt\)</span> is estimated as</p>
+<p><span class="math display">\[
+dL_t/dt=A\exp\bigg(\frac{-(L_t-\mu)^2}{2\sigma^2_{GF}}\bigg)
+\]</span> where <span class="math inline">\(A\)</span> is the maximum growth (mm <span class="math inline">\(y^{-1}\)</span>), <span class="math inline">\(\mu\)</span> is the size at maximum growth (mm) and <span class="math inline">\(\sigma_{GF}\)</span> is the standard deviation of the distribution of maximum growth vs size (Rogers-Bennett et al. 2007). Using the double-logistic curve, <span class="math inline">\(dL_t/dt\)</span> is</p>
+<p><span class="math display">\[
+dL_t/dt=a\Bigg(1/\bigg[1+\exp(-\log_e(19)(L_t-L_{{50}_1})(L_{{95}_1}-L_{{50}_1})\bigg]\Bigg)
+\Bigg(1/\bigg[1+\exp(\log_e(19)(L_t-L_{{50}_2})(L_{{95}_2}-L_{{50}_2})\bigg]\Bigg)
+\]</span> where <span class="math inline">\(a\)</span> is the estimated maximum length increment attained by individuals at any initial length, <span class="math inline">\(L_{{50}_1}\)</span> is the initial length midway between the smallest and maximum growth increment on the ascending limb of the curve, <span class="math inline">\(L_{{95}_1}\)</span> is the initial length at which 95% of the difference between the smallest growth increment and maximum growth increment on the ascending limb of the curve is reached, <span class="math inline">\(L_{{50}_2}\)</span> is the initial length midway between the largest and smallest growth increment on the descending limb of the curve, and <span class="math inline">\(L_{{95}_2}\)</span> is the initial length at which 95% of the difference between the largest and smallest growth increment on the descending limb of the curve is reached. This growth curve incorporates the (non-seasonal) “inverse logistic” curve described by Haddon et al. (2008), but also contains an ascending logistic curve for describing the growth of the very small individuals.</p>
+<p>Applying the Gaussian function, for example, if the length of a fish at time <span class="math inline">\(t=t_0\)</span> is <span class="math inline">\(L_{t=t_0}\)</span>, then its expected length <span class="math inline">\(\hat{L}_{t=t_0+T}\)</span> at time <span class="math inline">\(t=t_0+T\)</span> is</p>
+<p><span class="math display">\[
+\hat{L}_{t=t_0+T}=\hat{L}_{t=t_0}+\Delta{L_{t_0,t_{0+T}}}=L_{t=t_0}+\int_{t=t_0}^{t=t_0+T}A\exp\bigg(\frac{-(L_t-\mu)^2}{2\sigma^2_{GF}}\bigg)dt
+\]</span> where <span class="math inline">\(\hat{L}_{t=t_0+T}\)</span> is the expected length increment between <span class="math inline">\(t=t_0\)</span> and <span class="math inline">\(t=t_0+T\)</span>. For each tagged individual, this “initial value problem” is solved using a 4th order Runge-Kutta algorithm to calculate an estimate of its expected length at its time of re-measurement given the values of the growth parameters <span class="math inline">\(A\)</span>, <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma^2_{GF}\)</span>. The parameters of the growth model (as described in this example by the above Gaussian function) are estimated by minimising the negative log-likelihood where it is assumed that, for individual <span class="math inline">\(j\)</span>, the observed length increment <span class="math inline">\(X_j\)</span> represents a random variable drawn from the normal distribution about the estimated increment <span class="math inline">\(\hat{X}_j\)</span>, given its initial length and the time between its tagging and re-measurement. The overall log-likelihood for the growth curve is calculated as</p>
+<p><span class="math display">\[
+\lambda=-\frac{n}{2}\bigg[\log_e(2\pi)+2\log_e(\hat{\sigma})+1\bigg]
+\]</span></p>
+<p>where <span class="math inline">\(n\)</span> is the number of animals for which measurements were taken of their initial and final length lengths and <span class="math inline">\(\hat{\sigma}\)</span> is the standard deviation associated with the deviations between the observed and predicted final lengths.</p>
+<div id="available-functions-related-to-fish-growth-analysis-using-length-or-length-at-age-data-1" class="section level3">
+<h3>Available functions related to fish growth analysis using length or length-at-age data</h3>
+<p>Available functions for visualising tagging data, and visualising growth curves fitted to these data are: GetTaggingGrowthModelResults() PlotFittedTaggingGrowthModelResults(() SimulateTagRecaptureData()</p>
+</div>
+</div>
+<div id="analysis-of-fish-weight-length-data" class="section level2">
+<h2>Analysis of fish weight-length data</h2>
+<p>The relationship between the natural logarithms of fish weight <span class="math inline">\((W)\)</span> and fish length <span class="math inline">\((L)\)</span> may be described by a linear model, i.e.</p>
+<p><span class="math display">\[
+\log_eW=\log_e(a)+b\log_eL
+\]</span></p>
+<p>where <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> are the parameters of the model. In this R package, the model is fitted in R using the lm() function, and the predict() function is use to calculate 95% confidence limits (associated with the line) and 95% prediction intervals. For plotting, the data may be back log-transformed. The back-transformed values are weight are corrected for bias, associated with back-transformation, calculated as</p>
+<p><span class="math display">\[
+W=\exp(\log_eW)\exp(0.5\sigma^2)
+\]</span> where <span class="math inline">\(\sigma^2\)</span> is the residual variance, calculated when fitting the linear regression model to the log-transformed length and weight data.</p>
+<div id="available-functions-related-to-analysis-of-fish-weight-and-length-data" class="section level3">
+<h3>Available functions related to analysis of fish weight and length data</h3>
+<p>Available functions for visualising fish weight and length data, and visualising curves fitted to these data are: GetWeightLengthRegressionResults() PlotWeightLengthRel_LogSpace() PlotWeightLengthRel_NormalSpace() SimulateWeightLengthData()</p>
+</div>
+</div>
+<div id="reproductive-analyses" class="section level2">
+<h2>Reproductive analyses</h2>
+<p>A logistic function may be used to describe the probability of a fish being mature at a given length (or age). The routines implemented allow for either a single curve to be fitted to the data, or two curves (i.e. females and males, or area 1 and area 2) to be fitted simultaneously. In the latter case, common variance is assumed for the two curves.</p>
+<div id="logistic-size-and-age-at-maturity-or-sex-change-curves" class="section level3">
+<h3>Logistic size and age at maturity (or sex change) curves</h3>
+<p>The probability, <span class="math inline">\(P\)</span>, of a fish, of length <span class="math inline">\(L\)</span> being mature, may be described as <span class="math display">\[
+\rho = {P_{\max}/(1+\exp(-\log_e(19)(L-L_{50})/(L_{95}-L_{50})))}
+\]</span> where P_{max} is the maximum proportion of fish that are mature, <span class="math inline">\(L_{50}\)</span> and <span class="math inline">\(L_{95}\)</span> are the lengths at which 50 and 95% of fish are mature, respectively. The same form of equation may be used to describe the probability of maturity of fish at age, replacing <span class="math inline">\(L\)</span> with fish age, and <span class="math inline">\(L_{50}\)</span> and <span class="math inline">\(L_{95}\)</span> with <span class="math inline">\(A_{50}\)</span> and <span class="math inline">\(A_{95}\)</span>, i.e. the ages at which 50 and 95% of fish are mature, respectively. In cases where <span class="math inline">\(P_{\max}\)</span> can be assumed to be equal to 1, only two parameters (either <span class="math inline">\(L_{50}\)</span> and <span class="math inline">\(L_{95}\)</span>, or <span class="math inline">\(A_{50}\)</span> and <span class="math inline">\(A_{95}\)</span>) are input into the model.</p>
+</div>
+<div id="objective-function-for-fitting-size-or-age-at-maturity-or-sex-change-curves" class="section level3">
+<h3>Objective function for fitting size or age at maturity (or sex change) curves</h3>
+<p>The negative log-likelihood associated with the above logistic curve may be calculated as</p>
+<p><span class="math display">\[
+\lambda = \sum_{j}X_j[\ln\rho_j+(1-X_j)\ln(1-\rho_j)]
+\]</span> where the <span class="math inline">\(j^{th}\)</span> fish was represented by <span class="math inline">\(X=0\)</span> if it was immature and <span class="math inline">\(X=1\)</span> if it was mature (e.g. French et al., 2014). The same form of equation may be used to describe the probability of a fish being mature given its age. Likewise, this relationship may also be used to describe the process of sex change for hermaphroditic species (by length or age), for cases where all fish undergo sex change if they survive long enough to reach the largest size class (or oldest age class).</p>
+</div>
+<div id="available-functions-related-to-analysis-of-fish-length-at-maturity-and-age-at-maturity-or-sex-change-data" class="section level3">
+<h3>Available functions related to analysis of fish length at maturity and age at maturity (or sex change) data</h3>
+<p>Available functions for visualising fish length at maturity and age at maturity data, and visualising curves fitted to these data</p>
+<p>The available functions for visualising size and age at maturity data, and fitting curves to these data are:<br />
+CalcPropMatureAtLength()<br />
+CalcPropMatureAtAge()<br />
+GetLogisticMaturityCurveResults()<br />
+PlotAgeAtMaturityData()<br />
+PlotFittedAgeAtMaturityCurve()<br />
+PlotLengthAtMaturityData()<br />
+PlotFittedLengthAtMaturityCurve()<br />
+SimulateLengthAtMaturityData()<br />
+SimulateAgeAtMaturityData()</p>
+</div>
+<div id="available-functions-related-to-monthly-gonadosomatic-indices-gsis-with-95-confidence-limits" class="section level3">
+<h3>Available functions related to monthly gonadosomatic indices, GSIs (with 95% confidence limits)</h3>
+<p>Routines for rapid calculation and plotting of mean monthly gonadosomatic indices. Available functions include:<br />
+CalcMeanMonthlyGSIs()<br />
+PlotGSIData()</p>
+</div>
+<div id="available-functions-related-to-monthly-prevalences-of-fish-at-different-gonadal-development-stages" class="section level3">
+<h3>Available functions related to monthly prevalences of fish at different gonadal development stages</h3>
+<p>Some routines have been added for rapid calculation and plotting of monthly prevalences of fish at different gonadal development stages. Available functions include:</p>
+<p>CalcMonthlyGonadStageProps()<br />
+PlotMonthlyGonadStageProps()</p>
+</div>
+</div>
+<div id="references" class="section level2">
+<h2>References:</h2>
+<p>Chapman, D. G., and D. S. Robson. (1960). The analysis of a catch curve. Biometrics 16:354-368.</p>
+<p>French, B., Potter, I. C., Hesp, S. A., Coulson, P. G. &amp; Hall, N. G. (2014). Biology of the harlequin fish Othos dentex (Serranidae), with particular emphasis on sexual pattern and other reproductive characteristics. Journal of Fish Biology (2014). 84, 106-132.</p>
+<p>Haddon, M. (2011). Modelling and Quantitative Methods in Fisheries. Chapman &amp; Hall/CRC.</p>
+<p>Helidoniotis F., Haddon M., Tuck G. ^ Tarbath D. (2011). The relative suitability of the von Bertalanffy, Gompertz and inverse logistic models for describing growth in blacklip abalone populations (Haliotis rubra) in Tasmania, Australia. Fisheries Research 112, 13-21.</p>
+<p>Marks, R., Hesp, S. A., Johnston, D., Denham, A. &amp; Loneragan, N. (2020). Temporal changes in the growth of a crustacean species, Portunus armatus, in a temperate marine embayment: evidence of density dependence. ICES Journal of Marine Science 77: 773-790.</p>
+<p>Rogers-Bennett L., Rogers D. W. and Schultz S. A. (2007). Modelling growth and mortality of red abalone (Haliotis rufescens) in northern California. Journal of Shellfish Research, 26:719-727.</p>
+<p>Schnute, J. (1981). A versatile growth model with statistically stable parameters. Canadian Journal of Fisheries and Aquatic Sciences 38(9) 1128-1140.</p>
+<p>Smith, M. W., Then, A. Y., Wor, C., Ralph, G., Pollock, K. H. &amp; Hoenig, J/. M. (2012) Recommendations for Catch-Curve Analysis, North American Journal of Fisheries Management, 32:5, 956-967.</p>
+<p>Strain, L. W. S., Hesp, S. A., Fabris, F. and Hart, A. M. (2017). Demographic performance of Brownlip abalone: exploration of wild and cultured harvest potential. FRDC Project No. 2012/016. Fisheries Research Report No. 280, Department of Fisheries, Western Australia, 100pp.</p>
+<p>von Bertalanffy, L. (1938). A quantitative theory of organic growth (inquiries on growth laws. II). Human Biology 10(2), 181-213.</p>
+<p>Wakefield, C. B, Williams, A. J., Fisher, E. A., Hall, N. G., Hesp, S. A., Halafihi, T., Kaltavara, J., Vourey, E., Taylor, B. M., O’Malley, J. M., Nicol, S. J., Wise, B. W., Newman, S. J. (2020). Fisheries Research: 230. Published online October.</p>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
