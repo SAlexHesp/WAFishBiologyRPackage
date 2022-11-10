@@ -1097,8 +1097,10 @@ PlotMixtureDistnResults <- function(params, DistnType, Cohorts, ObsFreq, MinSize
     yaxis_lab = "Frequency"
   }
 
+  .pardefault <- par(no.readonly = TRUE) # store default par settings
+
   if (set.plot.par == T) {
-    par(mfrow=c(1,1), mar=c(5,4,2,2), oma=c(2,2,2,2), tck=0.02)
+    par(mfrow=c(1,1), mar=c(5,4,2,2), oma=c(2,2,2,2))
   }
   LbndSizeCl <- seq(0, MaxSize-SizeInt, SizeInt)
   MidPtSizeCl <- LbndSizeCl + (SizeInt/2)
@@ -1111,11 +1113,11 @@ PlotMixtureDistnResults <- function(params, DistnType, Cohorts, ObsFreq, MinSize
 
   if (PlotHist == FALSE) {
     plot(MidPtSizeCl, ObsFreq, "p", xlim=c(0,xmax), ylim=c(0,ymax), cex=0.5, pch=16,
-         frame=F, xaxt = 'n', yaxt = 'n', xlab="", ylab="", cex.main=0.8, main=GraphTitle)
+         frame=F, xaxt = 'n', yaxt = 'n', xlab="", ylab="", cex.main=1, main=GraphTitle)
   }
   if (PlotHist == TRUE) {
     HistData=hist(SizeIndivs, breaks=0:MaxSize, right=FALSE, plot=TRUE, col="light grey", border="black",
-                  main=GraphTitle, cex.main=0.8, xaxt = 'n', yaxt = 'n', xlab="", ylab="", ylim=c(0,ymax))
+                  main=GraphTitle, cex.main=1, xaxt = 'n', yaxt = 'n', xlab="", ylab="", ylim=c(0,ymax))
   }
 
   lines(MidPtSizeCl, Res$ExpFreqAtLen, lwd=2, lty="solid") # overall model
@@ -1130,15 +1132,15 @@ PlotMixtureDistnResults <- function(params, DistnType, Cohorts, ObsFreq, MinSize
   }
   axis(1, seq(0,xmax,xint),labels=NA, line=0.2)
   axis(2, seq(0,ymax,yint),labels=NA, line=0.2)
-  axis(1, seq(0,xmax,xint), lwd=0, labels=seq(0,xmax,xint), line=-0.2)
-  axis(2, seq(0,ymax,yint), lwd=0, labels=seq(0,ymax,yint), line=-0.2, las=1)
-  mtext(xaxis_lab,las=1,side=1,line=3,cex=1.0)
-  mtext(yaxis_lab,las=3,side=2,line=3,cex=1.0)
+  axis(1, seq(0,xmax,xint), lwd=0, labels=seq(0,xmax,xint), line=-0.2, cex.axis=1)
+  axis(2, seq(0,ymax,yint), lwd=0, labels=seq(0,ymax,yint), line=-0.2, las=1, cex.axis=1)
+  mtext(xaxis_lab,las=1,side=1,line=3,cex=1.2)
+  mtext(yaxis_lab,las=3,side=2,line=3,cex=1.2)
   if (length(params) == 2) Modes=1
   if (length(params) == 4) Modes=2 # common sd
   if (length(params) == 5) Modes=2 # separate sds
   if (length(params) == 8) Modes=3
-  mtext(paste("Modes = ",Modes,sep=""), adj=0.1,side=3,las=1,line=-1,cex=0.6)
+  mtext(paste("Modes = ",Modes,sep=""), adj=0.1,side=3,las=1,line=-1,cex=0.8)
 
 
   if (PlotCLs == TRUE) {
@@ -1172,6 +1174,9 @@ PlotMixtureDistnResults <- function(params, DistnType, Cohorts, ObsFreq, MinSize
       points(MidPtSizeCl, ObsFreq,cex=0.5, pch=16)
     }
   }
+
+  # reset default par options
+  par(.pardefault)
 }
 
 
@@ -2297,10 +2302,10 @@ PlotFittedGrowthCurve <- function(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, O
          frame=F, xaxt = 'n', yaxt = 'n', xlab="", ylab="", main=GraphTitle)
     axis(1, seq(0,xmax,xint),labels=NA, line=0.2)
     axis(2, seq(0,ymax,yint),labels=NA, line=0.2)
-    axis(1, seq(0,xmax,xint), lwd=0, labels=seq(0,xmax,xint), line=-0.2)
-    axis(2, seq(0,ymax,yint), lwd=0, labels=seq(0,ymax,yint), line=-0.2, las=1)
-    mtext(xaxis_lab,las=1,side=1,line=3,cex=1.0)
-    mtext(yaxis_lab,las=3,side=2,line=3,cex=1.0)
+    axis(1, seq(0,xmax,xint), lwd=0, labels=seq(0,xmax,xint), line=-0.2, cex=1.2)
+    axis(2, seq(0,ymax,yint), lwd=0, labels=seq(0,ymax,yint), line=-0.2, las=1, cex=1.2)
+    mtext(xaxis_lab,las=1,side=1,line=3,cex=1.2)
+    mtext(yaxis_lab,las=3,side=2,line=3,cex=1.2)
     lines(res$plotages, res$plotlengths, lwd=2)
     if (PlotCLs == TRUE) { # plot confidence limits
       x = c(res$plotages,rev(res$plotages)) # using shading for 95% CLs
@@ -2325,10 +2330,10 @@ PlotFittedGrowthCurve <- function(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, O
            frame=F, xaxt = 'n', yaxt = 'n', xlab="", ylab="", main=GraphTitle)
     axis(1, seq(0,xmax,xint),labels=NA, line=0.2)
     axis(2, seq(0,ymax,yint),labels=NA, line=0.2)
-    axis(1, seq(0,xmax,xint), lwd=0, labels=seq(0,xmax,xint), line=-0.2)
-    axis(2, seq(0,ymax,yint), lwd=0, labels=seq(0,ymax,yint), line=-0.2, las=1)
-    mtext(xaxis_lab,las=1,side=1,line=3,cex=1.0)
-    mtext(yaxis_lab,las=3,side=2,line=3,cex=1.0)
+    axis(1, seq(0,xmax,xint), lwd=0, labels=seq(0,xmax,xint), line=-0.2, cex=1.2)
+    axis(2, seq(0,ymax,yint), lwd=0, labels=seq(0,ymax,yint), line=-0.2, las=1, cex=1.2)
+    mtext(xaxis_lab,las=1,side=1,line=3,cex=1.2)
+    mtext(yaxis_lab,las=3,side=2,line=3,cex=1.2)
     lines(res$plotages, res$plotlengths[1,], lwd=2)
     legend("topleft", pch=-1, legend="Females", bty='n', cex=0.8,lwd=-1)
     if (PlotCLs == TRUE) { # plot confidence limits
@@ -2353,10 +2358,10 @@ PlotFittedGrowthCurve <- function(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, O
          frame=F, xaxt = 'n', yaxt = 'n', xlab="", ylab="", main=GraphTitle)
     axis(1, seq(0,xmax,xint),labels=NA, line=0.2)
     axis(2, seq(0,ymax,yint),labels=NA, line=0.2)
-    axis(1, seq(0,xmax,xint), lwd=0, labels=seq(0,xmax,xint), line=-0.2)
-    axis(2, seq(0,ymax,yint), lwd=0, labels=seq(0,ymax,yint), line=-0.2, las=1)
-    mtext(xaxis_lab,las=1,side=1,line=3,cex=1.0)
-    mtext(yaxis_lab,las=3,side=2,line=3,cex=1.0)
+    axis(1, seq(0,xmax,xint), lwd=0, labels=seq(0,xmax,xint), line=-0.2, cex=1.2)
+    axis(2, seq(0,ymax,yint), lwd=0, labels=seq(0,ymax,yint), line=-0.2, las=1, cex=1.2)
+    mtext(xaxis_lab,las=1,side=1,line=3,cex=1.2)
+    mtext(yaxis_lab,las=3,side=2,line=3,cex=1.2)
     lines(res$plotages, res$plotlengths[2,], lwd=2)
     legend("topleft", pch=-1, legend="Males", bty='n', cex=0.8,lwd=-1)
     if (PlotCLs == TRUE) {  # plot confidence limits
@@ -3510,6 +3515,8 @@ GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen
 #' @export
 PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes) {
 
+  .pardefault <- par(no.readonly = TRUE) # store default par settings
+
   # if model already fitted, can input results rather than refit
   if (is.list(FittedRes)) {
     res =  FittedRes
@@ -3529,18 +3536,33 @@ PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_
   }
 
   par(mfrow = c(3,2), mar=c(4,4,2,2))
-  plot(Obs_Initlen,Obs_Finlen-Obs_Initlen, cex=0.8, col="dark grey", xlab = " Init. Len. (mm)", ylab = "Len. inc. (mm)", bty='n')
-  points(Obs_Initlen,EstLenAtRelAge-Obs_Initlen, pch=16, col="black", cex=0.8)
+  xlims=Get_xaxis_scale(Obs_Initlen)
+  tempdat = Obs_Finlen-Obs_Initlen
+  ylims=Get_yaxis_scale(tempdat)
+  plot(Obs_Initlen,Obs_Finlen-Obs_Initlen, cex=0.8, cex.axis=1, col="dark grey", xlab = list(" Init. Len. (mm)", cex=1.2),
+       ylab = list("Len. inc. (mm)",cex=1.2), bty='n', xlim=c(0,xlims$xmax), ylim=c(0,ylims$ymax), )
+  points(Obs_Initlen,EstLenAtRelAge-Obs_Initlen, pch=16, col="black", cex=0.6)
 
   # initial length vs final length
-  plot(Obs_Initlen,Obs_Finlen, cex=0.8, col="dark grey", xlab = " Init. Len. (mm)", ylab = "Final inc. (mm)", bty='n')
-  points(Obs_Initlen,EstLenAtRelAge, pch=16, col="black")
+  xlims=Get_xaxis_scale(Obs_Initlen)
+  ylims=Get_yaxis_scale(Obs_Finlen)
+  plot(Obs_Initlen,Obs_Finlen, cex=0.8, cex.axis=1, col="dark grey", xlab = list(" Init. Len. (mm)",cex=1.2),
+       ylab = list("Final inc. (mm)",cex=1.2), bty='n', xlim=c(0,xlims$xmax), ylim=c(0,ylims$ymax))
+  points(Obs_Initlen,EstLenAtRelAge, pch=16, col="black", cex=0.6)
 
   # res vs initial length
-  plot(Obs_Initlen, Obs_Finlen-EstLenAtRelAge, cex=0.8, col="dark grey", xlab = " Init. len (mm)", ylab = "Residual (mm)", bty='n')
+  xlims=Get_xaxis_scale(Obs_Initlen)
+  tempdat = Obs_Finlen-EstLenAtRelAge
+  ylims=Get_yaxis_scale(tempdat)
+  plot(Obs_Initlen, Obs_Finlen-EstLenAtRelAge, cex=0.8, cex.axis=1, col="dark grey", xlab = list(" Init. len (mm)",cex=1.2),
+       ylab = list("Residual (mm)",cex=1.2), bty='n',xlim=c(0,xlims$xmax), ylim=c(0,ylims$ymax))
 
   # res vs delta_t
-  plot(Obs_delta_t, Obs_Finlen-EstLenAtRelAge, cex=0.8, col="dark grey", xlab = " Delta_t (days)", ylab = "Residual (mm)", bty='n')
+  xlims=Get_xaxis_scale(Obs_delta_t)
+  tempdat = Obs_Finlen-EstLenAtRelAge
+  ylims=Get_yaxis_scale(tempdat)
+  plot(Obs_delta_t, Obs_Finlen-EstLenAtRelAge, cex=0.8, cex.axis=1, col="dark grey", xlab = list(" Delta_t (days)",cex=1.2),
+       ylab = list("Residual (mm)",cex=1.2), bty='n',xlim=c(0,xlims$xmax), ylim=c(0,ylims$ymax))
 
   # estimate of annual growth increment vs specified initial length
   CalculationStage = 2
@@ -3549,8 +3571,11 @@ PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_
     LenInc[j] = LenAtAge_Rcpp(j, params, GrowthCrvChoice, nstep, CalculationStage, LenPrevIntAge, StartAge=0,
                          Obs_delta_t, Obs_Initlen) - j
   }
-  plot(1:MaxLen, LenInc, "l", ylim=c(0,60), cex=0.0,
-       xlab = " Init. len. (mm)", ylab = "Est. ann. inc. (mm)", bty='n')
+
+  xlims=Get_xaxis_scale(MaxLen)
+  ylims=Get_yaxis_scale(LenInc)
+  plot(1:MaxLen, LenInc, "l", cex=0.8, cex.axis=1, xlab = list(" Init. len. (mm)",cex=1.2),
+       ylab = list("Est. ann. inc. (mm)",cex=1.2), bty='n', xlim=c(0,xlims$xmax), ylim=c(0,ylims$ymax))
 
   # estimate of length at integer ages
   CalculationStage = 3
@@ -3564,9 +3589,15 @@ PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_
                                         Obs_delta_t, Obs_Initlen)
     }
   }
-
-  plot(0:MaxAge,EstLenAtIntAge,ylim=c(0,240), pch=16, xlab = " Age (yrs)", ylab = "Length (mm)", bty='n')
+  # simulated growth curve
+  xlims=Get_xaxis_scale(MaxAge)
+  ylims=Get_yaxis_scale(EstLenAtIntAge)
+  plot(0:MaxAge,EstLenAtIntAge, cex=0.8, cex.axis=1, pch=16, xlab = list(" Age (yrs)",cex=1.2),
+       ylab = list("Length (mm)",cex=1.2), bty='n',xlim=c(0,xlims$xmax))
   lines(0:MaxAge,EstLenAtIntAge, col="black")
+
+  # reset default par options
+  par(.pardefault)
 }
 
 
@@ -3595,7 +3626,7 @@ PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_
 #' TotSampSize = MnthSampeSizes * nMnths
 #' Mnths = 1:nMnths
 #' MeanMMGSI = rep(c(rep(0.1,4),0.25, 0.7, 0.6, 0.3, rep(0.1,4)),MMSampSize)
-#' randMMGSI = rnorm(TotSampSize,MeanMMGSI,0.1)
+#' randMMGSI = exp(rnorm(TotSampSize,log(MeanMMGSI),0.5))
 #' length(randMMGSI)
 #' MM = rep(Mnths,times=MMSampSize)
 #' FishLen = round(runif(TotSampSize,100,500),0)
@@ -3671,9 +3702,9 @@ CalcMeanMonthlyGSIs <- function(MatL50, FishRepdat) {
 #' FishLen = round(runif(TotSampSize,100,500),0)
 #' FishWt = (0.0000001 * FishLen ^ 3)
 #' GonadWt = (randMMGSI / 100) * FishWt
-#' GSIdat = data.frame(MM=MM, FishLen=FishLen, GonadWt=GonadWt, FishWt=FishWt)
+#' FishRepdat = data.frame(MM=MM, FishLen=FishLen, GonadWt=GonadWt, FishWt=FishWt)
 #' MatL50 = 200
-#' PlotGSIData(MatL50, GSIdat, ymax=NA, yint=NA, GraphTitle="Females",
+#' PlotGSIData(MatL50, FishRepdat, ymax=NA, yint=NA, GraphTitle="Females",
 #'                                 xaxis_lab="Month",yaxis_lab="Mean GSI")
 #' @export
 PlotGSIData <- function(MatL50, FishRepdat, ymax, yint, GraphTitle,
@@ -3690,16 +3721,15 @@ PlotGSIData <- function(MatL50, FishRepdat, ymax, yint, GraphTitle,
 
   MMabb = substr(month.abb, 1, 1)
   plot(res$Mnth, res$Mean, "o", pch=16, frame=F, xlim = c(1,12), ylim = c(0,ymax),
-       xaxt='n', yaxt="n", xlab=xaxis_lab, ylab=yaxis_lab, main=GraphTitle)
+       xaxt='n', yaxt="n", xlab=list(xaxis_lab,cex=1.2), ylab=list(yaxis_lab,cex=1.2), main=list(GraphTitle,cex=1.2))
   arrows(res$Mnth,res$Low95,res$Mnth,res$Up95,
          code=3, angle=90, length=0.03)
-  axis(1, at=1:12, tck=0.03, cex=0.5, labels=F,line=0.5)
-  axis(1, at=1:12, labels = MMabb[1:12], tck=0.03, cex=0.5, line=0, lwd=0)
-  axis(2, at=seq(0, ymax, yint), tck=0.03, cex=0.5, labels=F,line=0.5)
-  axis(2, at=seq(0, ymax, yint), tck=0.03, cex=0.5, labels=T,line=0, lwd=0, las=2)
+  axis(1, at=1:12, tck=0.03, cex=1, labels=F,line=0.5)
+  axis(1, at=1:12, labels = MMabb[1:12], tck=0.03, cex=1, line=0, lwd=0)
+  axis(2, at=seq(0, ymax, yint), tck=0.03, cex=1, labels=F,line=0.5)
+  axis(2, at=seq(0, ymax, yint), tck=0.03, cex=1, labels=T,line=0, lwd=0, las=2)
 
 }
-
 
 #' Calculate monthly proportions of each gonad stage
 #'
@@ -3709,6 +3739,42 @@ PlotGSIData <- function(MatL50, FishRepdat, ymax, yint, GraphTitle,
 #' @param FishRepdat data frame containing data for individual fish, including month of capture (MM), fish length (FishLen),
 
 #' @return Monthly gonad stage proportions (PropGonadSt) with a list of gonad stages in data (GonadStages)
+#' @examples
+#' # generate some reproductive data for fish
+#' set.seed(123)
+#' nMnths = 12
+#' MnthSampeSizes = 20
+#' MMSampSize = rep(MnthSampeSizes,nMnths)
+#' TotSampSize = MnthSampeSizes * nMnths
+#' Mnths = 1:nMnths
+#' MeanMMGSI = rep(c(rep(0.1,4),0.25, 0.7, 0.6, 0.3, rep(0.1,4)),MMSampSize)
+#' randMMGSI = exp(rnorm(TotSampSize,log(MeanMMGSI),0.5))
+#' MM = rep(Mnths,times=MMSampSize)
+#' FishLen = round(runif(TotSampSize,100,500),0)
+#' FishWt = (0.0000001 * FishLen ^ 3)
+#' GonadWt = (randMMGSI / 100) * FishWt
+#' FishRepdat = data.frame(MM=MM, FishLen=FishLen, GonadWt=GonadWt, FishWt=FishWt)
+#' MatL50 = 200
+#' JanProps = c(1,0,0,0,0,0,0,0) # specified proportions for each of the gonad stages in each month
+#' FebProps = c(1,0,0,0,0,0,0,0)
+#' MarProps = c(0.95,0.05,0,0,0,0,0,0)
+#' AprProps = c(0.8,0.2,0,0,0,0,0,0)
+#' MayProps = c(0.4,0.3,0.3,0,0,0,0,0)
+#' JunProps = c(0.1,0.1,0.4,0.4,0,0,0,0)
+#' JulProps = c(0.1,0,0,0.3,0.5,0,0.1,0)
+#' AugProps = c(0.1,0,0,0,0,0.3,0.4,0.2)
+#' SepProps = c(0.1,0,0,0,0,0,0.2,0.7)
+#' OctProps = c(0.6,0,0,0,0,0,0,0.4)
+#' NovProps = c(1,0,0,0,0,0,0.1,0.8)
+#' DecProps = c(0.9,0,0,0,0,0,0,0.1)
+#' PropsDat = data.frame(JanProps,FebProps,MarProps,AprProps,MayProps,JunProps,
+#'                       JulProps,AugProps,SepProps,OctProps,NovProps,DecProps)
+#' FishRepdat$GonadSt=NA
+#' for (i in 1:length(FishRepdat$MM)) {
+#'   mm = FishRepdat$MM[i]
+#'   FishRepdat$GonadSt[i] = which(as.vector(rmultinom(1,1,PropsDat[,mm]))==1)
+#' }
+#' CalcMonthlyGonadStageProps(MatL50, FishRepdat)
 #' @export
 CalcMonthlyGonadStageProps <- function(MatL50, FishRepdat) {
 
@@ -3726,7 +3792,6 @@ CalcMonthlyGonadStageProps <- function(MatL50, FishRepdat) {
   PropGonadSt = data.frame(matrix(nrow=12, ncol=length(GonadStages)))
   colnames(PropGonadSt) = GonadStages
 
-  par(mfcol=c(3,3), mar=c(5,4,2,2), oma=c(1,1,1,1))
   for (i in GonadStages) {
     icol = which(GonadStages==i)
     PropGonadSt[, icol] = Table1[, icol]/rowSums(Table1)
@@ -3740,6 +3805,7 @@ CalcMonthlyGonadStageProps <- function(MatL50, FishRepdat) {
                  GonadStages=GonadStages)
 
   return(Results)
+
 }
 
 #' Plot of calculated monthly proportions of fish gonad stages
@@ -3750,8 +3816,46 @@ CalcMonthlyGonadStageProps <- function(MatL50, FishRepdat) {
 #' @param FishRepdat data frame containing data for individual fish, including month of capture (MM), and fish length (FishLen)
 
 #' @return plot of monthly proportions of fish gonad stages
+#' @examples
+#' # generate some reproductive data for fish
+#' set.seed(123)
+#' nMnths = 12
+#' MnthSampeSizes = 20
+#' MMSampSize = rep(MnthSampeSizes,nMnths)
+#' TotSampSize = MnthSampeSizes * nMnths
+#' Mnths = 1:nMnths
+#' MeanMMGSI = rep(c(rep(0.1,4),0.25, 0.7, 0.6, 0.3, rep(0.1,4)),MMSampSize)
+#' randMMGSI = exp(rnorm(TotSampSize,log(MeanMMGSI),0.5))
+#' MM = rep(Mnths,times=MMSampSize)
+#' FishLen = round(runif(TotSampSize,100,500),0)
+#' FishWt = (0.0000001 * FishLen ^ 3)
+#' GonadWt = (randMMGSI / 100) * FishWt
+#' FishRepdat = data.frame(MM=MM, FishLen=FishLen, GonadWt=GonadWt, FishWt=FishWt)
+#' MatL50 = 200
+#' JanProps = c(1,0,0,0,0,0,0,0) # specified proportions for each of the gonad stages in each month
+#' FebProps = c(1,0,0,0,0,0,0,0)
+#' MarProps = c(0.95,0.05,0,0,0,0,0,0)
+#' AprProps = c(0.8,0.2,0,0,0,0,0,0)
+#' MayProps = c(0.4,0.3,0.3,0,0,0,0,0)
+#' JunProps = c(0.1,0.1,0.4,0.4,0,0,0,0)
+#' JulProps = c(0.1,0,0,0.3,0.5,0,0.1,0)
+#' AugProps = c(0.1,0,0,0,0,0.3,0.4,0.2)
+#' SepProps = c(0.1,0,0,0,0,0,0.2,0.7)
+#' OctProps = c(0.6,0,0,0,0,0,0,0.4)
+#' NovProps = c(1,0,0,0,0,0,0.1,0.8)
+#' DecProps = c(0.9,0,0,0,0,0,0,0.1)
+#' PropsDat = data.frame(JanProps,FebProps,MarProps,AprProps,MayProps,JunProps,
+#'                       JulProps,AugProps,SepProps,OctProps,NovProps,DecProps)
+#' FishRepdat$GonadSt=NA
+#' for (i in 1:length(FishRepdat$MM)) {
+#'   mm = FishRepdat$MM[i]
+#'   FishRepdat$GonadSt[i] = which(as.vector(rmultinom(1,1,PropsDat[,mm]))==1)
+#' }
+#' PlotMonthlyGonadStageProps(MatL50, FishRepdat)
 #' @export
 PlotMonthlyGonadStageProps <- function(MatL50, FishRepdat) {
+
+  .pardefault <- par(no.readonly = TRUE) # store default par settings
 
   res=CalcMonthlyGonadStageProps(MatL50, FishRepdat)
   PropGonadSt=res$PropGonadSt
@@ -3769,6 +3873,9 @@ PlotMonthlyGonadStageProps <- function(MatL50, FishRepdat) {
     if (i%in%c(1:3)) {mtext("Proportion",las=3,side=2,line=3, cex=0.8) }
     if (i%in%c(3,6,8)) {mtext("Month",las=1,side=1,line=3,adj=0.5, cex=0.8)}
   }
+
+  # reset default par options
+  par(.pardefault)
 }
 
 
@@ -5382,18 +5489,18 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
          frame=F, xaxt='n', yaxt='n', xlab="", ylab="", main=GraphTitle)
     axis(1,at=seq(0,xmax,xint),line=0.2, labels=F)
     axis(2,at=seq(0,1,0.2), line=0.2, labels=F)
-    axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=0.8, las=1)
-    axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=0.8, las=1)
-    mtext(xaxis_lab, 1, line = 2.5)
-    mtext(yaxis_lab, 2, line = 2.5)
+    axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=1, las=1)
+    axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=1, las=1)
+    mtext(xaxis_lab, 1, line = 2.5, cex=1.2)
+    mtext(yaxis_lab, 2, line = 2.5, cex=1.2)
     if (ShowSampSizes) {
       temp = seq(1,length(LenClSampSize),2)
       text(midpt[temp], 1.1, LenClSampSize[temp], cex = SampSizelab_cex, srt = 0)
       temp = seq(2,length(LenClSampSize),2)
       text(midpt[temp], 1.1, LenClSampSize[temp], cex = SampSizelab_cex, srt = 0, col="blue")
     }
-    legend(0.025*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
-           bty='n', cex=0.6,lwd=-1, y.intersp=1.5)
+    legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
+           bty='n', cex=0.6,lwd=-1, y.intersp=1)
     plotlengths = plotlengthrange[1]:plotlengthrange[2]
     if (length(params)==2) { # not estimating Pmax
       L50 = res$ParamEst[1,1]
@@ -5429,19 +5536,19 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
          frame=F, xaxt='n', yaxt='n', xlab="", ylab="", main=GraphTitle)
     axis(1,at=seq(0,xmax,xint),line=0.2, labels=F)
     axis(2,at=seq(0,1,0.2), line=0.2, labels=F)
-    axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=0.8, las=1)
-    axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=0.8, las=1)
-    mtext(xaxis_lab, 1, line = 2.5)
-    mtext(yaxis_lab, 2, line = 2.5)
+    axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0, cex.axis=1, las=1)
+    axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0, cex.axis=1, las=1)
+    mtext(xaxis_lab, 1, line = 2.5, cex=1.2)
+    mtext(yaxis_lab, 2, line = 2.5, cex=1.2)
     if (ShowSampSizes) {
       temp = seq(1,length(LenClSampSize[1,]),2)
       text(midpt[temp], 1.1, LenClSampSize[1,temp], cex = SampSizelab_cex, srt = 0)
       temp = seq(2,length(LenClSampSize[1,]),2)
       text(midpt[temp], 1.1, LenClSampSize[1,temp], cex = SampSizelab_cex, srt = 0, col="blue")
     }
-    legend(0.025*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
-           bty='n', cex=0.6,lwd=-1, y.intersp=1.5)
-    legend("bottomright",legend="Females",bty='n', cex=0.8)
+    legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
+           bty='n', cex=0.6,lwd=-1, y.intersp=1)
+    legend("bottomright",legend="Females",bty='n', cex=1)
     plotlengths = plotlengthrange[1,1]:plotlengthrange[1,2]
     if (length(params)==4) { # not estimating Pmax
       L50 = res$ParamEst[1,1]
@@ -5476,19 +5583,19 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
          frame=F, xaxt='n', yaxt='n', xlab="", ylab="", main=GraphTitle)
     axis(1,at=seq(0,xmax,xint),line=0.2, labels=F)
     axis(2,at=seq(0,1,0.2), line=0.2, labels=F)
-    axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=0.8, las=1)
-    axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=0.8, las=1)
-    mtext(xaxis_lab, 1, line = 2.5)
-    mtext(yaxis_lab, 2, line = 2.5)
+    axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=1, las=1)
+    axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=1, las=1)
+    mtext(xaxis_lab, 1, line = 2.5, cex=1.2)
+    mtext(yaxis_lab, 2, line = 2.5, cex=1.2)
     if (ShowSampSizes) {
       temp = seq(1,length(LenClSampSize[2,]),2)
       text(midpt[temp], 1.1, LenClSampSize[2,temp], cex = SampSizelab_cex, srt = 0)
       temp = seq(2,length(LenClSampSize[2,]),2)
       text(midpt[temp], 1.1, LenClSampSize[2,temp], cex = SampSizelab_cex, srt = 0, col="blue")
     }
-    legend(0.025*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
-           bty='n', cex=0.6,lwd=-1, y.intersp=1.5)
-    legend("bottomright",legend="Males",bty='n', cex=0.8)
+    legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
+           bty='n', cex=0.6,lwd=-1, y.intersp=1)
+    legend("bottomright",legend="Males",bty='n', cex=1)
     plotlengths = plotlengthrange[2,1]:plotlengthrange[2,2]
     if (length(params)==4) { # not estimating Pmax
       L50 = res$ParamEst[3,1]
@@ -5647,10 +5754,10 @@ PlotFittedAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat, Ag
          frame=F, xaxt='n', yaxt='n', xlab="", ylab="", main=GraphTitle)
     axis(1,at=seq(0,xmax,xint),line=0.2, labels=F)
     axis(2,at=seq(0,1,0.2), line=0.2, labels=F)
-    axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=0.8, las=1)
-    axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=0.8, las=1)
-    mtext(xaxis_lab, 1, line = 2.5)
-    mtext(yaxis_lab, 2, line = 2.5)
+    axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=1, las=1)
+    axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=1, las=1)
+    mtext(xaxis_lab, 1, line = 2.5, cex=1.2)
+    mtext(yaxis_lab, 2, line = 2.5, cex=1.2)
     if (ShowSampSizes) {
       temp = seq(1,length(AgeClSampSize),2)
       text(AgeCl[temp], 1.1, AgeClSampSize[temp], cex = SampSizelab_cex, srt = 0)
@@ -5658,8 +5765,8 @@ PlotFittedAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat, Ag
       text(AgeCl[temp], 1.1, AgeClSampSize[temp], cex = SampSizelab_cex, srt = 0, col="blue")
       # text(AgeCl, 1.1, AgeClSampSize, cex = 0.6, srt=0)
     }
-    legend(0.025*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. A50"), lty="solid",
-           bty='n', cex=0.6,lwd=-1, y.intersp=1.5)
+    legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. A50"), lty="solid",
+           bty='n', cex=0.8,lwd=-1, y.intersp=1)
 
     if (length(params)==2) { # not estimating Pmax
       A50 = res$ParamEst[1,1]
@@ -5696,19 +5803,19 @@ PlotFittedAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat, Ag
          frame=F, xaxt='n', yaxt='n', xlab="", ylab="", main=GraphTitle)
     axis(1,at=seq(0,xmax,xint),line=0.2, labels=F)
     axis(2,at=seq(0,1,0.2), line=0.2, labels=F)
-    axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=0.8, las=1)
-    axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=0.8, las=1)
-    mtext(xaxis_lab, 1, line = 2.5)
-    mtext(yaxis_lab, 2, line = 2.5)
+    axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=1, las=1)
+    axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=1, las=1)
+    mtext(xaxis_lab, 1, line = 2.5, cex=1.2)
+    mtext(yaxis_lab, 2, line = 2.5, cex=1.2)
     if (ShowSampSizes) {
       temp = seq(1,length(AgeClSampSize[1,]),2)
       text(AgeCl[temp], 1.1, AgeClSampSize[1,temp], cex = SampSizelab_cex, srt = 0)
       temp = seq(2,length(AgeClSampSize[1,]),2)
       text(AgeCl[temp], 1.1, AgeClSampSize[1,temp], cex = SampSizelab_cex, srt = 0, col="blue")
     }
-    legend(0.025*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. A50"), lty="solid",
-           bty='n', cex=0.6,lwd=-1, y.intersp=1.5)
-    legend("bottomright",legend="Females",bty='n', cex=0.8)
+    legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
+           bty='n', cex=0.6,lwd=-1, y.intersp=1)
+    legend("bottomright",legend="Females",bty='n', cex=1)
     if (length(params)==4) { # not estimating Pmax
       A50 = res$ParamEst[1,1]
       A95 = res$ParamEst[2,1]
@@ -5742,19 +5849,19 @@ PlotFittedAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat, Ag
          frame=F, xaxt='n', yaxt='n', xlab="", ylab="", main=GraphTitle)
     axis(1,at=seq(0,xmax,xint),line=0.2, labels=F)
     axis(2,at=seq(0,1,0.2), line=0.2, labels=F)
-    axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=0.8, las=1)
-    axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=0.8, las=1)
-    mtext(xaxis_lab, 1, line = 2.5)
-    mtext(yaxis_lab, 2, line = 2.5)
+    axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=1, las=1)
+    axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=1, las=1)
+    mtext(xaxis_lab, 1, line = 2.5, cex=1.2)
+    mtext(yaxis_lab, 2, line = 2.5, cex=1.2)
     if (ShowSampSizes) {
       temp = seq(1,length(AgeClSampSize[2,]),2)
       text(AgeCl[temp], 1.1, AgeClSampSize[2,temp], cex = SampSizelab_cex, srt = 0)
       temp = seq(2,length(AgeClSampSize[2,]),2)
       text(AgeCl[temp], 1.1, AgeClSampSize[2,temp], cex = SampSizelab_cex, srt = 0, col="blue")
     }
-    legend(0.025*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. A50"), lty="solid",
-           bty='n', cex=0.6,lwd=-1, y.intersp=1.5)
-    legend("bottomright",legend="Males",bty='n', cex=0.8)
+    legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
+           bty='n', cex=0.6,lwd=-1, y.intersp=1)
+    legend("bottomright",legend="Males",bty='n', cex=1)
     if (length(params)==4) { # not estimating Pmax
       A50 = res$ParamEst[3,1]
       A95 = res$ParamEst[4,1]
@@ -5937,7 +6044,7 @@ GetWeightLengthRegressionResults <- function(FishLen, FishWt) {
 #' Res = SimulateWeightLengthData(nsamples, minlen, maxlen,
 #'                                lenwt_a, lenwt_b, lenwt_sd)
 #' FishLen=Res$FishLen
-#' FishWt=Res$FishWt
+#' FishWt=Res$FishWt/1000 # kg
 #' # Fit weight-length relationship and plot results (in normal space)
 #' PlotWeightLengthRel_NormalSpace(FishLen, FishWt, xmin=NA, ymin=NA, xmax=NA, ymax=NA, xint=NA, yint=NA,
 #' GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T)
@@ -5976,19 +6083,19 @@ PlotWeightLengthRel_NormalSpace <- function(FishLen, FishWt, xmin, ymin, xmax, y
     xaxis_lab = "Length (mm)"
   }
   if (is.na(yaxis_lab)) {
-    yaxis_lab = "Weight (g)"
+    yaxis_lab = "Weight (kg)"
   }
 
 
   # plot in normal space (with bias correction applied)
   plot(FishLen, FishWt, pch=16, cex=0.5, bty='n', ylim=c(0,ymax), xlim=c(0,xmax), xaxt='n', yaxt='n',
-       ylab="", xlab="", main=GraphTitle, cex.main=0.8)
-  axis(1,at=seq(0,xmax,xint), cex.axis=0.8, lwd=1.75,lab=F) # y axis
-  axis(2,at=seq(0,ymax,yint), cex.axis=0.8, lwd=1.75,lab=F) # y axis
-  axis(1,at=seq(0,xmax,xint), labels=seq(0,xmax,xint),cex.axis=0.8,line=0,las=1,lwd=1.5,tick=F) #add y labels
-  axis(2,at=seq(0,ymax,yint), cex.axis=0.8,line=0,las = 1,lwd=1.5,tick=F) #add y labels
-  mtext(yaxis_lab,las=3,side=2,line=3,cex=1,lwd=1.75)
-  mtext(xaxis_lab,las=1,side=1,line=3,cex=1,lwd=1.75)
+       ylab="", xlab="", main=GraphTitle, cex.main=1)
+  axis(1,at=seq(0,xmax,xint), cex.axis=1, lwd=1.75,lab=F) # y axis
+  axis(2,at=seq(0,ymax,yint), cex.axis=1, lwd=1.75,lab=F) # y axis
+  axis(1,at=seq(0,xmax,xint), labels=seq(0,xmax,xint),cex.axis=1,line=0,las=1,lwd=1.5,tick=F) #add y labels
+  axis(2,at=seq(0,ymax,yint), cex.axis=1,line=0,las = 1,lwd=1.5,tick=F) #add y labels
+  mtext(yaxis_lab,las=3,side=2,line=3,cex=1.2,lwd=1.75)
+  mtext(xaxis_lab,las=1,side=1,line=3,cex=1.2,lwd=1.75)
   # lines(exp(res$plot_lnlen), exp(res$conf_int[,1]), col="black", lty="dotted") # without bias correction
   lines(exp(res$plot_lnlen), exp(res$conf_int[,1]) * exp(0.5*res$Resid_var), col="black", lty="solid")
 
@@ -6000,7 +6107,7 @@ PlotWeightLengthRel_NormalSpace <- function(FishLen, FishWt, xmin, ymin, xmax, y
     legend(0.05*xmax, 0.95*ymax, pch=c(1,16), legend=c("Estimate", "low 95% CL", "up 95% CL", "low 95% PL", "up 95% PL"),
            lty=c("solid","dashed","dashed","dotted","dotted"),
            col=c("black","dark grey","dark grey","blue","blue"),
-           bty='n', cex=0.6,lwd=1, y.intersp=1.5)
+           bty='n', cex=0.8,lwd=1, y.intersp=1)
   }
 }
 
@@ -6031,7 +6138,7 @@ PlotWeightLengthRel_NormalSpace <- function(FishLen, FishWt, xmin, ymin, xmax, y
 #' Res = SimulateWeightLengthData(nsamples, minlen, maxlen,
 #'                                lenwt_a, lenwt_b, lenwt_sd)
 #' FishLen=Res$FishLen
-#' FishWt=Res$FishWt
+#' FishWt=Res$FishWt/1000 # kg
 #' # Fit weight-length relationship and plot results (in log space)
 #' PlotWeightLengthRel_LogSpace(FishLen, FishWt, xmin=NA, ymin=NA, xmax=NA, ymax=NA, xint=NA, yint=NA,
 #' GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T)
@@ -6070,18 +6177,18 @@ PlotWeightLengthRel_LogSpace <- function(FishLen, FishWt, xmin, ymin, xmax, ymax
     xaxis_lab = "ln Length (mm)"
   }
   if (is.na(yaxis_lab)) {
-    yaxis_lab = "ln Weight (g)"
+    yaxis_lab = "ln Weight (kg)"
   }
 
   # plot in log space
   plot(log(FishLen), log(FishWt), pch=16, cex=0.5, bty='n', ylim=c(ymin,ymax), xlim=c(xmin,xmax), xaxt='n', yaxt='n',
-       ylab="", xlab="", main=GraphTitle, cex.main=0.8)
-  axis(1,at=seq(xmin,xmax,xint), cex.axis=0.8, lwd=1.75,lab=F) # y axis
-  axis(2,at=seq(ymin,ymax,yint), cex.axis=0.8, lwd=1.75,lab=F) # y axis
-  axis(1,at=seq(xmin,xmax,xint), labels=seq(xmin,xmax,xint),cex.axis=0.8,line=0,las=1,lwd=1.5,tick=F) #add y labels
-  axis(2,at=seq(ymin,ymax,yint), cex.axis=0.8,line=0,las = 1,lwd=1.5,tick=F) #add y labels
-  mtext(yaxis_lab,las=3,side=2,line=3,cex=1,lwd=1.75)
-  mtext(xaxis_lab,las=1,side=1,line=3,cex=1,lwd=1.75)
+       ylab="", xlab="", main=GraphTitle, cex.main=1)
+  axis(1,at=seq(xmin,xmax,xint), cex.axis=1, lwd=1.75,lab=F) # y axis
+  axis(2,at=seq(ymin,ymax,yint), cex.axis=1, lwd=1.75,lab=F) # y axis
+  axis(1,at=seq(xmin,xmax,xint), labels=seq(xmin,xmax,xint),cex.axis=1,line=0,las=1,lwd=1.5,tick=F) #add y labels
+  axis(2,at=seq(ymin,ymax,yint), cex.axis=1,line=0,las = 1,lwd=1.5,tick=F) #add y labels
+  mtext(yaxis_lab,las=3,side=2,line=3,cex=1.2,lwd=1.75)
+  mtext(xaxis_lab,las=1,side=1,line=3,cex=1.2,lwd=1.75)
   lines(res$plot_lnlen, res$conf_int[,1], col="black", lty="solid")
 
   if (PlotCLs == T) {
@@ -6092,6 +6199,6 @@ PlotWeightLengthRel_LogSpace <- function(FishLen, FishWt, xmin, ymin, xmax, ymax
     legend(1.05*xmin, 0.95*ymax, pch=c(1,16), legend=c("Estimate", "low 95% CL", "up 95% CL", "low 95% PL", "up 95% PL"),
            lty=c("solid","dashed","dashed","dotted","dotted"),
            col=c("black","dark grey","dark grey","blue","blue"),
-           bty='n', cex=0.6,lwd=1, y.intersp=1.5)
+           bty='n', cex=0.8,lwd=1, y.intersp=1)
   }
 }
