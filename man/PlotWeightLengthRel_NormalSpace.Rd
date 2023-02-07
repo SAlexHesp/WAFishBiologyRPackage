@@ -61,7 +61,7 @@ lenwt_sd = 0.1
 Res = SimulateWeightLengthData(nsamples, minlen, maxlen,
                                lenwt_a, lenwt_b, lenwt_sd)
 FishLen=Res$FishLen
-FishWt=Res$FishWt
+FishWt=Res$FishWt/1000 # kg
 # Fit weight-length relationship and plot results (in normal space)
 PlotWeightLengthRel_NormalSpace(FishLen, FishWt, xmin=NA, ymin=NA, xmax=NA, ymax=NA, xint=NA, yint=NA,
 GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T)

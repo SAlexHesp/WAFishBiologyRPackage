@@ -57,11 +57,12 @@ MaxAge = 20
 # MaturityParams = c(A50, A95, Pmax)
 nSexes = 2
 nSamples = c(300,300)
+CurveType = 1
 A50 = c(4,4.5)
 A95 = c(6,6)
 Pmax = c(1.0,1.0)
 MaturityParams = c(A50, A95, Pmax)
-res=SimulateAgeAtMaturityData(nSamples, nSexes, MinAge, MaxAge, MaturityParams)
+res=SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
 AgeCl = res$AgeClasses
 # Single sex
 # PropMat = res$PropMat

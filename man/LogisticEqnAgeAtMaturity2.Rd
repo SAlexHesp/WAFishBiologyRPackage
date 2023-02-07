@@ -4,10 +4,12 @@
 \alias{LogisticEqnAgeAtMaturity2}
 \title{Logistic curve for age at maturity (for plotting)}
 \usage{
-LogisticEqnAgeAtMaturity2(params, nSexes, plotages)
+LogisticEqnAgeAtMaturity2(params, CurveType, nSexes, plotages)
 }
 \arguments{
-\item{params}{c(A50, A95) ages at 50 and 95 percent maturity}
+\item{params}{c(A50, A95) or c(Pmax, A50, A95) for CurveType=1, or c(Q, B, V) or c(Pmax, Q, B, V) for CurveType=2}
+
+\item{CurveType}{number of sexes}
 
 \item{nSexes}{number of sexes}
 

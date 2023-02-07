@@ -34,6 +34,7 @@ LenInc = 20
 # single sex/combined sexes
 nSexes = 1
 nSamples = 300
+CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
 Linf = 300
 vbK = 0.3
 tzero = 0
@@ -42,8 +43,8 @@ GrowthParams = c(Linf, vbK, tzero, CVSizeAtAge)
 L50 = 220
 L95 = 270
 Pmax = 1.0
-Maturity_params = c(L50, L95, Pmax)
-SimulateLengthAtMaturityData(nSamples, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, Maturity_params)
+MaturityParams = c(L50, L95, Pmax)
+SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
 ObsLen=res$ObsLen
 ObsMatCat=res$ObsMatCat
 CalcPropMatureAtLength(MaxLen, LenInc, ObsLen, ObsMatCat)

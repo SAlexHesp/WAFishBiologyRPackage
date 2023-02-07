@@ -7,6 +7,7 @@
 GetConfidenceLimitsForMaturityCurve(
   params,
   vcov.params,
+  CurveType,
   nSexes,
   LogisticModType,
   plotlengthrange,
@@ -17,6 +18,8 @@ GetConfidenceLimitsForMaturityCurve(
 \item{params}{c(L50,L95) or c(A50, A95) length or age-based logistic maturity parameters}
 
 \item{vcov.params}{estimated variance-covariance matrix for maturity parameters}
+
+\item{CurveType}{1=symmetric logistic, 2=asymmetric logistic}
 
 \item{nSexes}{number of sexes}
 

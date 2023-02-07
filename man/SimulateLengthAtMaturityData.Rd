@@ -6,17 +6,20 @@
 \usage{
 SimulateLengthAtMaturityData(
   nSamples,
+  CurveType,
   nSexes,
   MaxAge,
   MinLen,
   MaxLen,
   LenInc,
   GrowthParams,
-  Maturity_params
+  MaturityParams
 )
 }
 \arguments{
 \item{nSamples}{number of required samples}
+
+\item{CurveType}{1 = symmetric logistic, 2 = asymmetric logistic}
 
 \item{nSexes}{number of sexes}
 
@@ -30,9 +33,7 @@ SimulateLengthAtMaturityData(
 
 \item{GrowthParams}{von Bertalanffy growth parameters and cv for mean size at age}
 
-\item{L50}{length at 50 percent maturity}
-
-\item{L95}{length at 95 percent maturity}
+\item{MaturityParams}{for one or both sexes, for symmetric logistic (L50, L95, Pmax), or asymmetric logistic (Q, B, V, Pmax)}
 }
 \value{
 Random fish lengths (ObsLen), maturity category, 1 or 0 (ObsMatCat),
@@ -40,91 +41,61 @@ length class lower bound (lbnd), length class mid point (midpt), proportion matu
 (PropMat),  plotlengths (lengths to plot maturity curve), length class sample sizes (LenClSampSize)
 }
 \description{
-Simulate length at maturity data, given specified growth, size at maturity parameters and required sample size
+Simulate length at maturity data, given specified growth, size at maturity parameters for required sample size. Can
+simulate data for one or two sexes, and based on a symmetric or asymmetric logistic curve.
 }
 \examples{
-# von Bertalanffy growth equation
-# simulate data (ignoring mortality and selectivity effects)
-GrowthEqn = 1 # von Bertalanffy growth equation
-nSexes = 1 # single or combined sex
+# simulate maturity data (ignoring mortality and selectivity effects)
 nSamples = 300
-MinAge = 1
+CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
+nSexes = 1 # single or combined sex
 MaxAge = 20
-AgeStep = 1
-Linf = 300
+MinLen = 0
+MaxLen = 500
+LenInc = 50
+Linf = 300 # von Bertalanffy growth equation
 vbK = 0.3
 tzero = 0
-Growth_params = c(Linf, vbK, tzero)
-Ref_ages = NA
 Growth_cv = 0.08
-Res = SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-nSexes = 2 # Separate sexes
-nSamples = c(300,200) # if different, order so NAs are last for smaller sample
-MinAge = 1
-MaxAge = 20
-AgeStep = 1
-Linf = c(300,250)
-vbK = c(0.3,0.3)
-tzero = c(0,0)
-GrowthEqn = 1
-Growth_params = c(Linf, vbK, tzero)
-Ref_ages = NA
-Growth_cv = c(0.08,0.08)
-Res = SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-# Schnute growth equation
-# simulate data (ignoring mortality and selectivity effects)
-GrowthEqn = 2 # Schnute growth equation
-nSexes = 1 # single or combined sex
-nSamples = 500
-MinAge = 0
-MaxAge = 20
-Agestep = 1
-ObsAge = runif(nSamples, MinAge, MaxAge)
-Ref_ages = c(0.5,15)
-Growth_params = c(100,400,0.02,3)
-Growth_cv = 0.1
-Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-GrowthEqn = 2 # Schnute equation
-nSexes = 2 # separate sexes
-nSamples = c(500,500)
-MinAge = 0.2
-MaxAge = 20
-AgeStep = 1
-ObsAge = runif(nSamples, MinAge, MaxAge)
-Ref_ages = c(0.5,15)
-Growth_params = c(100,120,400,450,0.05,0.05,2,2)
-Growth_cv = c(0.1,0.1)
-Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-# Seasonal growth curve
-# simulate data (ignoring mortality and selectivity effects)
-GrowthEqn=3 # Seasonal growth curve
-nSexes=1 # single or combined sex
-nSamples = 1000
-MinAge = 0
-MaxAge = 3
-AgeStep = 1/12
-Linf = 150
-vbK = 1
-tzero = 0
-tc = 0.25
-C = 0.8
-Ref_ages=NA
-Growth_params=c(Linf,vbK,tzero,tc,C)
-Growth_cv = 0.1
-Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-GrowthEqn=3 # Seasonal growth curve
-nSexes=2 # separate sexes
-nSamples = c(500,500)
-MinAge = 0
-MaxAge = 3
-AgeStep = 1/12
-Linf = c(150,160)
-vbK = c(1,1)
-tzero = c(0,0)
-tc = c(0.25,0.25)
-C = c(0.8,0.8)
-Ref_ages=NA
-Growth_params=c(Linf,vbK,tzero,tc,C)
-Growth_cv = c(0.1,0.1)
-Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
+GrowthParams = c(Linf, vbK, tzero, Growth_cv)
+L50 = 180
+L95 = 200
+Pmax = 1.0
+MaturityParams = c(L50,L95,Pmax)
+Res = SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
+# nSamples = 300
+# CurveType = 2 # 1 = symmetric logistic, 2 = asymmetric logistic
+# nSexes = 1 # single or combined sex
+# MaxAge = 20
+# MinLen = 0
+# MaxLen = 500
+# LenInc = 50
+# Linf = 300 # von Bertalanffy growth equation
+# vbK = 0.3
+# tzero = 0
+# Growth_cv = 0.08
+# GrowthParams = c(Linf, vbK, tzero, Growth_cv)
+# Q = 1.0
+# B = 0.01
+# V = 0.5
+# Pmax = 1.0
+# MaturityParams = c(Q, B, V, Pmax)
+# Res = SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
+# nSamples = c(300, 300)
+# nSexes = 2 # Separate sexes
+# CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
+# MaxAge = 20
+# MinLen = 0
+# MaxLen = 500
+# LenInc = 50
+# Linf = c(300, 350)
+# vbK = c(0.3, 0.3)
+# tzero = c(0, 0)
+# Growth_cv = c(0.08, 0.08)
+# GrowthParams = c(Linf, vbK, tzero, Growth_cv)
+# L50 = c(180, 190)
+# L95 = c(200, 210)
+# Pmax = c(1.0, 1.0)
+# MaturityParams = c(L50,L95,Pmax)
+# Res = SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
 }

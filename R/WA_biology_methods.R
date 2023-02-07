@@ -3929,7 +3929,7 @@ LogisticEqnLengthAtMaturity <- function(params) {
     if (CurveType == 1) { # symmetric
       results = Pmax / (1.0 + exp(- log(19) * (ObsLen - L50) / (L95 - L50)))
     } else { # asymmetric
-      results = Pmax / (1 + Q * exp(-log(B * ObsLen)) ^ (1 / V))
+      results = Pmax / ((1 + Q * exp(-B * ObsLen)) ^ (1 / V))
     }
   }
 
@@ -3941,7 +3941,7 @@ LogisticEqnLengthAtMaturity <- function(params) {
       if (CurveType == 1) {
         results[i,] = Pmax[i] / (1.0 + exp(- log(19) * (ObsLen[i,] - L50[i]) / (L95[i] - L50[i])))
       } else {
-        results[i,] = Pmax[i] / (1.0 + Q[i] * exp(-log(B[i] * ObsLen[i,])) ^ (1 / V[i]))
+        results[i,] = Pmax[i] / ((1.0 + Q[i] * exp(-B[i] * ObsLen[i,])) ^ (1 / V[i]))
       }
     }
   }
@@ -3999,7 +3999,7 @@ LogisticEqnLengthAtMaturity2 <- function(params, CurveType, nSexes, plotlengthra
     if (CurveType == 1) {
       results = Pmax / (1.0 + exp(- log(19) * (plotlengths - L50) / (L95 - L50)))
     } else {
-      results = Pmax / (1 + Q * exp(-log(B * plotlengths)) ^ (1 / V))
+      results = Pmax / ((1 + Q * exp(-B * ObsLen)) ^ (1 / V))
     }
   }
 
@@ -4010,8 +4010,8 @@ LogisticEqnLengthAtMaturity2 <- function(params, CurveType, nSexes, plotlengthra
       Femresults = Pmax[1] / (1.0 + exp(- log(19) * (plotlengths_Fem - L50[1]) / (L95[1] - L50[1])))
       Malresults = Pmax[2] / (1.0 + exp(- log(19) * (plotlengths_Mal - L50[2]) / (L95[2] - L50[2])))
     } else {
-      Femresults[i,] = Pmax[1] / (1.0 + Q[1] * exp(-log(B[1] * plotlengths_Fem[1,])) ^ (1 / V[1]))
-      Malresults[i,] = Pmax[2] / (1.0 + Q[2] * exp(-log(B[2] * plotlengths_Mal[2,])) ^ (1 / V[2]))
+      Femresults[i,] = Pmax[1] / ((1.0 + Q[1] * exp(-B[1] * plotlengths_Fem[1,])) ^ (1 / V[1]))
+      Malresults[i,] = Pmax[2] / ((1.0 + Q[2] * exp(-B[2] * plotlengths_Mal[2,])) ^ (1 / V[2]))
     }
 
     results = list(Femresults=Femresults,
@@ -4067,7 +4067,7 @@ LogisticEqnAgeAtMaturity <- function(params) {
     if (CurveType == 1) { # symmetric
       results = Pmax / (1.0 + exp(- log(19) * (ObsAgeCl - A50) / (A95 - A50)))
     } else { # asymmetric
-      results = Pmax / (1 + Q * exp(-log(B * ObsAgeCl)) ^ (1 / V))
+      results = Pmax / ((1 + Q * exp(-B * ObsAgeCl)) ^ (1 / V))
     }
   }
   if (nSexes==2) {
@@ -4078,7 +4078,7 @@ LogisticEqnAgeAtMaturity <- function(params) {
       if (CurveType == 1) { # symmetric
         results[i,] = Pmax[i] / (1.0 + exp(- log(19) * (ObsAgeCl[i,] - A50[i]) / (A95[i] - A50[i])))
       } else { # asymmetric
-        results[i,] = Pmax[i] / (1.0 + Q[i] * exp(-log(B[i] * ObsAgeCl[i,])) ^ (1 / V[i]))
+        results[i,] = Pmax[i] / ((1.0 + Q[i] * exp(-B[i] * ObsAgeCl[i,])) ^ (1 / V[i]))
       }
     }
   }
@@ -4135,7 +4135,7 @@ LogisticEqnAgeAtMaturity2 <- function(params, CurveType, nSexes, plotages) {
     if (CurveType == 1) { # symmetric
       results = Pmax / (1.0 + exp(- log(19) * (plotages - A50) / (A95 - A50)))
     } else {
-      results = Pmax / (1 + Q * exp(-log(B * plotages)) ^ (1 / V))
+      results = Pmax / ((1 + Q * exp(-B * plotages)) ^ (1 / V))
     }
 
   }
@@ -4147,7 +4147,7 @@ LogisticEqnAgeAtMaturity2 <- function(params, CurveType, nSexes, plotages) {
       if (CurveType == 1) { # symmetric
         results[i,] = Pmax[i] / (1.0 + exp(- log(19) * (plotages - A50[i]) / (A95[i] - A50[i])))
       } else {
-        results[i,] = Pmax[i] / (1.0 + Q[i] * exp(-log(B[i] * plotages)) ^ (1 / V[i]))
+        results[i,] = Pmax[i] / ((1.0 + Q[i] * exp(-B[i] * plotages)) ^ (1 / V[i]))
       }
     }
   }
@@ -4285,7 +4285,7 @@ SimulateLengthAtMaturityData <- function(nSamples, CurveType, nSexes, MaxAge, Mi
     if (CurveType == 1) { # symmetric logistic
       ProbMat = Pmax[s] / (1 + exp(-log(19) * (tempObsLen - L50[s]) / (L95[s] - L50[s])))
     } else { # asymmetric logistic
-      ProbMat = Pmax[s] / (1 + Q[s] * exp(-log(B[s] * tempObsLen)) ^ (1 / V[s]))
+      ProbMat = Pmax[s] / ((1 + Q[s] * exp(-B[s] * tempObsLen)) ^ (1 / V[s]))
     }
 
     for (i in 1:nLenObs) {
@@ -4468,7 +4468,7 @@ SimulateAgeAtMaturityData <- function(nSamples, CurveType, nSexes, MinAge, MaxAg
     if (CurveType == 1) {  # symmetric
       ProbMat = Pmax[s] / (1 + exp(-log(19) * (tempObsAgeCl - A50[s]) / (A95[s] - A50[s])))
     } else {
-      ProbMat = Pmax[s] / (1 + Q[s] * exp(-log(B[s] * tempObsAgeCl)) ^ (1 / V[s]))
+      ProbMat = Pmax[s] / ((1 + Q[s] * exp(-B[s] * tempObsAgeCl)) ^ (1 / V[s]))
     }
     for (i in 1:nAgeObs) {
       if (rnd[i] <= ProbMat[i]) {
@@ -5668,21 +5668,38 @@ PlotFittedLengthAtMaturityCurve <- function(params, CurveType, nSexes, ObsLen, O
     }
 
     plotlengths = plotlengthrange[1]:plotlengthrange[2]
-    if (length(params)==2) { # not estimating Pmax
-      L50 = res$ParamEst[1,1]
-      L95 = res$ParamEst[2,1]
-      Pmax = 1.0
+
+    if (CurveType==1) {
+      if (length(params)==2) { # not estimating Pmax
+        L50 = res$ParamEst[1,1]
+        L95 = res$ParamEst[2,1]
+        Pmax = 1.0
+      }
+      if (length(params)==3) { # estimating Pmax
+        Pmax = res$ParamEst[1,1]
+        L50 = res$ParamEst[2,1]
+        L95 = res$ParamEst[3,1]
+      }
+    } else {
+      if (length(params)==3) { # not estimating Pmax
+        Q = exp(res$ParamEst[1,1])
+        B = exp(res$ParamEst[2,1])
+        V = exp(res$ParamEst[3,1])
+        Pmax = 1.0
+      }
+      if (length(params)==4) { # estimating Pmax
+        Pmax = res$ParamEst[1,1]
+        Q = exp(res$ParamEst[2,1])
+        B = exp(res$ParamEst[3,1])
+        V = exp(res$ParamEst[4,1])
+      }
     }
-    if (length(params)==3) { # estimating Pmax
-      Pmax = res$ParamEst[1,1]
-      L50 = res$ParamEst[2,1]
-      L95 = res$ParamEst[3,1]
-    }
+
     if (PlotCLs == FALSE) {
       if (CurveType==1) {
         plotprobs = Pmax / (1.0 + exp(- log(19) * (plotlengths - L50) / (L95 - L50)))
       } else {
-        plotprobs = Pmax / (1.0 + Q * exp(-log(B * plotlengths)) ^ (1 / V))
+        plotprobs = Pmax / ((1.0 + Q * exp(-B * plotlengths)) ^ (1 / V))
       }
       lines(plotlengths, plotprobs)
       if (CurveType==1) { points(L50,0.5*Pmax,pch=16,col="black") }
@@ -5723,21 +5740,38 @@ PlotFittedLengthAtMaturityCurve <- function(params, CurveType, nSexes, ObsLen, O
     }
 
     plotlengths = plotlengthrange[1,1]:plotlengthrange[1,2]
-    if (length(params)==4) { # not estimating Pmax
-      L50 = res$ParamEst[1,1]
-      L95 = res$ParamEst[2,1]
-      Pmax = 1.0
+
+    if (CurveType==1) {
+      if (length(params)==4) { # not estimating Pmax
+        L50 = res$ParamEst[1,1]
+        L95 = res$ParamEst[2,1]
+        Pmax = 1.0
+      }
+      if (length(params)==6) { # estimating Pmax
+        Pmax = res$ParamEst[1,1]
+        L50 = res$ParamEst[2,1]
+        L95 = res$ParamEst[3,1]
+      }
+    } else {
+      if (length(params)==3) { # not estimating Pmax
+        Q = exp(res$ParamEst[1,1])
+        B = exp(res$ParamEst[2,1])
+        V = exp(res$ParamEst[3,1])
+        Pmax = 1.0
+      }
+      if (length(params)==4) { # estimating Pmax
+        Pmax = res$ParamEst[1,1]
+        Q = exp(res$ParamEst[2,1])
+        B = exp(res$ParamEst[3,1])
+        V = exp(res$ParamEst[4,1])
+      }
     }
-    if (length(params)==6) { # estimating Pmax
-      Pmax = res$ParamEst[1,1]
-      L50 = res$ParamEst[2,1]
-      L95 = res$ParamEst[3,1]
-    }
+
     if (PlotCLs == FALSE) {
       if (CurveType==1) {
         plotprobs = Pmax / (1.0 + exp(- log(19) * (plotlengths - L50) / (L95 - L50)))
       } else {
-        plotprobs = Pmax / (1.0 + Q * exp(-log(B * plotlengths)) ^ (1 / V))
+        plotprobs = Pmax / ((1.0 + Q * exp(-B * plotlengths)) ^ (1 / V))
       }
       lines(plotlengths, plotprobs)
       if (CurveType==1) { points(L50,0.5*Pmax,pch=16,col="black") }
@@ -5777,22 +5811,39 @@ PlotFittedLengthAtMaturityCurve <- function(params, CurveType, nSexes, ObsLen, O
     }
 
     plotlengths = plotlengthrange[2,1]:plotlengthrange[2,2]
-    if (length(params)==4) { # not estimating Pmax
-      L50 = res$ParamEst[3,1]
-      L95 = res$ParamEst[4,1]
-      Pmax = 1.0
+
+    if (CurveType==1) {
+      if (length(params)==4) { # not estimating Pmax
+        L50 = res$ParamEst[3,1]
+        L95 = res$ParamEst[4,1]
+        Pmax = 1.0
+      }
+      if (length(params)==6) { # estimating Pmax
+        Pmax = res$ParamEst[4,1]
+        L50 = res$ParamEst[5,1]
+        L95 = res$ParamEst[6,1]
+      }
+    } else {
+      if (length(params)==6) { # not estimating Pmax
+        Q = exp(res$ParamEst[4,1])
+        B = exp(res$ParamEst[5,1])
+        V = exp(res$ParamEst[6,1])
+        Pmax = 1.0
+      }
+      if (length(params)==8) { # estimating Pmax
+        Pmax = res$ParamEst[5,1]
+        Q = exp(res$ParamEst[6,1])
+        B = exp(res$ParamEst[7,1])
+        V = exp(res$ParamEst[8,1])
+      }
     }
-    if (length(params)==6) { # estimating Pmax
-      Pmax = res$ParamEst[4,1]
-      L50 = res$ParamEst[5,1]
-      L95 = res$ParamEst[6,1]
-    }
+
     if (PlotCLs == FALSE) {
       plotlengths = plotlengthrange[2,1]:plotlengthrange[2,2]
       if (CurveType==1) {
         plotprobs = Pmax / (1.0 + exp(- log(19) * (plotlengths - L50) / (L95 - L50)))
       } else {
-        plotprobs = Pmax / (1.0 + Q * exp(-log(B * plotlengths)) ^ (1 / V))
+        plotprobs = Pmax / ((1.0 + Q * exp(-B * plotlengths)) ^ (1 / V))
       }
       lines(plotlengths, plotprobs)
       if (CurveType==1) { points(L50,0.5*Pmax,pch=16,col="black") }
@@ -5987,7 +6038,7 @@ PlotFittedAgeAtMaturityCurve <- function(params, CurveType, nSexes, ObsAgeCl, Ob
       if (CurveType==1) {
         plotprobs = Pmax / (1.0 + exp(- log(19) * (plotages - A50) / (A95 - A50)))
       } else {
-        plotprobs = Pmax / (1.0 + Q * exp(-log(B * plotages)) ^ (1 / V))
+        plotprobs = Pmax / ((1.0 + Q * exp(-B * plotages)) ^ (1 / V))
       }
       lines(plotages, plotprobs)
       if (CurveType==1) { points(A50,0.5*Pmax,pch=16,col="black")  }
@@ -6059,7 +6110,7 @@ PlotFittedAgeAtMaturityCurve <- function(params, CurveType, nSexes, ObsAgeCl, Ob
       if (CurveType==1) {
         plotprobs = Pmax / (1.0 + exp(- log(19) * (plotages - A50) / (A95 - A50)))
       } else {
-        plotprobs = Pmax / (1.0 + Q * exp(-log(B * plotages)) ^ (1 / V))
+        plotprobs = Pmax / ((1.0 + Q * exp(-B * plotages)) ^ (1 / V))
       }
       lines(plotages, plotprobs)
       if (CurveType==1) { points(A50,0.5*Pmax,pch=16,col="black")  }
@@ -6129,7 +6180,7 @@ PlotFittedAgeAtMaturityCurve <- function(params, CurveType, nSexes, ObsAgeCl, Ob
       if (CurveType==1) {
         plotprobs = Pmax / (1.0 + exp(- log(19) * (plotages - A50) / (A95 - A50)))
       } else {
-        plotprobs = Pmax / (1.0 + Q * exp(-log(B * plotages)) ^ (1 / V))
+        plotprobs = Pmax / ((1.0 + Q * exp(-B * plotages)) ^ (1 / V))
       }
       lines(plotages, plotprobs)
       if (CurveType==1) { points(A50,0.5*Pmax,pch=16,col="black")  }

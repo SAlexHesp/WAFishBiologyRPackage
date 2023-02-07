@@ -54,6 +54,7 @@ LenInc = 20
 # single sex/combined sexes
 nSexes = 1
 nSamples = 300
+CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
 Linf = 300
 vbK = 0.3
 tzero = 0
@@ -65,6 +66,7 @@ Pmax = 1.0
 Maturity_params = c(L50, L95, Pmax)
 # nSexes = 2
 # nSamples = c(300,300)
+# CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
 # Linf = c(300,350)
 # vbK = c(0.3,0.3)
 # tzero = c(0,0)
@@ -73,8 +75,8 @@ Maturity_params = c(L50, L95, Pmax)
 # L50 = c(220,250)
 # L95 = c(270,290)
 # Pmax = c(1.0,1.0)
-# Maturity_params = c(L50, L95, Pmax)
-res=SimulateLengthAtMaturityData(nSamples, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, Maturity_params)
+# MaturityParams = c(L50, L95, Pmax)
+res=SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
 midpt = res$midpt
 # single sex
 PropMat = res$PropMat

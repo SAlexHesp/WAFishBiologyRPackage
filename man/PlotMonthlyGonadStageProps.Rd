@@ -17,3 +17,40 @@ plot of monthly proportions of fish gonad stages
 \description{
 Plot of calculated monthly proportions of fish gonad stages, used to assess time and duration of spawning
 }
+\examples{
+# generate some reproductive data for fish
+set.seed(123)
+nMnths = 12
+MnthSampeSizes = 20
+MMSampSize = rep(MnthSampeSizes,nMnths)
+TotSampSize = MnthSampeSizes * nMnths
+Mnths = 1:nMnths
+MeanMMGSI = rep(c(rep(0.1,4),0.25, 0.7, 0.6, 0.3, rep(0.1,4)),MMSampSize)
+randMMGSI = exp(rnorm(TotSampSize,log(MeanMMGSI),0.5))
+MM = rep(Mnths,times=MMSampSize)
+FishLen = round(runif(TotSampSize,100,500),0)
+FishWt = (0.0000001 * FishLen ^ 3)
+GonadWt = (randMMGSI / 100) * FishWt
+FishRepdat = data.frame(MM=MM, FishLen=FishLen, GonadWt=GonadWt, FishWt=FishWt)
+MatL50 = 200
+JanProps = c(1,0,0,0,0,0,0,0) # specified proportions for each of the gonad stages in each month
+FebProps = c(1,0,0,0,0,0,0,0)
+MarProps = c(0.95,0.05,0,0,0,0,0,0)
+AprProps = c(0.8,0.2,0,0,0,0,0,0)
+MayProps = c(0.4,0.3,0.3,0,0,0,0,0)
+JunProps = c(0.1,0.1,0.4,0.4,0,0,0,0)
+JulProps = c(0.1,0,0,0.3,0.5,0,0.1,0)
+AugProps = c(0.1,0,0,0,0,0.3,0.4,0.2)
+SepProps = c(0.1,0,0,0,0,0,0.2,0.7)
+OctProps = c(0.6,0,0,0,0,0,0,0.4)
+NovProps = c(1,0,0,0,0,0,0.1,0.8)
+DecProps = c(0.9,0,0,0,0,0,0,0.1)
+PropsDat = data.frame(JanProps,FebProps,MarProps,AprProps,MayProps,JunProps,
+                      JulProps,AugProps,SepProps,OctProps,NovProps,DecProps)
+FishRepdat$GonadSt=NA
+for (i in 1:length(FishRepdat$MM)) {
+  mm = FishRepdat$MM[i]
+  FishRepdat$GonadSt[i] = which(as.vector(rmultinom(1,1,PropsDat[,mm]))==1)
+}
+PlotMonthlyGonadStageProps(MatL50, FishRepdat)
+}

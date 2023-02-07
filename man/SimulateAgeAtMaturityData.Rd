@@ -4,10 +4,19 @@
 \alias{SimulateAgeAtMaturityData}
 \title{Simulate age at maturity data}
 \usage{
-SimulateAgeAtMaturityData(nSamples, nSexes, MinAge, MaxAge, MaturityParams)
+SimulateAgeAtMaturityData(
+  nSamples,
+  CurveType,
+  nSexes,
+  MinAge,
+  MaxAge,
+  MaturityParams
+)
 }
 \arguments{
 \item{nSamples}{number of required samples}
+
+\item{CurveType}{1 = symmetric logistic, 2 = asymmetric logistic}
 
 \item{nSexes}{number of sexes}
 
@@ -15,29 +24,47 @@ SimulateAgeAtMaturityData(nSamples, nSexes, MinAge, MaxAge, MaturityParams)
 
 \item{MaxAge}{maximum age}
 
-\item{A50}{age at 50 percent maturity}
-
-\item{A95}{age at 95 percent maturity}
+\item{MaturityParams}{logistic parameters for one or two sexes, for CurveType = 1 (i.e. A50, A95) or 2 (Q, B, V, Pmax)}
 }
 \description{
-Simulate age at maturity data, given specified growth, size at maturity parameters and required sample size
+Simulate age at maturity data, given specified growth, size at maturity parameters and required sample size. Can simulated
+data for 1 or 2 sexes, and based on symmetric or asymmetric logistic curve
 }
 \examples{
-# generate some synthetic maturity data
 set.seed(123)
 MinAge = 0
 MaxAge = 20
+CurveType = 1  # 1 = symmetric, 2 = asymmetric
 nSexes = 1
 nSamples = 300
 A50 = 4
 A95 = 6
 Pmax = 1.0
 MaturityParams = c(A50, A95, Pmax)
+SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
 # nSexes = 2
 # nSamples = c(300,300)
 # A50 = c(4,4.5)
 # A95 = c(6,6)
 # Pmax = c(1.0,1.0)
 # MaturityParams = c(A50, A95, Pmax)
-SimulateAgeAtMaturityData(nSamples, nSexes, MinAge, MaxAge, MaturityParams)
+# SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
+# CurveType = 2  # 1 = symmetric, 2 = asymmetric
+# nSexes = 1
+# nSamples = 300
+# Q = 0.01
+# B = 0.05
+# V = 0.5
+# Pmax = 1.0
+# MaturityParams = c(Q,B,V,Pmax)
+# SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
+# CurveType = 2  # 1 = symmetric, 2 = asymmetric
+# nSexes = 2
+# nSamples = c(300,300)
+# Q = c(0.01,0.01)
+# B = c(0.05,0.05)
+# V = c(0.5,0.5)
+# Pmax = c(1.0,1.0)
+# MaturityParams = c(Q,B,V,Pmax)
+# SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
 }

@@ -29,11 +29,12 @@ MinAge = 0
 MaxAge = 20
 nSexes = 1
 nSamples = 300
+CurveType = 1
 A50 = 4
 A95 = 6
 Pmax = 1.0
 MaturityParams = c(A50, A95, Pmax)
-res=SimulateAgeAtMaturityData(nSamples, nSexes, MinAge, MaxAge, MaturityParams)
+res=SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
 ObsAgeCl=res$ObsAgeCl
 ObsMatCat=res$ObsMatCat
 CalcPropMatureAtAge(MinAge, MaxAge, ObsAgeCl, ObsMatCat)

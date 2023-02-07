@@ -28,7 +28,7 @@ MMSampSize = rep(MnthSampeSizes,nMnths)
 TotSampSize = MnthSampeSizes * nMnths
 Mnths = 1:nMnths
 MeanMMGSI = rep(c(rep(0.1,4),0.25, 0.7, 0.6, 0.3, rep(0.1,4)),MMSampSize)
-randMMGSI = rnorm(TotSampSize,MeanMMGSI,0.1)
+randMMGSI = exp(rnorm(TotSampSize,log(MeanMMGSI),0.5))
 length(randMMGSI)
 MM = rep(Mnths,times=MMSampSize)
 FishLen = round(runif(TotSampSize,100,500),0)

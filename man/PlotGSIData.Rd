@@ -50,8 +50,8 @@ MM = rep(Mnths,times=MMSampSize)
 FishLen = round(runif(TotSampSize,100,500),0)
 FishWt = (0.0000001 * FishLen ^ 3)
 GonadWt = (randMMGSI / 100) * FishWt
-GSIdat = data.frame(MM=MM, FishLen=FishLen, GonadWt=GonadWt, FishWt=FishWt)
+FishRepdat = data.frame(MM=MM, FishLen=FishLen, GonadWt=GonadWt, FishWt=FishWt)
 MatL50 = 200
-PlotGSIData(MatL50, GSIdat, ymax=NA, yint=NA, GraphTitle="Females",
+PlotGSIData(MatL50, FishRepdat, ymax=NA, yint=NA, GraphTitle="Females",
                                 xaxis_lab="Month",yaxis_lab="Mean GSI")
 }

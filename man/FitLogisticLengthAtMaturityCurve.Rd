@@ -4,10 +4,12 @@
 \alias{FitLogisticLengthAtMaturityCurve}
 \title{Fit a length-based maturity curve to fish maturity-at-length data.}
 \usage{
-FitLogisticLengthAtMaturityCurve(params, nSexes, ObsLen, ObsMatCat)
+FitLogisticLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat)
 }
 \arguments{
 \item{params}{c(L50, L95) lengths at 50 and 95 percent maturity}
+
+\item{CurveType}{1 = symmetric logistic, 2 = asymmetric logistic}
 
 \item{nSexes}{number of sexes}
 

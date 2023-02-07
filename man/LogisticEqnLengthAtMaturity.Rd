@@ -7,15 +7,13 @@
 LogisticEqnLengthAtMaturity(params)
 }
 \arguments{
-\item{params}{c(L50, L95) lengths at 50 and 95 percent maturity}
-
-\item{nSexes}{number of sexes}
+\item{params}{c(L50, L95) or c(Pmax, L50, L95) for CurveType=1, or c(Q, B, V) or c(Pmax, Q, B, V) for CurveType=2}
 }
 \value{
 probability of maturity for observed lengths. Used in calculation of objective function
 for length at maturity model
 }
 \description{
-This function applies a logistic curve for describing probability of maturity at length
+This function applies a logistic curve (symmetric or asymmetric) for describing probability of maturity at length
 }
 \keyword{internal}

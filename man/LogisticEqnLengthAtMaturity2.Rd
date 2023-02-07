@@ -4,10 +4,12 @@
 \alias{LogisticEqnLengthAtMaturity2}
 \title{Logistic curve for length at maturity (for plotting)}
 \usage{
-LogisticEqnLengthAtMaturity2(params, nSexes, plotlengthrange)
+LogisticEqnLengthAtMaturity2(params, CurveType, nSexes, plotlengthrange)
 }
 \arguments{
-\item{params}{c(L50, L95) lengths at 50 and 95 percent maturity}
+\item{params}{c(L50, L95) or c(Pmax, L50, L95) for CurveType=1, or c(Q, B, V) or c(Pmax, Q, B, V) for CurveType=2}
+
+\item{CurveType}{1 = symmetric, 2 = asymmetric}
 
 \item{nSexes}{number of sexes}
 

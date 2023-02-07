@@ -7,14 +7,14 @@
 LogisticEqnAgeAtMaturity(params)
 }
 \arguments{
-\item{params}{c(A50, A95) ages at 50 and 95 percent maturity}
+\item{params}{c(A50, A95) or c(Pmax, A50, A95) for CurveType=1, or c(Q, B, V) or c(Pmax, Q, B, V) for CurveType=2}
 }
 \value{
 probability of maturity for observed ages. Used in calculation of objective function
 for length at maturity model
 }
 \description{
-This function applies a logistic curve for describing probability of maturity at age, used
+This function applies a logistic curve (symmetric or asymmetric) for describing probability of maturity at age, used
 in calculation of objective function for maturity model
 }
 \keyword{internal}
