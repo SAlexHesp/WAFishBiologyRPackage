@@ -3886,41 +3886,51 @@ PlotMonthlyGonadStageProps <- function(MatL50, FishRepdat) {
 
 #' Logistic curve for length at maturity
 #'
-#' This function applies a logistic curve for describing probability of maturity at length
+#' This function applies a logistic curve (symmetric or asymmetric) for describing probability of maturity at length
 #'
 #' @keywords internal
 #'
-#' @param params c(L50, L95) lengths at 50 and 95 percent maturity
-#' @param nSexes number of sexes
+#' @param params c(L50, L95) or c(Pmax, L50, L95) for CurveType=1, or c(Q, B, V) or c(Pmax, Q, B, V) for CurveType=2
 #'
 #' @return probability of maturity for observed lengths. Used in calculation of objective function
 #' for length at maturity model
 LogisticEqnLengthAtMaturity <- function(params) {
 
   # for estimation
-  if (length(params)==2) { # not estimating Pmax, single sex
-    L50 = params[1]
-    L95 = params[2]
-    Pmax = 1.0
-  }
-  if (length(params)==3) { # estimating Pmax, single sex
-    Pmax = ilogit(params[1])
-    L50 = params[2]
-    L95 = params[3]
-  }
-  if (length(params)==4) { # not estimating Pmax, 2 sexes
-    L50 = params[1:2]
-    L95 = params[3:4]
-    Pmax = c(1.0,1.0)
-  }
-  if (length(params)==6) { # estimating Pmax, 2 sexes
-    Pmax = ilogit(params[1:2])
-    L50 = params[3:4]
-    L95 = params[5:6]
+  if (CurveType == 1) { # symmetric
+    if (length(params)==2) { # not estimating Pmax, single sex
+      L50 = params[1]; L95 = params[2]; Pmax = 1.0
+    }
+    if (length(params)==3) { # estimating Pmax, single sex
+      Pmax = ilogit(params[1]); L50 = params[2]; L95 = params[3]
+    }
+    if (length(params)==4) { # not estimating Pmax, 2 sexes
+      L50 = params[1:2]; L95 = params[3:4]; Pmax = c(1.0,1.0)
+    }
+    if (length(params)==6) { # estimating Pmax, 2 sexes
+      Pmax = ilogit(params[1:2]); L50 = params[3:4]; L95 = params[5:6]
+    }
+  } else { # asymmetric
+    if (length(params)==3) { # not estimating Pmax
+      Pmax = 1.0; Q=exp(params[1]); B=exp(params[2]); V=exp(params[3])
+    }
+    if (length(params)==4) { # estimating Pmax
+      Pmax = ilogit(params[1]); Q=exp(params[2]); B=exp(params[3]); V=exp(params[4])
+    }
+    if (length(params)==6) { # not estimating Pmax, 2 sexes
+      Pmax = c(1.0,1.0); Q = exp(params[1:2]); B = exp(params[3:4]); V = exp(params[5:6])
+    }
+    if (length(params)==8) { # estimating Pmax, 2 sexes
+      Pmax = ilogit(params[1:2]); Q = exp(params[3:4]); B = exp(params[5:6]); V = exp(params[7:8])
+    }
   }
 
   if (nSexes==1) {
-    results = Pmax / (1.0 + exp(- log(19) * (ObsLen - L50) / (L95 - L50)))
+    if (CurveType == 1) { # symmetric
+      results = Pmax / (1.0 + exp(- log(19) * (ObsLen - L50) / (L95 - L50)))
+    } else { # asymmetric
+      results = Pmax / (1 + Q * exp(-log(B * ObsLen)) ^ (1 / V))
+    }
   }
 
   if (nSexes==2) {
@@ -3928,12 +3938,16 @@ LogisticEqnLengthAtMaturity <- function(params) {
     colnames(results) = 1:length(ObsLen[1,])
     results = as.matrix(results)
     for (i in 1:nSexes) {
-      results[i,] = Pmax[i] / (1.0 + exp(- log(19) * (ObsLen[i,] - L50[i]) / (L95[i] - L50[i])))
+      if (CurveType == 1) {
+        results[i,] = Pmax[i] / (1.0 + exp(- log(19) * (ObsLen[i,] - L50[i]) / (L95[i] - L50[i])))
+      } else {
+        results[i,] = Pmax[i] / (1.0 + Q[i] * exp(-log(B[i] * ObsLen[i,])) ^ (1 / V[i]))
+      }
     }
   }
-
   return(results)
 }
+
 
 #' Logistic curve for length at maturity (for plotting)
 #'
@@ -3942,46 +3956,64 @@ LogisticEqnLengthAtMaturity <- function(params) {
 #'
 #' @keywords internal
 #'
-#' @param params c(L50, L95) lengths at 50 and 95 percent maturity
+#' @param params c(L50, L95) or c(Pmax, L50, L95) for CurveType=1, or c(Q, B, V) or c(Pmax, Q, B, V) for CurveType=2
+#' @param CurveType 1 = symmetric, 2 = asymmetric
 #' @param nSexes number of sexes
 #' @param plotlengthrange lower and upper length class range for plotting
 #'
 #' @return probability of maturity for specified lengths for plotting, used for plotting maturity results
 #' for length at maturity model
-LogisticEqnLengthAtMaturity2 <- function(params, nSexes, plotlengthrange) {
+LogisticEqnLengthAtMaturity2 <- function(params, CurveType, nSexes, plotlengthrange) {
 
   # for plotting
-  if (length(params)==2) { # not estimating Pmax
-    L50 = params[1]
-    L95 = params[2]
-    Pmax = 1.0
-  }
-  if (length(params)==3) { # estimating Pmax
-    Pmax = ilogit(params[1])
-    L50 = params[2]
-    L95 = params[3]
-  }
-  if (length(params)==4) { # not estimating Pmax, 2 sexes
-    L50 = params[1:2]
-    L95 = params[3:4]
-    Pmax = c(1.0,1.0)
-  }
-  if (length(params)==6) { # estimating Pmax, 2 sexes
-    Pmax = ilogit(params[1:2])
-    L50 = params[3:4]
-    L95 = params[5:6]
+  if (CurveType == 1) { # symmetric
+    if (length(params)==2) { # not estimating Pmax, single sex
+      L50 = params[1]; L95 = params[2]; Pmax = 1.0
+    }
+    if (length(params)==3) { # estimating Pmax, single sex
+      Pmax = ilogit(params[1]); L50 = params[2]; L95 = params[3]
+    }
+    if (length(params)==4) { # not estimating Pmax, 2 sexes
+      L50 = params[1:2]; L95 = params[3:4]; Pmax = c(1.0,1.0)
+    }
+    if (length(params)==6) { # estimating Pmax, 2 sexes
+      Pmax = ilogit(params[1:2]); L50 = params[3:4]; L95 = params[5:6]
+    }
+  } else { # asymmetric
+    if (length(params)==3) { # not estimating Pmax
+      Pmax = 1.0; Q=exp(params[1]); B=exp(params[2]); V=exp(params[3])
+    }
+    if (length(params)==4) { # estimating Pmax
+      Pmax = ilogit(params[1]); Q=exp(params[2]); B=exp(params[3]); V=exp(params[4])
+    }
+    if (length(params)==6) { # not estimating Pmax, 2 sexes
+      Pmax = c(1.0,1.0); Q = exp(params[1:2]); B = exp(params[3:4]); V = exp(params[5:6])
+    }
+    if (length(params)==8) { # estimating Pmax, 2 sexes
+      Pmax = ilogit(params[1:2]); Q = exp(params[3:4]); B = exp(params[5:6]); V = exp(params[7:8])
+    }
   }
 
   if (nSexes==1) {
     plotlengths = plotlengthrange[1]:plotlengthrange[2]
-    results = Pmax / (1.0 + exp(- log(19) * (plotlengths - L50) / (L95 - L50)))
+    if (CurveType == 1) {
+      results = Pmax / (1.0 + exp(- log(19) * (plotlengths - L50) / (L95 - L50)))
+    } else {
+      results = Pmax / (1 + Q * exp(-log(B * plotlengths)) ^ (1 / V))
+    }
   }
 
   if (nSexes==2) {
-    plotlengths = plotlengthrange[1,1]:plotlengthrange[1,2]
-    Femresults = Pmax[1] / (1.0 + exp(- log(19) * (plotlengths - L50[1]) / (L95[1] - L50[1])))
-    plotlengths = plotlengthrange[2,1]:plotlengthrange[2,2]
-    Malresults = Pmax[2] / (1.0 + exp(- log(19) * (plotlengths - L50[2]) / (L95[2] - L50[2])))
+    plotlengths_Fem = plotlengthrange[1,1]:plotlengthrange[1,2]
+    plotlengths_Mal = plotlengthrange[2,1]:plotlengthrange[2,2]
+    if (CurveType == 1) {
+      Femresults = Pmax[1] / (1.0 + exp(- log(19) * (plotlengths_Fem - L50[1]) / (L95[1] - L50[1])))
+      Malresults = Pmax[2] / (1.0 + exp(- log(19) * (plotlengths_Mal - L50[2]) / (L95[2] - L50[2])))
+    } else {
+      Femresults[i,] = Pmax[1] / (1.0 + Q[1] * exp(-log(B[1] * plotlengths_Fem[1,])) ^ (1 / V[1]))
+      Malresults[i,] = Pmax[2] / (1.0 + Q[2] * exp(-log(B[2] * plotlengths_Mal[2,])) ^ (1 / V[2]))
+    }
+
     results = list(Femresults=Femresults,
                    Malresults=Malresults)
   }
@@ -3991,53 +4023,68 @@ LogisticEqnLengthAtMaturity2 <- function(params, nSexes, plotlengthrange) {
 
 #' Logistic curve for age at maturity
 #'
-#' This function applies a logistic curve for describing probability of maturity at age, used
+#' This function applies a logistic curve (symmetric or asymmetric) for describing probability of maturity at age, used
 #' in calculation of objective function for maturity model
 #'
 #' @keywords internal
 #'
-#' @param params c(A50, A95) ages at 50 and 95 percent maturity
+#' @param params c(A50, A95) or c(Pmax, A50, A95) for CurveType=1, or c(Q, B, V) or c(Pmax, Q, B, V) for CurveType=2
 #'
 #' @return probability of maturity for observed ages. Used in calculation of objective function
 #' for length at maturity model
 LogisticEqnAgeAtMaturity <- function(params) {
   # for estimation
 
-  if (length(params)==2) { # not estimating Pmax
-    A50=params[1]
-    A95=params[2]
-    Pmax = 1.0
-  }
-  if (length(params)==3) { # estimating Pmax
-    Pmax = ilogit(params[1])
-    A50=params[2]
-    A95=params[3]
-  }
-  if (length(params)==4) { # not estimating Pmax, 2 sexes
-    A50 = params[1:2]
-    A95 = params[3:4]
-    Pmax = c(1.0,1.0)
-  }
-  if (length(params)==6) { # estimating Pmax, 2 sexes
-    Pmax = ilogit(params[1:2])
-    A50 = params[3:4]
-    A95 = params[5:6]
+  if (CurveType == 1) { # symmetric
+    if (length(params)==2) { # not estimating Pmax
+      Pmax = 1.0; A50=params[1]; A95=params[2]
+    }
+    if (length(params)==3) { # estimating Pmax
+      Pmax = ilogit(params[1]); A50=params[2]; A95=params[3]
+    }
+    if (length(params)==4) { # not estimating Pmax, 2 sexes
+      Pmax = c(1.0,1.0); A50 = params[1:2]; A95 = params[3:4]
+    }
+    if (length(params)==6) { # estimating Pmax, 2 sexes
+      Pmax = ilogit(params[1:2]); A50 = params[3:4]; A95 = params[5:6]
+    }
+  } else { # asymmetric
+    if (length(params)==3) { # not estimating Pmax
+      Pmax = 1.0; Q=exp(params[1]); B=exp(params[2]); V=exp(params[3])
+    }
+    if (length(params)==4) { # estimating Pmax
+      Pmax = ilogit(params[1]); Q=exp(params[2]); B=exp(params[3]); V=exp(params[4])
+    }
+    if (length(params)==6) { # not estimating Pmax, 2 sexes
+      Pmax = c(1.0,1.0); Q = exp(params[1:2]); B = exp(params[3:4]); V = exp(params[5:6])
+    }
+    if (length(params)==8) { # estimating Pmax, 2 sexes
+      Pmax = ilogit(params[1:2]); Q = exp(params[3:4]); B = exp(params[5:6]); V = exp(params[7:8])
+    }
   }
 
   if (nSexes==1) {
-    results = Pmax / (1.0 + exp(- log(19) * (ObsAgeCl - A50) / (A95 - A50)))
+    if (CurveType == 1) { # symmetric
+      results = Pmax / (1.0 + exp(- log(19) * (ObsAgeCl - A50) / (A95 - A50)))
+    } else { # asymmetric
+      results = Pmax / (1 + Q * exp(-log(B * ObsAgeCl)) ^ (1 / V))
+    }
   }
   if (nSexes==2) {
     results = data.frame(matrix(nrow=2, ncol=length(ObsAgeCl[1,])))
     colnames(results) = 1:length(ObsAgeCl[1,])
     results = as.matrix(results)
     for (i in 1:nSexes) {
-      results[i,] = Pmax[i] / (1.0 + exp(- log(19) * (ObsAgeCl[i,] - A50[i]) / (A95[i] - A50[i])))
+      if (CurveType == 1) { # symmetric
+        results[i,] = Pmax[i] / (1.0 + exp(- log(19) * (ObsAgeCl[i,] - A50[i]) / (A95[i] - A50[i])))
+      } else { # asymmetric
+        results[i,] = Pmax[i] / (1.0 + Q[i] * exp(-log(B[i] * ObsAgeCl[i,])) ^ (1 / V[i]))
+      }
     }
   }
-
   return(results)
 }
+
 
 #' Logistic curve for age at maturity (for plotting)
 #'
@@ -4046,45 +4093,62 @@ LogisticEqnAgeAtMaturity <- function(params) {
 #'
 #' @keywords internal
 #'
-#' @param params c(A50, A95) ages at 50 and 95 percent maturity
+#' @param params c(A50, A95) or c(Pmax, A50, A95) for CurveType=1, or c(Q, B, V) or c(Pmax, Q, B, V) for CurveType=2
+#' @param CurveType number of sexes
 #' @param nSexes number of sexes
 #' @param plotages age classes for plotting
 #'
 #' @return probability of maturity for observed ages. Used in calculation of objective function
 #' for length at maturity model
-LogisticEqnAgeAtMaturity2 <- function(params, nSexes, plotages) {
+LogisticEqnAgeAtMaturity2 <- function(params, CurveType, nSexes, plotages) {
   # for plotting
 
-  if (length(params)==2) { # not estimating Pmax
-    A50=params[1]
-    A95=params[2]
-    Pmax = 1.0
-  }
-  if (length(params)==3) { # estimating Pmax
-    Pmax = ilogit(params[1])
-    A50=params[2]
-    A95=params[3]
-  }
-  if (length(params)==4) { # not estimating Pmax, 2 sexes
-    A50 = params[1:2]
-    A95 = params[3:4]
-    Pmax = c(1.0,1.0)
-  }
-  if (length(params)==6) { # estimating Pmax, 2 sexes
-    Pmax = ilogit(params[1:2])
-    A50 = params[3:4]
-    A95 = params[5:6]
+  if (CurveType == 1) { # symmetric
+    if (length(params)==2) { # not estimating Pmax
+      Pmax = 1.0; A50=params[1]; A95=params[2]
+    }
+    if (length(params)==3) { # estimating Pmax
+      Pmax = ilogit(params[1]); A50=params[2]; A95=params[3]
+    }
+    if (length(params)==4) { # not estimating Pmax, 2 sexes
+      Pmax = c(1.0,1.0); A50 = params[1:2]; A95 = params[3:4]
+    }
+    if (length(params)==6) { # estimating Pmax, 2 sexes
+      Pmax = ilogit(params[1:2]); A50 = params[3:4]; A95 = params[5:6]
+    }
+  } else { # asymmetric
+    if (length(params)==3) { # not estimating Pmax
+      Pmax = 1.0; Q=exp(params[1]); B=exp(params[2]); V=exp(params[3])
+    }
+    if (length(params)==4) { # estimating Pmax
+      Pmax = ilogit(params[1]); Q=exp(params[2]); B=exp(params[3]); V=exp(params[4])
+    }
+    if (length(params)==6) { # not estimating Pmax, 2 sexes
+      Pmax = c(1.0,1.0); Q = exp(params[1:2]); B = exp(params[3:4]); V = exp(params[5:6])
+    }
+    if (length(params)==8) { # estimating Pmax, 2 sexes
+      Pmax = ilogit(params[1:2]); Q = exp(params[3:4]); B = exp(params[5:6]); V = exp(params[7:8])
+    }
   }
 
   if (nSexes==1) {
-    results = Pmax / (1.0 + exp(- log(19) * (plotages - A50) / (A95 - A50)))
+    if (CurveType == 1) { # symmetric
+      results = Pmax / (1.0 + exp(- log(19) * (plotages - A50) / (A95 - A50)))
+    } else {
+      results = Pmax / (1 + Q * exp(-log(B * plotages)) ^ (1 / V))
+    }
+
   }
   if (nSexes==2) {
     results = data.frame(matrix(nrow=2, ncol=length(plotages)))
     colnames(results) = 1:length(plotages)
     results = as.matrix(results)
     for (i in 1:nSexes) {
-      results[i,] = Pmax[i] / (1.0 + exp(- log(19) * (plotages - A50[i]) / (A95[i] - A50[i])))
+      if (CurveType == 1) { # symmetric
+        results[i,] = Pmax[i] / (1.0 + exp(- log(19) * (plotages - A50[i]) / (A95[i] - A50[i])))
+      } else {
+        results[i,] = Pmax[i] / (1.0 + Q[i] * exp(-log(B[i] * plotages)) ^ (1 / V[i]))
+      }
     }
   }
 
@@ -4093,127 +4157,111 @@ LogisticEqnAgeAtMaturity2 <- function(params, nSexes, plotages) {
 
 #' Simulate length at maturity data
 #'
-#' Simulate length at maturity data, given specified growth, size at maturity parameters and required sample size
+#' Simulate length at maturity data, given specified growth, size at maturity parameters for required sample size. Can
+#' simulate data for one or two sexes, and based on a symmetric or asymmetric logistic curve.
 #'
 #' @param nSamples number of required samples
+#' @param CurveType 1 = symmetric logistic, 2 = asymmetric logistic
 #' @param nSexes number of sexes
 #' @param MaxAge maximum age
-#' @param GrowthParams von Bertalanffy growth parameters and cv for mean size at age
 #' @param MinLen minimum length
 #' @param MaxLen maximum length
 #' @param LenInc length class interval
-#' @param L50 length at 50 percent maturity
-#' @param L95 length at 95 percent maturity
+#' @param GrowthParams von Bertalanffy growth parameters and cv for mean size at age
+#' @param MaturityParams for one or both sexes, for symmetric logistic (L50, L95, Pmax), or asymmetric logistic (Q, B, V, Pmax)
 #'
 #' @return Random fish lengths (ObsLen), maturity category, 1 or 0 (ObsMatCat),
 #' length class lower bound (lbnd), length class mid point (midpt), proportion mature in length classes,
 #' (PropMat),  plotlengths (lengths to plot maturity curve), length class sample sizes (LenClSampSize)
 #'
 #' @examples
-#' # von Bertalanffy growth equation
-#' # simulate data (ignoring mortality and selectivity effects)
-#' GrowthEqn = 1 # von Bertalanffy growth equation
-#' nSexes = 1 # single or combined sex
+#' # simulate maturity data (ignoring mortality and selectivity effects)
 #' nSamples = 300
-#' MinAge = 1
+#' CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
+#' nSexes = 1 # single or combined sex
 #' MaxAge = 20
-#' AgeStep = 1
-#' Linf = 300
+#' MinLen = 0
+#' MaxLen = 500
+#' LenInc = 50
+#' Linf = 300 # von Bertalanffy growth equation
 #' vbK = 0.3
 #' tzero = 0
-#' Growth_params = c(Linf, vbK, tzero)
-#' Ref_ages = NA
 #' Growth_cv = 0.08
-#' Res = SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-#' nSexes = 2 # Separate sexes
-#' nSamples = c(300,200) # if different, order so NAs are last for smaller sample
-#' MinAge = 1
-#' MaxAge = 20
-#' AgeStep = 1
-#' Linf = c(300,250)
-#' vbK = c(0.3,0.3)
-#' tzero = c(0,0)
-#' GrowthEqn = 1
-#' Growth_params = c(Linf, vbK, tzero)
-#' Ref_ages = NA
-#' Growth_cv = c(0.08,0.08)
-#' Res = SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-#' # Schnute growth equation
-#' # simulate data (ignoring mortality and selectivity effects)
-#' GrowthEqn = 2 # Schnute growth equation
-#' nSexes = 1 # single or combined sex
-#' nSamples = 500
-#' MinAge = 0
-#' MaxAge = 20
-#' Agestep = 1
-#' ObsAge = runif(nSamples, MinAge, MaxAge)
-#' Ref_ages = c(0.5,15)
-#' Growth_params = c(100,400,0.02,3)
-#' Growth_cv = 0.1
-#' Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-#' GrowthEqn = 2 # Schnute equation
-#' nSexes = 2 # separate sexes
-#' nSamples = c(500,500)
-#' MinAge = 0.2
-#' MaxAge = 20
-#' AgeStep = 1
-#' ObsAge = runif(nSamples, MinAge, MaxAge)
-#' Ref_ages = c(0.5,15)
-#' Growth_params = c(100,120,400,450,0.05,0.05,2,2)
-#' Growth_cv = c(0.1,0.1)
-#' Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-#' # Seasonal growth curve
-#' # simulate data (ignoring mortality and selectivity effects)
-#' GrowthEqn=3 # Seasonal growth curve
-#' nSexes=1 # single or combined sex
-#' nSamples = 1000
-#' MinAge = 0
-#' MaxAge = 3
-#' AgeStep = 1/12
-#' Linf = 150
-#' vbK = 1
-#' tzero = 0
-#' tc = 0.25
-#' C = 0.8
-#' Ref_ages=NA
-#' Growth_params=c(Linf,vbK,tzero,tc,C)
-#' Growth_cv = 0.1
-#' Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-#' GrowthEqn=3 # Seasonal growth curve
-#' nSexes=2 # separate sexes
-#' nSamples = c(500,500)
-#' MinAge = 0
-#' MaxAge = 3
-#' AgeStep = 1/12
-#' Linf = c(150,160)
-#' vbK = c(1,1)
-#' tzero = c(0,0)
-#' tc = c(0.25,0.25)
-#' C = c(0.8,0.8)
-#' Ref_ages=NA
-#' Growth_params=c(Linf,vbK,tzero,tc,C)
-#' Growth_cv = c(0.1,0.1)
-#' Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
+#' GrowthParams = c(Linf, vbK, tzero, Growth_cv)
+#' L50 = 180
+#' L95 = 200
+#' Pmax = 1.0
+#' MaturityParams = c(L50,L95,Pmax)
+#' Res = SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
+#' # nSamples = 300
+#' # CurveType = 2 # 1 = symmetric logistic, 2 = asymmetric logistic
+#' # nSexes = 1 # single or combined sex
+#' # MaxAge = 20
+#' # MinLen = 0
+#' # MaxLen = 500
+#' # LenInc = 50
+#' # Linf = 300 # von Bertalanffy growth equation
+#' # vbK = 0.3
+#' # tzero = 0
+#' # Growth_cv = 0.08
+#' # GrowthParams = c(Linf, vbK, tzero, Growth_cv)
+#' # Q = 1.0
+#' # B = 0.01
+#' # V = 0.5
+#' # Pmax = 1.0
+#' # MaturityParams = c(Q, B, V, Pmax)
+#' # Res = SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
+#' # nSamples = c(300, 300)
+#' # nSexes = 2 # Separate sexes
+#' # CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
+#' # MaxAge = 20
+#' # MinLen = 0
+#' # MaxLen = 500
+#' # LenInc = 50
+#' # Linf = c(300, 350)
+#' # vbK = c(0.3, 0.3)
+#' # tzero = c(0, 0)
+#' # Growth_cv = c(0.08, 0.08)
+#' # GrowthParams = c(Linf, vbK, tzero, Growth_cv)
+#' # L50 = c(180, 190)
+#' # L95 = c(200, 210)
+#' # Pmax = c(1.0, 1.0)
+#' # MaturityParams = c(L50,L95,Pmax)
+#' # Res = SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
 #' @export
-SimulateLengthAtMaturityData <- function(nSamples, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, Maturity_params) {
+SimulateLengthAtMaturityData <- function(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams) {
 
   if (nSexes==1) {
     Linf = GrowthParams[1]
     vbK = GrowthParams[2]
     tzero = GrowthParams[3]
     CVSizeAtAge = GrowthParams[4]
-    L50 = Maturity_params[1]
-    L95 = Maturity_params[2]
-    Pmax = Maturity_params[3]
+    if (CurveType == 1) { # symmetric logistic
+      L50 = MaturityParams[1]
+      L95 = MaturityParams[2]
+      Pmax = MaturityParams[3]
+    } else { # asymmetric logistic
+      Q = MaturityParams[1]
+      B = MaturityParams[2]
+      V = MaturityParams[3]
+      Pmax = MaturityParams[4]
+    }
   }
   if (nSexes==2) {
     Linf = GrowthParams[1:2]
     vbK = GrowthParams[3:4]
     tzero = GrowthParams[5:6]
     CVSizeAtAge = GrowthParams[7:8]
-    L50 = Maturity_params[1:2]
-    L95 = Maturity_params[3:4]
-    Pmax = Maturity_params[5:6]
+    if (CurveType == 1) { # symmetric logistic
+      L50 = MaturityParams[1:2]
+      L95 = MaturityParams[3:4]
+      Pmax = MaturityParams[5:6]
+    } else {
+      Q = MaturityParams[1:2]
+      B = MaturityParams[3:4]
+      V = MaturityParams[5:6]
+      Pmax = MaturityParams[7:8]
+    }
   }
 
   # set up length bins
@@ -4234,7 +4282,12 @@ SimulateLengthAtMaturityData <- function(nSamples, nSexes, MaxAge, MinLen, MaxLe
     nLenObs = length(tempObsLen)
     rnd = runif(nLenObs,0,1)
     tempObsMatCat = rep(NA, nLenObs)
-    ProbMat = Pmax / (1 + exp(-log(19) * (tempObsLen - L50) / (L95 - L50)))
+    if (CurveType == 1) { # symmetric logistic
+      ProbMat = Pmax[s] / (1 + exp(-log(19) * (tempObsLen - L50[s]) / (L95[s] - L50[s])))
+    } else { # asymmetric logistic
+      ProbMat = Pmax[s] / (1 + Q[s] * exp(-log(B[s] * tempObsLen)) ^ (1 / V[s]))
+    }
+
     for (i in 1:nLenObs) {
       if (rnd[i] <= ProbMat[i]) {
         tempObsMatCat[i] = 1
@@ -4297,7 +4350,6 @@ SimulateLengthAtMaturityData <- function(nSamples, nSexes, MaxAge, MinLen, MaxLe
     }
   } # sex
 
-
   results = list(ObsLen = ObsLen,
                  FemObsLen = FemObsLen,
                  MalObsLen = MalObsLen,
@@ -4321,45 +4373,82 @@ SimulateLengthAtMaturityData <- function(nSamples, nSexes, MaxAge, MinLen, MaxLe
 
 #' Simulate age at maturity data
 #'
-#' Simulate age at maturity data, given specified growth, size at maturity parameters and required sample size
+#' Simulate age at maturity data, given specified growth, size at maturity parameters and required sample size. Can simulated
+#' data for 1 or 2 sexes, and based on symmetric or asymmetric logistic curve
 #'
 #' @param nSamples number of required samples
+#' @param CurveType 1 = symmetric logistic, 2 = asymmetric logistic
 #' @param nSexes number of sexes
 #' @param MinAge minimum age
 #' @param MaxAge maximum age
-#' @param A50 age at 50 percent maturity
-#' @param A95 age at 95 percent maturity
+#' @param MaturityParams logistic parameters for one or two sexes, for CurveType = 1 (i.e. A50, A95) or 2 (Q, B, V, Pmax)
 #'
 #' @examples
-#' # generate some synthetic maturity data
 #' set.seed(123)
 #' MinAge = 0
 #' MaxAge = 20
+#' CurveType = 1  # 1 = symmetric, 2 = asymmetric
 #' nSexes = 1
 #' nSamples = 300
 #' A50 = 4
 #' A95 = 6
 #' Pmax = 1.0
 #' MaturityParams = c(A50, A95, Pmax)
+#' SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
 #' # nSexes = 2
 #' # nSamples = c(300,300)
 #' # A50 = c(4,4.5)
 #' # A95 = c(6,6)
 #' # Pmax = c(1.0,1.0)
 #' # MaturityParams = c(A50, A95, Pmax)
-#' SimulateAgeAtMaturityData(nSamples, nSexes, MinAge, MaxAge, MaturityParams)
+#' # SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
+#' # CurveType = 2  # 1 = symmetric, 2 = asymmetric
+#' # nSexes = 1
+#' # nSamples = 300
+#' # Q = 0.01
+#' # B = 0.05
+#' # V = 0.5
+#' # Pmax = 1.0
+#' # MaturityParams = c(Q,B,V,Pmax)
+#' # SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
+#' # CurveType = 2  # 1 = symmetric, 2 = asymmetric
+#' # nSexes = 2
+#' # nSamples = c(300,300)
+#' # Q = c(0.01,0.01)
+#' # B = c(0.05,0.05)
+#' # V = c(0.5,0.5)
+#' # Pmax = c(1.0,1.0)
+#' # MaturityParams = c(Q,B,V,Pmax)
+#' # SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
 #' @export
-SimulateAgeAtMaturityData <- function(nSamples, nSexes, MinAge, MaxAge, MaturityParams) {
+SimulateAgeAtMaturityData <- function(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams) {
 
-  if (nSexes==1) {
-    A50 = MaturityParams[1]
-    A95 = MaturityParams[2]
-    Pmax = MaturityParams[3]
+  if (CurveType == 1) {  # symmetric
+    if (nSexes==1) {
+      A50 = MaturityParams[1]
+      A95 = MaturityParams[2]
+      Pmax = MaturityParams[3]
+    }
+    if (nSexes==2) {
+      A50 = MaturityParams[1:2]
+      A95 = MaturityParams[3:4]
+      Pmax = MaturityParams[5:6]
+    }
   }
-  if (nSexes==2) {
-    A50 = MaturityParams[1:2]
-    A95 = MaturityParams[3:4]
-    Pmax = MaturityParams[5:6]
+
+  if (CurveType == 2) {  # asymmetric
+    if (nSexes==1) {
+      Q = MaturityParams[1]
+      B = MaturityParams[2]
+      V = MaturityParams[3]
+      Pmax = MaturityParams[4]
+    }
+    if (nSexes==2) {
+      Q = MaturityParams[1:2]
+      B = MaturityParams[3:4]
+      V = MaturityParams[5:6]
+      Pmax = MaturityParams[7:8]
+    }
   }
 
   AgeClasses = MinAge:MaxAge
@@ -4376,7 +4465,11 @@ SimulateAgeAtMaturityData <- function(nSamples, nSexes, MinAge, MaxAge, Maturity
     rnd = runif(nAgeObs,0,1)
 
     tempObsMatCat = rep(NA, nAgeObs)
-    ProbMat = Pmax[s] / (1 + exp(-log(19) * (tempObsAgeCl - A50[s]) / (A95[s] - A50[s])))
+    if (CurveType == 1) {  # symmetric
+      ProbMat = Pmax[s] / (1 + exp(-log(19) * (tempObsAgeCl - A50[s]) / (A95[s] - A50[s])))
+    } else {
+      ProbMat = Pmax[s] / (1 + Q[s] * exp(-log(B[s] * tempObsAgeCl)) ^ (1 / V[s]))
+    }
     for (i in 1:nAgeObs) {
       if (rnd[i] <= ProbMat[i]) {
         tempObsMatCat[i] = 1
@@ -4533,6 +4626,7 @@ CalcNLL_LogisticAgeAtMaturity <- function(params) {
     Likelihood[x] <- 1 - ProbMat[x]
     Likelihood[which(Likelihood==0)]=1E-4
     LL <- log(Likelihood)
+
   }
   if (nSexes==2) {
     LL = 0
@@ -4565,12 +4659,13 @@ CalcNLL_LogisticAgeAtMaturity <- function(params) {
 #' @keywords internal
 #'
 #' @param params c(L50, L95) lengths at 50 and 95 percent maturity
+#' @param CurveType 1 = symmetric logistic, 2 = asymmetric logistic
 #' @param nSexes number of sexes
 #' @param ObsLen vector of observed lengths
 #' @param ObsMatCat vector of observed maturity categories (0=immature, 1=mature)
 #'
 #' @return nlmb (stored output from internal R nlminb optimisation function)
-FitLogisticLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat) {
+FitLogisticLengthAtMaturityCurve <- function(params, CurveType, nSexes, ObsLen, ObsMatCat) {
 
   # run nlminb
   nlmb <- nlminb(params, CalcNLL_LogisticLengthAtMaturity, gradient = NULL, hessian = TRUE,
@@ -4588,12 +4683,13 @@ FitLogisticLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat) 
 #' @keywords internal
 #'
 #' @param params c(A50, A95) ages at 50 and 95 percent maturity
+#' @param CurveType 1 = symmetric logistic, 2 = asymmetric logistic
 #' @param nSexes number of sexes
 #' @param ObsAgeCl vector of observed ages
 #' @param ObsMatCat vector of observed maturity categories (0=immature, 1=mature)
 #'
 #' @return nlmb (stored output from internal R nlminb optimisation function)
-FitLogisticAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat) {
+FitLogisticAgeAtMaturityCurve <- function(params, CurveType, nSexes, ObsAgeCl, ObsMatCat) {
 
   # run nlminb
   nlmb <- nlminb(params, CalcNLL_LogisticAgeAtMaturity, gradient = NULL, hessian = TRUE,
@@ -4629,6 +4725,7 @@ FitLogisticAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat) {
 #' # single sex/combined sexes
 #' nSexes = 1
 #' nSamples = 300
+#' CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
 #' Linf = 300
 #' vbK = 0.3
 #' tzero = 0
@@ -4637,8 +4734,8 @@ FitLogisticAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat) {
 #' L50 = 220
 #' L95 = 270
 #' Pmax = 1.0
-#' Maturity_params = c(L50, L95, Pmax)
-#' SimulateLengthAtMaturityData(nSamples, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, Maturity_params)
+#' MaturityParams = c(L50, L95, Pmax)
+#' SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
 #' ObsLen=res$ObsLen
 #' ObsMatCat=res$ObsMatCat
 #' CalcPropMatureAtLength(MaxLen, LenInc, ObsLen, ObsMatCat)
@@ -4690,11 +4787,12 @@ CalcPropMatureAtLength <- function(MaxLen, LenInc, ObsLen, ObsMatCat) {
 #' MaxAge = 20
 #' nSexes = 1
 #' nSamples = 300
+#' CurveType = 1
 #' A50 = 4
 #' A95 = 6
 #' Pmax = 1.0
 #' MaturityParams = c(A50, A95, Pmax)
-#' res=SimulateAgeAtMaturityData(nSamples, nSexes, MinAge, MaxAge, MaturityParams)
+#' res=SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
 #' ObsAgeCl=res$ObsAgeCl
 #' ObsMatCat=res$ObsMatCat
 #' CalcPropMatureAtAge(MinAge, MaxAge, ObsAgeCl, ObsMatCat)
@@ -4735,6 +4833,7 @@ CalcPropMatureAtAge <- function(MinAge, MaxAge, ObsAgeCl, ObsMatCat) {
 #' @param params c(L50,L95) length at 50 and 95 percent maturity (L50)
 #' @param nSexes c(L50,L95) number of sexes
 #' @param LogisticModType 1=length-based, 2=age-based
+#' @param CurveType 1=symmetric logistic, 2=asymmetric logistic
 #' @param ObsLen vector of observed lengths (set to NA for age model)
 #' @param ObsAgeCl vector of observed age classes (set to NA for length model)
 #' @param ObsMatCat vector of observed maturity categories (0=immature, 1=mature)
@@ -4753,6 +4852,7 @@ CalcPropMatureAtAge <- function(MinAge, MaxAge, ObsAgeCl, ObsMatCat) {
 #' # single sex/combined sexes
 #' nSexes = 1
 #' nSamples = 300
+#' CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
 #' Linf = 300
 #' vbK = 0.3
 #' tzero = 0
@@ -4761,28 +4861,30 @@ CalcPropMatureAtAge <- function(MinAge, MaxAge, ObsAgeCl, ObsMatCat) {
 #' L50 = 220
 #' L95 = 270
 #' Pmax = 1.0
-#' Maturity_params = c(L50, L95, Pmax)
-#' res=SimulateLengthAtMaturityData(nSamples, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, Maturity_params)
+#' MaturityParams = c(L50, L95, Pmax)
+#' res=SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
 #' # fit model to synthetic data
 #' ObsAgeCl=NA
 #' ObsLen=res$ObsLen
 #' ObsMatCat=res$ObsMatCat
 #' LogisticModType = 1 # 1=length, 2=age
+#' CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
 #' # 2 parameter model
 #' InitL50 = 200
 #' InitL95 = 250
 #' params = c(InitL50, InitL95) # without Pmax parameter
-#' res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
+#' res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
 #' # 3 parameter model
 #' # InitL50 = 200
 #' # InitL95 = 250
 #' # InitPmax = 0.9
 #' # InitPmax_logit = log(InitPmax/(1-InitPmax)) # logit transform
 #' # params = c(InitPmax_logit, InitL50, InitL95) # with Pmax parameter
-#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
+#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
 #' # # separate sexes
 #' # nSexes = 2
 #' # nSamples = c(500,500)
+#' # CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
 #' # Linf = c(300,350)
 #' # vbK = c(0.3,0.3)
 #' # tzero = c(0,0)
@@ -4791,8 +4893,8 @@ CalcPropMatureAtAge <- function(MinAge, MaxAge, ObsAgeCl, ObsMatCat) {
 #' # L50 = c(200,220)
 #' # L95 = c(240,250)
 #' # Pmax = c(1,1)
-#' # Maturity_params = c(L50, L95, Pmax)
-#' # res=SimulateLengthAtMaturityData(nSamples, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, Maturity_params)
+#' # MaturityParams = c(L50, L95, Pmax)
+#' # res=SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
 #' # ObsAgeCl=NA
 #' # FemObsLen=res$FemObsLen
 #' # MalObsLen=res$MalObsLen
@@ -4805,24 +4907,25 @@ CalcPropMatureAtAge <- function(MinAge, MaxAge, ObsAgeCl, ObsMatCat) {
 #' # InitL50 = c(200, 220)
 #' # InitL95 = c(250, 270)
 #' # params = c(InitL50, InitL95) # without Pmax parameter
-#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
+#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
 #' # # 3 parameter model
 #' # InitL50 = c(200, 220)
 #' # InitL95 = c(250, 260)
 #' # InitPmax = c(0.8, 0.8)
 #' # InitPmax_logit = log(InitPmax/(1-InitPmax)) # logit transform
 #' # params = c(InitPmax_logit, InitL50, InitL95) # with Pmax parameter
-#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
+#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
 #' # # age-at-maturity
 #' # MinAge = 0
 #' # MaxAge = 20
 #' # nSexes = 1
+#' # CurveType = 1
 #' # nSamples = 300
 #' # A50 = 4
 #' # A95 = 6
 #' # Pmax = 1.0
 #' # MaturityParams = c(A50, A95, Pmax)
-#' # res=SimulateAgeAtMaturityData(nSamples, nSexes, MinAge, MaxAge, MaturityParams)
+#' # res=SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
 #' # ObsLen=NA
 #' # ObsAgeCl=res$ObsAgeCl
 #' # ObsMatCat=res$ObsMatCat
@@ -4831,22 +4934,23 @@ CalcPropMatureAtAge <- function(MinAge, MaxAge, ObsAgeCl, ObsMatCat) {
 #' # InitA50 = 3
 #' # InitA95 = 5
 #' # params = c(InitA50, InitA95) # without Pmax parameter
-#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
+#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
 #' # # 3 parameter model
 #' # InitA50 = 4.5
 #' # InitA95 = 7
 #' # InitPmax = 0.9
 #' # InitPmax_logit = log(InitPmax/(1-InitPmax)) # logit transform
 #' # params = c(InitPmax_logit, InitA50, InitA95) # with Pmax parameter
-#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
+#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
 #' # # separate sexes
 #' # nSexes = 2
 #' # nSamples = c(300,300)
+#' # CurveType = 1
 #' # A50 = c(4,4.5)
 #' # A95 = c(6,6)
 #' # Pmax = c(1.0,1.0)
 #' # MaturityParams = c(A50, A95, Pmax)
-#' # res=SimulateAgeAtMaturityData(nSamples, nSexes, MinAge, MaxAge, MaturityParams)
+#' # res=SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
 #' # FemObsAgeCl=res$FemObsAgeCl
 #' # MalObsAgeCl=res$MalObsAgeCl
 #' # ObsAgeCl = as.matrix(t(data.frame(FemObsAgeCl=FemObsAgeCl,MalObsAgeCl=MalObsAgeCl)))
@@ -4857,24 +4961,24 @@ CalcPropMatureAtAge <- function(MinAge, MaxAge, ObsAgeCl, ObsMatCat) {
 #' # InitA50 = c(3,3)
 #' # InitA95 = c(5,5)
 #' # params = c(InitA50, InitA95) # without Pmax parameter
-#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
+#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
 #' # # 3 parameter model
 #' # InitA50 = c(4.5,4)
 #' # InitA95 = c(7,7)
 #' # InitPmax = c(0.9,0.9)
 #' # InitPmax_logit = log(InitPmax/(1-InitPmax)) # logit transform
 #' # params = c(InitPmax_logit, InitA50, InitA95) # with Pmax parameter
-#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
+#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
 #' @export
-GetLogisticMaturityCurveResults <- function(params, nSexes, LogisticModType, ObsLen, ObsAgeCl, ObsMatCat) {
+GetLogisticMaturityCurveResults <- function(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) {
 
   # fit maturity curve and get variance-covariance matrix, from fitted model, to get standard errors
   if (LogisticModType==1) {
-    nlmb = FitLogisticLengthAtMaturityCurve(params, nSexes, ObsLen, ObsMatCat)
+    nlmb = FitLogisticLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat)
     hess.out = optimHess(nlmb$par, CalcNLL_LogisticLengthAtMaturity)
   }
   if (LogisticModType==2) {
-    nlmb = FitLogisticAgeAtMaturityCurve(params, nSexes, ObsAgeCl, ObsMatCat)
+    nlmb = FitLogisticAgeAtMaturityCurve(params, CurveType, nSexes, ObsAgeCl, ObsMatCat)
     hess.out = optimHess(nlmb$par, CalcNLL_LogisticAgeAtMaturity)
   }
   params=nlmb$par
@@ -4882,85 +4986,129 @@ GetLogisticMaturityCurveResults <- function(params, nSexes, LogisticModType, Obs
   ses = sqrt(diag(vcov.params)) # get asymptotic standard errors of parameter estimates
 
   # calculate 95 percent confidence limits
-  if (LogisticModType==1) { # length at maturity
+
+  if (CurveType == 2) { # asymmetric logistic curve
     if (nSexes==1) {
-      if (length(params)==2) { # not estimating Pmax, single sex
-        EstL50 = c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1])
-        EstL95 = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
-        ParamEst = t(data.frame(L50=round(EstL50,2), L95=round(EstL95,2)))
+      if (length(params)==3) { # not estimating Pmax, single sex
+        lnEstQ = c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1])
+        lnEstB = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
+        lnEstV = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
+        ParamEst = t(data.frame(lnQ=round(lnEstQ,6), lnB=round(lnEstB,6), lnV=round(lnEstV,6)))
       }
-      if (length(params)==3) { # estimating Pmax, single sex
+      if (length(params)==4) { # estimating Pmax, single sex
         EstPmax = ilogit(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
-        EstL50 = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
-        EstL95 = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
-        ParamEst = t(data.frame(Pmax=round(EstPmax,2), L50=round(EstL50,2), L95=round(EstL95,2)))
+        lnEstQ = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
+        lnEstB = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
+        lnEstV = c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
+        ParamEst = t(data.frame(Pmax=round(EstPmax,2), lnQ=round(lnEstQ,6), lnB=round(lnEstB,6), lnV=round(lnEstV,6)))
       }
       SampleSize = length(ObsLen)
-    }
+    } # nsexes = 1
     if (nSexes==2) {
-      if (length(params)==4) { # not estimating Pmax, 2 sexes
-        FemEstL50 = c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1])
-        MalEstL50 = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
-        FemEstL95 = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
-        MalEstL95 = c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
-        ParamEst = t(data.frame(FemL50=round(FemEstL50,2), FemL95=round(FemEstL95,2),
-                                MalL50=round(MalEstL50,2), MalL95=round(MalEstL95,2)))
+      if (length(params)==6) { # not estimating Pmax, 2 sexes
+        lnFemEstQ = c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1])
+        lnMalEstQ = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
+        lnMalEstB = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
+        lnFemEstB = c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
+        lnMalEstV = c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
+        lnMalEstV = c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
+
+        ParamEst = t(data.frame(lnFemQ=round(lnFemEstQ,6), lnFemB=round(lnFemEstB,6), lnFemV=round(lnFemEstV,6),
+                                lnMalQ=round(lnMalEstQ,6), lnMalB=round(lnMalEstB,6), lnMalV=round(lnMalEstV,6)))
       }
       if (length(params)==6) { # estimating Pmax, 2 sexes
         FemEstPmax = ilogit(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
         MalEstPmax = ilogit(c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
-        FemEstL50 = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
-        MalEstL50 = c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
-        FemEstL95 = c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
-        MalEstL95 = c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
-        ParamEst = t(data.frame(FemPmax=round(FemEstPmax,2), FemL50=round(FemEstL50,2), FemL95=round(FemEstL95,2),
-                                MalPmax=round(MalEstPmax,2), MalL50=round(MalEstL50,2), MalL95=round(MalEstL95,2)))
+        lnFemEstQ = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
+        lnMalEstQ = c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
+        lnMalEstB = c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
+        lnFemEstB = c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
+        lnMalEstV = c(nlmb$par[7], nlmb$par[7] + c(-1.96, 1.96) * ses[7])
+        lnMalEstV = c(nlmb$par[8], nlmb$par[8] + c(-1.96, 1.96) * ses[8])
+        ParamEst = t(data.frame(lnFemPmax=round(lnFemEstPmax,2), lnFemQ=round(lnFemEstQ,6), lnFemB=round(lnFemEstB,6), lnFemV=round(lnFemEstV,6),
+                                lnMalPmax=round(lnMalEstPmax,2), lnMalQ=round(lnMalEstQ,6), lnMalB=round(lnMalEstB,6), lnMalV=round(lnMalEstV,6)))
       }
+    } # nSexes
+
+  } else { # Curvetype
+    if (LogisticModType==1) { # length at maturity
+      if (nSexes==1) {
+        if (length(params)==2) { # not estimating Pmax, single sex
+          EstL50 = c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1])
+          EstL95 = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
+          ParamEst = t(data.frame(L50=round(EstL50,2), L95=round(EstL95,2)))
+        }
+        if (length(params)==3) { # estimating Pmax, single sex
+          EstPmax = ilogit(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+          EstL50 = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
+          EstL95 = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
+          ParamEst = t(data.frame(Pmax=round(EstPmax,2), L50=round(EstL50,2), L95=round(EstL95,2)))
+        }
+        SampleSize = length(ObsLen)
+      } # nsexes = 1
+      if (nSexes==2) {
+        if (length(params)==4) { # not estimating Pmax, 2 sexes
+          FemEstL50 = c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1])
+          MalEstL50 = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
+          FemEstL95 = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
+          MalEstL95 = c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
+          ParamEst = t(data.frame(FemL50=round(FemEstL50,2), FemL95=round(FemEstL95,2),
+                                  MalL50=round(MalEstL50,2), MalL95=round(MalEstL95,2)))
+        }
+        if (length(params)==6) { # estimating Pmax, 2 sexes
+          FemEstPmax = ilogit(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+          MalEstPmax = ilogit(c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
+          FemEstL50 = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
+          MalEstL50 = c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
+          FemEstL95 = c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
+          MalEstL95 = c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
+          ParamEst = t(data.frame(FemPmax=round(FemEstPmax,2), FemL50=round(FemEstL50,2), FemL95=round(FemEstL95,2),
+                                  MalPmax=round(MalEstPmax,2), MalL50=round(MalEstL50,2), MalL95=round(MalEstL95,2)))
+        }
+        SampleSize = length(which(!is.na(ObsLen[1,]))) + length(which(!is.na(ObsLen[2,])))
+      } # nsexes = 2
       SampleSize = length(which(!is.na(ObsLen[1,]))) + length(which(!is.na(ObsLen[2,])))
-    }
-    colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
-  }  # LogisticModType=1
-
-
-  if (LogisticModType==2) { # age at maturity
-    if (nSexes==1) {
-    if (length(params)==2) { # not estimating Pmax
-      EstA50 = c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1])
-      EstA95 = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
-      ParamEst = t(data.frame(A50=round(EstA50,2), A95=round(EstA95,2)))
-    }
-    if (length(params)==3) { # estimating Pmax
-      EstPmax = ilogit(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
-      EstA50 = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
-      EstA95 = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
-      ParamEst = t(data.frame(Pmax=round(EstPmax,2), A50=round(EstA50,2), A95=round(EstA95,2)))
-    }
-    SampleSize = length(ObsAgeCl)
-    }
-    if (nSexes==2) {
-      if (length(params)==4) { # not estimating Pmax, single sex
-        FemEstA50 = c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1])
-        MalEstA50 = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
-        FemEstA95 = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
-        MalEstA95 = c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
-        ParamEst = t(data.frame(FemA50=round(FemEstA50,2), FemA95=round(FemEstA95,2),
-                                MalA50=round(MalEstA50,2), MalA95=round(MalEstA95,2)))
+    } #  LogisticModType = 1
+    if (LogisticModType==2) { # age at maturity
+      if (nSexes==1) {
+        if (length(params)==2) { # not estimating Pmax
+          EstA50 = c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1])
+          EstA95 = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
+          ParamEst = t(data.frame(A50=round(EstA50,2), A95=round(EstA95,2)))
+        }
+        if (length(params)==3) { # estimating Pmax
+          EstPmax = ilogit(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+          EstA50 = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
+          EstA95 = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
+          ParamEst = t(data.frame(Pmax=round(EstPmax,2), A50=round(EstA50,2), A95=round(EstA95,2)))
+        }
+        SampleSize = length(ObsAgeCl)
       }
-      if (length(params)==6) { # estimating Pmax, 2 sexes
-        FemEstPmax = ilogit(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
-        MalEstPmax = ilogit(c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
-        FemEstA50 = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
-        MalEstA50 = c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
-        FemEstA95 = c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
-        MalEstA95 = c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
-        ParamEst = t(data.frame(FemPmax=round(FemEstPmax,2), FemL50=round(FemEstA50,2), FemL95=round(FemEstA95,2),
-                                MalPmax=round(MalEstPmax,2), MalL50=round(MalEstA50,2), MalL95=round(MalEstA95,2)))
+      if (nSexes==2) {
+        if (length(params)==4) { # not estimating Pmax, single sex
+          FemEstA50 = c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1])
+          MalEstA50 = c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2])
+          FemEstA95 = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
+          MalEstA95 = c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
+          ParamEst = t(data.frame(FemA50=round(FemEstA50,2), FemA95=round(FemEstA95,2),
+                                  MalA50=round(MalEstA50,2), MalA95=round(MalEstA95,2)))
+        }
+        if (length(params)==6) { # estimating Pmax, 2 sexes
+          FemEstPmax = ilogit(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+          MalEstPmax = ilogit(c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
+          FemEstA50 = c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
+          MalEstA50 = c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
+          FemEstA95 = c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
+          MalEstA95 = c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
+          ParamEst = t(data.frame(FemPmax=round(FemEstPmax,2), FemL50=round(FemEstA50,2), FemL95=round(FemEstA95,2),
+                                  MalPmax=round(MalEstPmax,2), MalL50=round(MalEstA50,2), MalL95=round(MalEstA95,2)))
+        }
+        SampleSize = length(which(!is.na(ObsAgeCl[1,]))) + length(which(!is.na(ObsAgeCl[2,])))
+      } # nSexes = 2
+    } #  LogisticModType = 2
+  } # CurveType
 
-      }
-      SampleSize = length(which(!is.na(ObsAgeCl[1,]))) + length(which(!is.na(ObsAgeCl[2,])))
-    }
-    colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
-  }
+  colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
 
   # store value of objective function
   nll = nlmb$objective
@@ -5006,6 +5154,7 @@ GetLogisticMaturityCurveResults <- function(params, nSexes, LogisticModType, Obs
 #' # single sex/combined sexes
 #' nSexes = 1
 #' nSamples = 300
+#' CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
 #' Linf = 300
 #' vbK = 0.3
 #' tzero = 0
@@ -5017,6 +5166,7 @@ GetLogisticMaturityCurveResults <- function(params, nSexes, LogisticModType, Obs
 #' Maturity_params = c(L50, L95, Pmax)
 #' # nSexes = 2
 #' # nSamples = c(300,300)
+#' # CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
 #' # Linf = c(300,350)
 #' # vbK = c(0.3,0.3)
 #' # tzero = c(0,0)
@@ -5025,8 +5175,8 @@ GetLogisticMaturityCurveResults <- function(params, nSexes, LogisticModType, Obs
 #' # L50 = c(220,250)
 #' # L95 = c(270,290)
 #' # Pmax = c(1.0,1.0)
-#' # Maturity_params = c(L50, L95, Pmax)
-#' res=SimulateLengthAtMaturityData(nSamples, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, Maturity_params)
+#' # MaturityParams = c(L50, L95, Pmax)
+#' res=SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
 #' midpt = res$midpt
 #' # single sex
 #' PropMat = res$PropMat
@@ -5133,11 +5283,12 @@ PlotLengthAtMaturityData <- function(nSexes, midpt, PropMat, LenClSampSize, xmax
 #' # MaturityParams = c(A50, A95, Pmax)
 #' nSexes = 2
 #' nSamples = c(300,300)
+#' CurveType = 1
 #' A50 = c(4,4.5)
 #' A95 = c(6,6)
 #' Pmax = c(1.0,1.0)
 #' MaturityParams = c(A50, A95, Pmax)
-#' res=SimulateAgeAtMaturityData(nSamples, nSexes, MinAge, MaxAge, MaturityParams)
+#' res=SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
 #' AgeCl = res$AgeClasses
 #' # Single sex
 #' # PropMat = res$PropMat
@@ -5220,6 +5371,7 @@ PlotAgeAtMaturityData <- function(nSexes, AgeCl, PropMat, AgeClSampSize, xmax, x
 #'
 #' @param params c(L50,L95) or c(A50, A95) length or age-based logistic maturity parameters
 #' @param vcov.params estimated variance-covariance matrix for maturity parameters
+#' @param CurveType 1=symmetric logistic, 2=asymmetric logistic
 #' @param nSexes number of sexes
 #' @param LogisticModType 1=length-based, 2=age-based
 #' @param plotlengthrange lower and upper length class range for plotting lengths
@@ -5227,7 +5379,7 @@ PlotAgeAtMaturityData <- function(nSexes, AgeCl, PropMat, AgeClSampSize, xmax, x
 #'
 #' @return scatter plot of length-at-age data
 #' @export
-GetConfidenceLimitsForMaturityCurve <- function(params, vcov.params, nSexes, LogisticModType, plotlengthrange, plotages) {
+GetConfidenceLimitsForMaturityCurve <- function(params, vcov.params, CurveType, nSexes, LogisticModType, plotlengthrange, plotages) {
 
   # store estimated parameter distributions
   set.seed(123)
@@ -5235,29 +5387,35 @@ GetConfidenceLimitsForMaturityCurve <- function(params, vcov.params, nSexes, Log
 
   if (nSexes==1) {
     if (LogisticModType==1) { # Length
-      if (length(params)==2) {
-        names(sims) = c("L50", "L95")
+
+      if (CurveType == 1) { # symmetric logistic
+        if (length(params)==2) { names(sims) = c("L50", "L95") }
+        if (length(params)==3) { names(sims) = c("Pmax", "L50", "L95") }
+      } else { # asymmetric logistic
+        if (length(params)==3) { names(sims) = c("Q", "B", "V") }
+        if (length(params)==4) { names(sims) = c("Pmax", "Q", "B", "V") }
       }
-      if (length(params)==3) {
-        names(sims) = c("Pmax", "L50", "L95")
-      }
+
       GetEstLenAtMat <- function(params) {
-        EstLenAtMat=LogisticEqnLengthAtMaturity2(params, nSexes, plotlengthrange)
+        EstLenAtMat=LogisticEqnLengthAtMaturity2(params, CurveType, nSexes, plotlengthrange)
         return(EstLenAtMat)
       }
       sims.mat = apply(X=sims[,], MARGIN=1, FUN=GetEstLenAtMat)
       plotlengths = plotlengthrange[1]:plotlengthrange[2]
       sim.mat.xvals = plotlengths
     } # LogisticModType
+
     if (LogisticModType==2) { # Age
-      if (length(params)==2) {
-        names(sims) = c("A50", "A95")
+      if (CurveType == 1) { # symmetric logistic
+        if (length(params)==2) { names(sims) = c("A50", "A95") }
+        if (length(params)==3) { names(sims) = c("Pmax", "A50", "A95") }
+      } else { # asymmetric logistic
+        if (length(params)==3) { names(sims) = c("lnQ", "lnB", "lnV") }
+        if (length(params)==4) { names(sims) = c("Pmax", "lnQ", "lnB", "lnV") }
       }
-      if (length(params)==3) {
-        names(sims) = c("Pmax", "A50", "A95")
-      }
+
       GetEstAgeAtMat <- function(params) {
-        EstAgeAtMat=LogisticEqnAgeAtMaturity2(params, nSexes, plotages)
+        EstAgeAtMat=LogisticEqnAgeAtMaturity2(params, CurveType, nSexes, plotages)
         return(EstAgeAtMat)
       }
       sims.mat = apply(X=sims[,], MARGIN=1, FUN=GetEstAgeAtMat)
@@ -5267,19 +5425,20 @@ GetConfidenceLimitsForMaturityCurve <- function(params, vcov.params, nSexes, Log
 
   if (nSexes==2) { # separate sexes
     if (LogisticModType==1) { # Length
-      if (length(params)==4) {
-        names(sims) = c("FemL50", "MalL50", "FemL95", "MalL95")
-      }
-      if (length(params)==6) {
-        names(sims) = c("FemPmax", "MalPmax", "FemL50", "MalL50", "FemL95", "MalL95")
+      if (CurveType == 1) { # symmetric logistic
+        if (length(params)==4) { names(sims) = c("FemL50", "MalL50", "FemL95", "MalL95") }
+        if (length(params)==6) { names(sims) = c("FemPmax", "MalPmax", "FemL50", "MalL50", "FemL95", "MalL95") }
+      } else { # asymmetric logistic
+        if (length(params)==6) { names(sims) = c("FemQ", "MalQ", "FemB", "MalB", "FemV", "MalV") }
+        if (length(params)==8) { names(sims) = c("FemPmax", "MalPmax", "FemQ", "MalQ", "FemB", "MalB", "FemV", "MalV") }
       }
       GetEstLenAtMatFem <- function(params) {
-        res=LogisticEqnLengthAtMaturity2(params, nSexes, plotlengthrange)
+        res=LogisticEqnLengthAtMaturity2(params, CurveType, nSexes, plotlengthrange)
         FemEstLenAtMat = as.vector(unlist(res$Femresults))
         return(FemEstLenAtMat)
       }
       GetEstLenAtMatMal <- function(params) {
-        res=LogisticEqnLengthAtMaturity2(params, nSexes, plotlengthrange)
+        res=LogisticEqnLengthAtMaturity2(params, CurveType, nSexes, plotlengthrange)
         MalEstLenAtMat = as.vector(unlist(res$Malresults))
         return(MalEstLenAtMat)
       }
@@ -5292,19 +5451,20 @@ GetConfidenceLimitsForMaturityCurve <- function(params, vcov.params, nSexes, Log
     }
     if (nSexes==2) {
       if (LogisticModType==2) {
-        if (length(params)==4) {
-          names(sims) = c("FemA50", "MalA50", "FemA95", "MalA95")
-        }
-        if (length(params)==6) {
-          names(sims) = c("FemPmax", "MalPmax", "FemA50", "MalA50", "FemA95", "MalA95")
+        if (CurveType == 1) { # symmetric logistic
+          if (length(params)==4) { names(sims) = c("FemA50", "MalA50", "FemA95", "MalA95") }
+          if (length(params)==6) { names(sims) = c("FemPmax", "MalPmax", "FemA50", "MalA50", "FemA95", "MalA95") }
+        } else { # asymmetric logistic
+          if (length(params)==6) { names(sims) = c("FemQ", "MalQ", "FemB", "MalB", "FemV", "MalV") }
+          if (length(params)==8) { names(sims) = c("FemPmax", "MalPmax", "lnFemQ", "lnMalQ", "lnFemB", "lnMalB", "lnFemV", "lnMalV") }
         }
         GetEstAgeAtMatFem <- function(params) {
-          res=LogisticEqnAgeAtMaturity2(params, nSexes, plotages)
+          res=LogisticEqnAgeAtMaturity2(params, CurveType, nSexes, plotages)
           FemEstAgeAtMat = as.vector(unlist(res[1,]))
           return(FemEstAgeAtMat)
         }
         GetEstAgeAtMatMal <- function(params) {
-          res=LogisticEqnAgeAtMaturity2(params, nSexes, plotages)
+          res=LogisticEqnAgeAtMaturity2(params, CurveType, nSexes, plotages)
           MalEstAgeAtMat = as.vector(unlist(res[2,]))
           return(MalEstAgeAtMat)
         }
@@ -5356,6 +5516,7 @@ GetConfidenceLimitsForMaturityCurve <- function(params, vcov.params, nSexes, Log
 #' options provided.
 #'
 #' @param params observed logistic length-at-maturity parameters
+#' @param CurveType 1=symmetric logistic, 2=asymmetric logistic
 #' @param nSexes number of sexes
 #' @param ObsLen vector of observed lengths
 #' @param ObsMatCat vector of observed maturity categories (0=immature, 1=mature)
@@ -5385,6 +5546,7 @@ GetConfidenceLimitsForMaturityCurve <- function(params, vcov.params, nSexes, Log
 #' LenInc = 20
 #' nSexes = 1
 #' nSamples = 300
+#' CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
 #' Linf = 300
 #' vbK = 0.3
 #' tzero = 0
@@ -5393,8 +5555,8 @@ GetConfidenceLimitsForMaturityCurve <- function(params, vcov.params, nSexes, Log
 #' L50 = 220
 #' L95 = 270
 #' Pmax = 1.0
-#' Maturity_params = c(L50, L95, Pmax)
-#' res=SimulateLengthAtMaturityData(nSamples, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, Maturity_params)
+#' MaturityParams = c(L50, L95, Pmax)
+#' res=SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
 #' ObsAgeCl=NA
 #' ObsLen=res$ObsLen
 #' ObsMatCat=res$ObsMatCat
@@ -5415,9 +5577,9 @@ GetConfidenceLimitsForMaturityCurve <- function(params, vcov.params, nSexes, Log
 #' # InitPmax = 0.9
 #' # InitPmax_logit = log(InitPmax/(1-InitPmax)) # logit transform
 #' # params = c(InitPmax_logit, InitL50, InitL95) # with Pmax parameter
-#' PlotFittedLengthAtMaturityCurve(params, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
+#' PlotFittedLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
 #'                                 xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm",
-#'                                 yaxis_lab="Prop. mature", SampSizelab_cex=NA, ShowSampSizes=TRUE, PlotCLs=FALSE)
+#'                                 yaxis_lab="Prop. mature", SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=FALSE)
 #' # plot model fitted to separate sexes (simultaneously)
 #' # generate synthetic data
 #' # set.seed(123)
@@ -5427,6 +5589,7 @@ GetConfidenceLimitsForMaturityCurve <- function(params, vcov.params, nSexes, Log
 #' # LenInc = 20
 #' # nSexes = 2
 #' # nSamples = c(500,500)
+#' # CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
 #' # Linf = c(300,350)
 #' # vbK = c(0.2,0.2)
 #' # tzero = c(0,0)
@@ -5435,8 +5598,8 @@ GetConfidenceLimitsForMaturityCurve <- function(params, vcov.params, nSexes, Log
 #' # L50 = c(200,220)
 #' # L95 = c(240,250)
 #' # Pmax = c(1,1)
-#' # Maturity_params = c(L50, L95, Pmax)
-#' # res=SimulateLengthAtMaturityData(nSamples, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, Maturity_params)
+#' # MaturityParams = c(L50, L95, Pmax)
+#' # res=SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
 #' # ObsAgeCl=NA
 #' # FemObsLen=res$FemObsLen
 #' # MalObsLen=res$MalObsLen
@@ -5460,12 +5623,12 @@ GetConfidenceLimitsForMaturityCurve <- function(params, vcov.params, nSexes, Log
 #' # plotlengthrange = as.matrix(t(data.frame(Females=c(min(Femplotlengths),max(Femplotlengths)),
 #' #                                          Males=c(min(Malplotlengths),max(Malplotlengths)))))
 #' # midpt=res$midpt
-#' # PlotFittedLengthAtMaturityCurve(params, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
+#' # PlotFittedLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
 #' #                                 xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm",
-#' #                                 yaxis_lab="Prop. mature", SampSizelab_cex=NA, ShowSampSizes=TRUE, PlotCLs=TRUE)
+#' #                                 yaxis_lab="Prop. mature", SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=TRUE)
 #' @export
-PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange, xmax, xint,
-                                            GraphTitle, xaxis_lab, yaxis_lab, SampSizelab_cex, ShowSampSizes, PlotCLs) {
+PlotFittedLengthAtMaturityCurve <- function(params, CurveType, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange, xmax, xint,
+                                            GraphTitle, xaxis_lab, yaxis_lab, SampSizelab_cex, ShowSampSizes, ShowLegend, PlotCLs) {
 
 
   if (is.na(xint)) { xint = 50 }
@@ -5475,12 +5638,12 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
 
   LogisticModType = 1 # length at maturity
   ObsAgeCl = NA
-  res = GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, ObsLen, ObsAgeCl, ObsMatCat)
+  res = GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat)
 
   if (PlotCLs == TRUE) {
     params = res$params
     vcov.params = res$vcov.params
-    Res = GetConfidenceLimitsForMaturityCurve(params, vcov.params, nSexes, LogisticModType, plotlengthrange, plotages=NA)
+    Res = GetConfidenceLimitsForMaturityCurve(params, vcov.params, CurveType, nSexes, LogisticModType, plotlengthrange, plotages=NA)
   }
 
   if (nSexes==1) {
@@ -5499,8 +5662,11 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
       temp = seq(2,length(LenClSampSize),2)
       text(midpt[temp], 1.1, LenClSampSize[temp], cex = SampSizelab_cex, srt = 0, col="blue")
     }
-    legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
-           bty='n', cex=0.6,lwd=-1, y.intersp=1)
+    if (ShowLegend) {
+      legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
+             bty='n', cex=0.6,lwd=-1, y.intersp=1)
+    }
+
     plotlengths = plotlengthrange[1]:plotlengthrange[2]
     if (length(params)==2) { # not estimating Pmax
       L50 = res$ParamEst[1,1]
@@ -5513,9 +5679,13 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
       L95 = res$ParamEst[3,1]
     }
     if (PlotCLs == FALSE) {
-      plotprobs = Pmax / (1.0 + exp(- log(19) * (plotlengths - L50) / (L95 - L50)))
+      if (CurveType==1) {
+        plotprobs = Pmax / (1.0 + exp(- log(19) * (plotlengths - L50) / (L95 - L50)))
+      } else {
+        plotprobs = Pmax / (1.0 + Q * exp(-log(B * plotlengths)) ^ (1 / V))
+      }
       lines(plotlengths, plotprobs)
-      points(L50,0.5*Pmax,pch=16,col="black")
+      if (CurveType==1) { points(L50,0.5*Pmax,pch=16,col="black") }
     } else { # get data for confidence limits
       lw=min(plotlengths)
       hi = max(plotlengths)
@@ -5526,7 +5696,7 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
       lines(plotlengths, Res$sim.mat.low, "l", lty="dotted")
       lines(plotlengths, Res$sim.mat.up, "l", lty="dotted")
       points(midpt,PropMat)
-      points(L50,0.5*Pmax,pch=16,col="black")
+      if (CurveType==1) { points(L50,0.5*Pmax,pch=16,col="black") }
     } # else PlotCLs
   } # nSexes = 1
   if (nSexes==2) {
@@ -5546,9 +5716,12 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
       temp = seq(2,length(LenClSampSize[1,]),2)
       text(midpt[temp], 1.1, LenClSampSize[1,temp], cex = SampSizelab_cex, srt = 0, col="blue")
     }
-    legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
-           bty='n', cex=0.6,lwd=-1, y.intersp=1)
-    legend("bottomright",legend="Females",bty='n', cex=1)
+    if (ShowLegend) {
+      legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
+             bty='n', cex=0.6,lwd=-1, y.intersp=1)
+      legend("bottomright",legend="Females",bty='n', cex=1)
+    }
+
     plotlengths = plotlengthrange[1,1]:plotlengthrange[1,2]
     if (length(params)==4) { # not estimating Pmax
       L50 = res$ParamEst[1,1]
@@ -5561,9 +5734,13 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
       L95 = res$ParamEst[3,1]
     }
     if (PlotCLs == FALSE) {
-      plotprobs = Pmax / (1.0 + exp(- log(19) * (plotlengths - L50) / (L95 - L50)))
+      if (CurveType==1) {
+        plotprobs = Pmax / (1.0 + exp(- log(19) * (plotlengths - L50) / (L95 - L50)))
+      } else {
+        plotprobs = Pmax / (1.0 + Q * exp(-log(B * plotlengths)) ^ (1 / V))
+      }
       lines(plotlengths, plotprobs)
-      points(L50,0.5*Pmax,pch=16,col="black")
+      if (CurveType==1) { points(L50,0.5*Pmax,pch=16,col="black") }
     } else { # get data for confidence limits
       lw=min(plotlengths)
       hi = max(plotlengths)
@@ -5574,7 +5751,7 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
       lines(plotlengths, Res$Fem.sim.mat.low, "l", lty="dotted")
       lines(plotlengths, Res$Fem.sim.mat.up, "l", lty="dotted")
       points(midpt,PropMat[1,])
-      points(L50,0.5*Pmax,pch=16,col="black")
+      if (CurveType==1) { points(L50,0.5*Pmax,pch=16,col="black") }
     } # else PlotCLs
 
     # males
@@ -5593,9 +5770,12 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
       temp = seq(2,length(LenClSampSize[2,]),2)
       text(midpt[temp], 1.1, LenClSampSize[2,temp], cex = SampSizelab_cex, srt = 0, col="blue")
     }
-    legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
-           bty='n', cex=0.6,lwd=-1, y.intersp=1)
-    legend("bottomright",legend="Males",bty='n', cex=1)
+    if (ShowLegend) {
+      legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
+             bty='n', cex=0.6,lwd=-1, y.intersp=1)
+      legend("bottomright",legend="Males",bty='n', cex=1)
+    }
+
     plotlengths = plotlengthrange[2,1]:plotlengthrange[2,2]
     if (length(params)==4) { # not estimating Pmax
       L50 = res$ParamEst[3,1]
@@ -5609,9 +5789,13 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
     }
     if (PlotCLs == FALSE) {
       plotlengths = plotlengthrange[2,1]:plotlengthrange[2,2]
-      plotprobs = Pmax / (1.0 + exp(- log(19) * (plotlengths - L50) / (L95 - L50)))
+      if (CurveType==1) {
+        plotprobs = Pmax / (1.0 + exp(- log(19) * (plotlengths - L50) / (L95 - L50)))
+      } else {
+        plotprobs = Pmax / (1.0 + Q * exp(-log(B * plotlengths)) ^ (1 / V))
+      }
       lines(plotlengths, plotprobs)
-      points(L50,0.5*Pmax,pch=16,col="black")
+      if (CurveType==1) { points(L50,0.5*Pmax,pch=16,col="black") }
     } else { # get data for confidence limits
       lw=min(plotlengths)
       hi = max(plotlengths)
@@ -5622,7 +5806,7 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
       lines(plotlengths, Res$Mal.sim.mat.low, "l", lty="dotted")
       lines(plotlengths, Res$Mal.sim.mat.up, "l", lty="dotted")
       points(midpt,PropMat[2,])
-      points(L50,0.5*Pmax,pch=16,col="black")
+      if (CurveType==1) { points(L50,0.5*Pmax,pch=16,col="black") }
     } # else PlotCLs
   }
 } # end function
@@ -5633,6 +5817,7 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
 #' options provided.
 #'
 #' @param params age-based logistic maturity curve parameters
+#' @param CurveType 1=symmetric, 2=asymmetric
 #' @param nSexes number of sexes
 #' @param ObsAgeCl vector of observed age classes
 #' @param ObsMatCat vector of observed maturity categories (0=immature, 1=mature)
@@ -5656,11 +5841,12 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
 #' MaxAge = 20
 #' nSexes = 1
 #' nSamples = 500
+#' CurveType = 1
 #' A50 = 4
 #' A95 = 6
 #' Pmax = 1.0
 #' MaturityParams = c(A50, A95, Pmax)
-#' res=SimulateAgeAtMaturityData(nSamples, nSexes, MinAge, MaxAge, MaturityParams)
+#' res=SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
 #' AgeCl = res$AgeClasses
 #' PropMat = res$PropMat
 #' AgeClSampSize=res$AgeClSampSize
@@ -5685,20 +5871,21 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
 #' # InitPmax = 0.9
 #' # InitPmax_logit = log(InitPmax/(1-InitPmax)) # logit transform
 #' # params = c(InitPmax_logit, InitA50, InitA95) # with Pmax parameter
-#' PlotFittedAgeAtMaturityCurve(params, nSexes, ObsAgeCl, ObsMatCat, AgeCl, PropMat, AgeClSampSize, plotages,
+#' PlotFittedAgeAtMaturityCurve(params, CurveType, nSexes, ObsAgeCl, ObsMatCat, AgeCl, PropMat, AgeClSampSize, plotages,
 #'                              xmax=20, xint=2, GraphTitle=NA, xaxis_lab=NA,
-#'                              yaxis_lab=NA, SampSizelab_cex = NA, ShowSampSizes=FALSE, PlotCLs=FALSE)
+#'                              yaxis_lab=NA, SampSizelab_cex = NA, ShowSampSizes=FALSE, ShowLegend=FALSE, PlotCLs=FALSE)
 #' # plot model fitted to separate sexes (simultaneously)
 #' # generate synthetic data
 #' # MinAge = 0
 #' # MaxAge = 20
 #' # nSexes = 2
 #' # nSamples = c(500,500)
+#' # CurveType = 1
 #' # A50 = c(4,4.5)
 #' # A95 = c(6,6.5)
 #' # Pmax = c(1.0,1.0)
 #' # MaturityParams = c(A50, A95, Pmax)
-#' # res=SimulateAgeAtMaturityData(nSamples, nSexes, MinAge, MaxAge, MaturityParams)
+#' # res=SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
 #' # AgeCl = res$AgeClasses
 #' # FemObsAgeCl=res$FemObsAgeCl
 #' # MalObsAgeCl=res$MalObsAgeCl
@@ -5724,12 +5911,12 @@ PlotFittedLengthAtMaturityCurve <- function(params, nSexes, ObsLen, ObsMatCat, L
 #' # FemAgeClSampSize=res$FemAgeClSampSize
 #' # MalAgeClSampSize=res$MalAgeClSampSize
 #' # AgeClSampSize = as.matrix(t(data.frame(FemAgeClSampSize=FemAgeClSampSize,MalAgeClSampSize=MalAgeClSampSize)))
-#' # PlotFittedAgeAtMaturityCurve(params, nSexes, ObsAgeCl, ObsMatCat, AgeCl, PropMat, AgeClSampSize, plotages,
+#' # PlotFittedAgeAtMaturityCurve(params, CurveType, nSexes, ObsAgeCl, ObsMatCat, AgeCl, PropMat, AgeClSampSize, plotages,
 #' #                              xmax=20, xint=2, GraphTitle=NA, xaxis_lab=NA,
-#' #                              yaxis_lab=NA, SampSizelab_cex = NA, ShowSampSizes=FALSE, PlotCLs=FALSE)
+#' #                              yaxis_lab=NA, SampSizelab_cex = NA, ShowSampSizes=FALSE, ShowLegend=FALSE, PlotCLs=FALSE)
 #' @export
-PlotFittedAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat, AgeCl, PropMat, AgeClSampSize, plotages,
-                                         xmax, xint, GraphTitle, xaxis_lab, yaxis_lab, SampSizelab_cex, ShowSampSizes, PlotCLs) {
+PlotFittedAgeAtMaturityCurve <- function(params, CurveType, nSexes, ObsAgeCl, ObsMatCat, AgeCl, PropMat, AgeClSampSize, plotages,
+                                         xmax, xint, GraphTitle, xaxis_lab, yaxis_lab, SampSizelab_cex, ShowSampSizes, ShowLegend, PlotCLs) {
 
   if (is.na(xmax)) { xmax = 2 + trunc(ceiling(max(ObsAgeCl))/2)*2 }
   if (is.na(xint)) { xint = 2 }
@@ -5740,12 +5927,12 @@ PlotFittedAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat, Ag
   # get parameter estimates
   LogisticModType = 2 # Age at maturity
   ObsLen=NA
-  res = GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, ObsLen, ObsAgeCl, ObsMatCat)
+  res = GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat)
   if (PlotCLs == TRUE) {
     # get data for confidence limits
     params = res$params
     vcov.params = res$vcov.params
-    Res = GetConfidenceLimitsForMaturityCurve(params, vcov.params, nSexes, LogisticModType, plotlengthrange=NA, plotages)
+    Res = GetConfidenceLimitsForMaturityCurve(params, vcov.params, CurveType, nSexes, LogisticModType, plotlengthrange=NA, plotages)
   }
 
   # plot data
@@ -5765,23 +5952,45 @@ PlotFittedAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat, Ag
       text(AgeCl[temp], 1.1, AgeClSampSize[temp], cex = SampSizelab_cex, srt = 0, col="blue")
       # text(AgeCl, 1.1, AgeClSampSize, cex = 0.6, srt=0)
     }
-    legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. A50"), lty="solid",
-           bty='n', cex=0.8,lwd=-1, y.intersp=1)
+    if (ShowLegend) {
+      legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. A50"), lty="solid",
+             bty='n', cex=0.8,lwd=-1, y.intersp=1)
+    }
 
-    if (length(params)==2) { # not estimating Pmax
-      A50 = res$ParamEst[1,1]
-      A95 = res$ParamEst[2,1]
-      Pmax = 1.0
+    if (CurveType==1) { # symmetric logistic
+      if (length(params)==2) { # not estimating Pmax
+        A50 = res$ParamEst[1,1]
+        A95 = res$ParamEst[2,1]
+        Pmax = 1.0
+      }
+      if (length(params)==3) { # estimating Pmax
+        Pmax = res$ParamEst[1,1]
+        A50 = res$ParamEst[2,1]
+        A95 = res$ParamEst[3,1]
+      }
+    } else {
+      if (length(params)==3) { # not estimating Pmax
+        Q = exp(res$ParamEst[1,1])
+        B = exp(res$ParamEst[2,1])
+        V = exp(res$ParamEst[3,1])
+        Pmax = 1.0
+      }
+      if (length(params)==4) { # estimating Pmax
+        Pmax = res$ParamEst[1,1]
+        Q = exp(res$ParamEst[2,1])
+        B = exp(res$ParamEst[3,1])
+        V = exp(res$ParamEst[4,1])
+      }
     }
-    if (length(params)==3) { # estimating Pmax
-      Pmax = res$ParamEst[1,1]
-      A50 = res$ParamEst[2,1]
-      A95 = res$ParamEst[3,1]
-    }
+
     if (PlotCLs == FALSE) {
-      plotprobs = Pmax / (1.0 + exp(- log(19) * (plotages - A50) / (A95 - A50)))
+      if (CurveType==1) {
+        plotprobs = Pmax / (1.0 + exp(- log(19) * (plotages - A50) / (A95 - A50)))
+      } else {
+        plotprobs = Pmax / (1.0 + Q * exp(-log(B * plotages)) ^ (1 / V))
+      }
       lines(plotages, plotprobs)
-      points(A50,0.5*Pmax,pch=16,col="black")
+      if (CurveType==1) { points(A50,0.5*Pmax,pch=16,col="black")  }
     } else {
       # plot confidence limits
       x1 = plotages
@@ -5793,7 +6002,7 @@ PlotFittedAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat, Ag
       lines(plotages, Res$sim.mat.low, "l", lty="dotted")
       lines(plotages, Res$sim.mat.up, "l", lty="dotted")
       points(AgeCl,PropMat)
-      points(A50,0.5*Pmax,pch=16,col="black")
+      if (CurveType==1) { points(A50,0.5*Pmax,pch=16,col="black")  }
     } # else PlotCLs
   }
   if (nSexes==2) {
@@ -5813,23 +6022,47 @@ PlotFittedAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat, Ag
       temp = seq(2,length(AgeClSampSize[1,]),2)
       text(AgeCl[temp], 1.1, AgeClSampSize[1,temp], cex = SampSizelab_cex, srt = 0, col="blue")
     }
-    legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
-           bty='n', cex=0.6,lwd=-1, y.intersp=1)
-    legend("bottomright",legend="Females",bty='n', cex=1)
-    if (length(params)==4) { # not estimating Pmax
-      A50 = res$ParamEst[1,1]
-      A95 = res$ParamEst[2,1]
-      Pmax = 1.0
+    if (ShowLegend) {
+      legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
+             bty='n', cex=0.6,lwd=-1, y.intersp=1)
+      legend("bottomright",legend="Females",bty='n', cex=1)
     }
-    if (length(params)==6) { # estimating Pmax
-      Pmax = res$ParamEst[1,1]
-      A50 = res$ParamEst[2,1]
-      A95 = res$ParamEst[3,1]
+
+    if (CurveType==1) { # symmetric logistic
+      if (length(params)==4) { # not estimating Pmax
+        A50 = res$ParamEst[1,1]
+        A95 = res$ParamEst[2,1]
+        Pmax = 1.0
+      }
+      if (length(params)==6) { # estimating Pmax
+        Pmax = res$ParamEst[1,1]
+        A50 = res$ParamEst[2,1]
+        A95 = res$ParamEst[3,1]
+      }
+    } else {
+      if (length(params)==6) { # not estimating Pmax
+        Q = exp(res$ParamEst[1,1])
+        B = exp(res$ParamEst[2,1])
+        V = exp(res$ParamEst[3,1])
+        Pmax = 1.0
+      }
+      if (length(params)==8) { # estimating Pmax
+        Pmax = res$ParamEst[1,1]
+        Q = exp(res$ParamEst[2,1])
+        B = exp(res$ParamEst[3,1])
+        V = exp(res$ParamEst[4,1])
+      }
     }
+
+
     if (PlotCLs == FALSE) {
-      plotprobs = Pmax / (1.0 + exp(- log(19) * (plotages - A50) / (A95 - A50)))
+      if (CurveType==1) {
+        plotprobs = Pmax / (1.0 + exp(- log(19) * (plotages - A50) / (A95 - A50)))
+      } else {
+        plotprobs = Pmax / (1.0 + Q * exp(-log(B * plotages)) ^ (1 / V))
+      }
       lines(plotages, plotprobs)
-      points(A50,0.5*Pmax,pch=16,col="black")
+      if (CurveType==1) { points(A50,0.5*Pmax,pch=16,col="black")  }
     } else {
       # plot confidence limits
       x1 = plotages
@@ -5841,7 +6074,7 @@ PlotFittedAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat, Ag
       lines(plotages, Res$Fem.sim.mat.low, "l", lty="dotted")
       lines(plotages, Res$Fem.sim.mat.up, "l", lty="dotted")
       points(AgeCl,PropMat[1,])
-      points(A50,0.5*Pmax,pch=16,col="black")
+      if (CurveType==1) { points(A50,0.5*Pmax,pch=16,col="black")  }
     } # else PlotCLs
 
     # males
@@ -5859,23 +6092,47 @@ PlotFittedAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat, Ag
       temp = seq(2,length(AgeClSampSize[2,]),2)
       text(AgeCl[temp], 1.1, AgeClSampSize[2,temp], cex = SampSizelab_cex, srt = 0, col="blue")
     }
+
+    if (ShowLegend) {
     legend(0.01*xmax,0.975, pch=c(1,16), legend=c("Observed", "Est. L50"), lty="solid",
            bty='n', cex=0.6,lwd=-1, y.intersp=1)
     legend("bottomright",legend="Males",bty='n', cex=1)
-    if (length(params)==4) { # not estimating Pmax
-      A50 = res$ParamEst[3,1]
-      A95 = res$ParamEst[4,1]
-      Pmax = 1.0
     }
-    if (length(params)==6) { # estimating Pmax
-      Pmax = res$ParamEst[4,1]
-      A50 = res$ParamEst[5,1]
-      A95 = res$ParamEst[6,1]
+
+    if (CurveType==1) { # symmetric logistic
+      if (length(params)==4) { # not estimating Pmax
+        A50 = res$ParamEst[3,1]
+        A95 = res$ParamEst[4,1]
+        Pmax = 1.0
+      }
+      if (length(params)==6) { # estimating Pmax
+        Pmax = res$ParamEst[4,1]
+        A50 = res$ParamEst[5,1]
+        A95 = res$ParamEst[6,1]
+      }
+    } else {
+      if (length(params)==6) { # not estimating Pmax
+        Q = exp(res$ParamEst[4,1])
+        B = exp(res$ParamEst[5,1])
+        V = exp(res$ParamEst[6,1])
+        Pmax = 1.0
+      }
+      if (length(params)==8) { # estimating Pmax
+        Pmax = res$ParamEst[5,1]
+        Q = exp(res$ParamEst[6,1])
+        B = exp(res$ParamEst[7,1])
+        V = exp(res$ParamEst[8,1])
+      }
     }
+
     if (PlotCLs == FALSE) {
-      plotprobs = Pmax / (1.0 + exp(- log(19) * (plotages - A50) / (A95 - A50)))
+      if (CurveType==1) {
+        plotprobs = Pmax / (1.0 + exp(- log(19) * (plotages - A50) / (A95 - A50)))
+      } else {
+        plotprobs = Pmax / (1.0 + Q * exp(-log(B * plotages)) ^ (1 / V))
+      }
       lines(plotages, plotprobs)
-      points(A50,0.5*Pmax,pch=16,col="black")
+      if (CurveType==1) { points(A50,0.5*Pmax,pch=16,col="black")  }
     } else {
       # plot confidence limits
       x1 = plotages
@@ -5887,10 +6144,12 @@ PlotFittedAgeAtMaturityCurve <- function(params, nSexes, ObsAgeCl, ObsMatCat, Ag
       lines(plotages, Res$Mal.sim.mat.low, "l", lty="dotted")
       lines(plotages, Res$Mal.sim.mat.up, "l", lty="dotted")
       points(AgeCl,PropMat[2,])
-      points(A50,0.5*Pmax,pch=16,col="black")
+      if (CurveType==1) { points(A50,0.5*Pmax,pch=16,col="black")  }
     } # else PlotCLs
   }
 } # end function
+
+
 
 
 # ***************************

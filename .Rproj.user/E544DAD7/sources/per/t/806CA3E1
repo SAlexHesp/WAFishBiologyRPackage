@@ -1,9 +1,9 @@
 {
     "id": "806CA3E1",
-    "path": "~/WAFishBiology/R/WA_biology_methods.R",
+    "path": "~/WAFishBiologyRPackage/R/WA_biology_methods.R",
     "project_path": "R/WA_biology_methods.R",
     "type": "r_source",
-    "hash": "2275193559",
+    "hash": "99327517",
     "contents": "",
     "dirty": false,
     "created": 1649048941501.0,
@@ -16,11 +16,11 @@
         "scrollLine": "4354"
     },
     "folds": "",
-    "lastKnownWriteTime": 1665480149,
+    "lastKnownWriteTime": 1675738589,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1665480149,
+    "last_content_update": 1675738589,
     "read_only": false,
     "read_only_alternatives": []
 }
