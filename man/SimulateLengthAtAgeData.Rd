@@ -52,14 +52,17 @@ Simulates fish length at age data for individual fish, and mean length at age da
 \examples{
 set.seed(123)
 # 1 sex
+GrowthEqn=1
+nSamples = 1000
 nSexes = 1
-nSamples = 300
 MinAge = 1
 MaxAge = 20
 AgeStep = 1
+Ref_ages = NA
 Linf = 300
 vbK = 0.3
 tzero = 0
+Growth_params = c(Linf,vbK,tzero)
 Growth_cv = 0.08
 Res = SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
 # plot lengths at age
@@ -73,13 +76,16 @@ plot(ObsAgeCl, ObsMeanLen, ylim=c(0,500))
 arrows(ObsAgeCl, ObsMeanLen_lw95CL, ObsAgeCl, ObsMeanLen_hi95CL,
        code=3, angle=90,length=0.02, col='black')
 # # 2 sexes
-# nSexes = 2
+# GrowthEqn = 1
 # nSamples = c(300,300)
+# nSexes = 2
 # MinAge = 1
 # MaxAge = 20
+# AgeStep = 1
 # Linf = c(300,250)
 # vbK = c(0.3,0.3)
 # tzero = c(0,0)
+# Growth_params = c(Linf,vbK,tzero)
 # Growth_cv = c(0.08,0.08)
 # Res = SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
 # # plot lengths at age

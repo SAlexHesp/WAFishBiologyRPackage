@@ -98,6 +98,523 @@ logit <- function(x) {
   return(result)
 }
 
+#**********************************
+# Generic, smooth penalty functions
+#**********************************
+
+#' Logistic function (for lower bound) of penalty function for smooth upper and lower bounds (attributed to Prof. Norm Hall)
+#'
+#' Returns 0 if x << bound and 1 if x >> bound. The parameter, slope, determines the range over
+#' which the return value changes. The function used is the logistic function, where the return
+#' value is 0.5 when x == bound and 0.95 when x95 == bound + log(19)/slope
+#'
+#' @keywords internal
+#'
+#' @param x value to be check for penalty constraint
+#'
+#' @return   Returns 0 if x << bound and 1 if x >> bound
+x_is_gt_bound <- function(x, bound, slope) {
+
+  result = 1.0 / (1.0 + exp(slope * (bound - x)))
+  return (result)
+}
+
+#' Logistic function (for upper bound) of penalty function for smooth upper and lower bounds (attributed to Prof. Norm Hall)
+#'
+#' Returns 0 if x << bound and 1 if x >> bound. The parameter, slope, determines the range over
+#' which the return value changes. The function used is the logistic function, where the return
+#' value is 0.5 when x == bound and 0.95 when x95 == bound + log(19)/slope
+#'
+#' @keywords internal
+#'
+#' @param x value to be check for penalty constraint
+#'
+#' @return   Returns 0 if x << bound and 1 if x >> bound
+x_is_lt_bound <- function(x, bound, slope) {
+  result = 1.0 - 1.0 / (1.0 + exp(slope * (bound - x)))
+  return (result)
+}
+
+#' Smooth penalty function
+#'
+#' Smooth penalty function, equivalent functionality to ADMB posfun (excluding use of if statements)
+#'
+#' @keywords internal
+#'
+#' @param x value to be check for penalty constraint
+#'
+#' @return  value of x after checking for constraint
+posfun <- function (x, eps, pen) {
+  # Assume eps = log(19)/slope
+  slope = log(19.0) / eps
+  bound = eps
+  result = x *  x_is_gt_bound(x, bound, slope);
+  return (result)
+}
+
+
+#' Smooth penalty function penalty value calculation
+#'
+#' Smooth penalty function, equivalent functionality to ADMB posfun (excluding use of if statements)
+#'
+#' @keywords internal
+#'
+#' @param x value to be check for penalty constraint
+#'
+#' @return  value of x after checking for constraint
+penfun <- function(x, eps) {
+  # Assume eps = log(19)/slope
+  slope = log(19.0) / eps
+  bound = eps
+  result = (x-eps) * (x-eps) * x_is_lt_bound(x, bound, slope)
+  return (result)
+}
+
+# *********************************************************
+# Analyses of length effect on spawning duration and timing
+# *********************************************************
+
+#' Calculate daily proportions of spawning capable fish of a given length, using spawning duration model
+#'
+#' This function returns calculated values for the daily proportions of spawning capable fish
+#' of a specified length, using spawning duration model (i.e. asymmetric double logistic model with
+#' variable height)
+#'
+#' @param FishLen specified fish length
+#' @param DistnType DecDay specified decimal days of the year
+#' @param params specified (or estimated), transformed parameter values, for the spawning duration model (including
+#' lnL50, lnslope, logitPkSpawn, lnkappa, lnkappa2, lnslope1, lnslope2)
+#'
+#' @return returns a list object containing expected proportions of spawning capable fish, of a given length,
+#' for each specified day of the year, inputted as decimal day (P_t_s), and the value of a penalty
+#' function used to ensure the maximum proportion of spawning capable fishing is always between 0 and 1
+#' @examples
+#' FishLen = 500
+#' DecDay = seq(0,1,0.01)
+#' lnL50 = log(300)
+#' lnslope= log(0.015)
+#' logitPkSpawn = log(0.6/(1-0.6))
+#' lnkappa = log(0.0002)
+#' lnkappa2 = log(0.0002)
+#' lnslope1 = log(30)
+#' lnslope2 = log(30)
+#' params = c(lnL50,lnslope,logitPkSpawn,lnkappa,lnkappa2,lnslope1,lnslope2)
+#' res=CalcDailySpawnProps_SpDurMod(FishLen, DecDay, params)
+#' plot(DecDay,res$P_t_s,"l")
+#' @export
+CalcDailySpawnProps_SpDurMod <- function(FishLen, DecDay, params) {
+
+  param_pen = 0
+  temp_parm = exp(params[2])
+  eps = 0.001
+  param_pen = 0
+  uppbound = 0.5 # equals slope of about 0.5
+  param_pen = param_pen + penfun(uppbound - temp_parm, eps)
+  temp_parm = uppbound - posfun(uppbound - temp_parm, eps, param_pen)
+  # cat("temp_parm",temp_parm,"uppbound",uppbound,"param_pen",param_pen,'\n')
+
+  L50 = exp(params[1])
+  slope = exp(params[2])
+  Peak_spawn =  1/(1+exp(-params[3])) # ilogit transform
+  kappa = exp(params[4])
+  kappa2 = exp(params[5])
+  slope1 = exp(params[6])
+  slope2 = exp(params[7])
+
+  d50 = Peak_spawn - kappa * FishLen
+  d50_2 = Peak_spawn + kappa2 * FishLen
+  Height = 1 / (1 + exp(-slope*(FishLen-L50)))
+
+  P_t_s = 1 / (1 + exp(-slope1*(DecDay-d50))) *
+    1 / (1 + exp(slope2*(DecDay-d50_2))) * Height
+
+  res = list(P_t_s=P_t_s,
+             param_pen=param_pen)
+  return(res)
+
+}
+
+
+#' Calculate daily proportions of spawning capable fish of a given length, using spawning duration model,
+#' used for calculating NLL
+#'
+#' This function returns calculated values for the daily proportions of spawning capable fish
+#' of a specified length, using spawning duration model (i.e. asymmetric double logistic model with
+#' variable height)
+#'
+#' @keywords internal
+#'
+#' @param params specified (or estimated), transformed parameter values, for the spawning duration model (including
+#' lnL50, lnslope, logitPkSpawn, lnkappa, lnkappa2, lnslope1, lnslope2)
+#'
+#' @return returns a list object containing expected proportions of spawning capable fish, of a given length,
+#' for each specified day of the year, inputted as decimal day (P_t_s), and the value of a penalty
+#' function used to ensure the maximum proportion of spawning capable fishing is always between 0 and 1
+CalcDailySpawnProps2_SpDurMod <- function(params) {
+
+  param_pen = 0
+  temp_parm = exp(params[2])
+  eps = 0.001
+  param_pen = 0
+  uppbound = 0.5 # equals slope of about 0.5
+  param_pen = param_pen + penfun(uppbound - temp_parm, eps)
+  temp_parm = uppbound - posfun(uppbound - temp_parm, eps, param_pen)
+  # cat("temp_parm",temp_parm,"uppbound",uppbound,"param_pen",param_pen,'\n')
+
+  L50 = exp(params[1])
+  slope = exp(params[2])
+  Peak_spawn =  1/(1+exp(-params[3])) # ilogit transform
+  kappa = exp(params[4])
+  kappa2 = exp(params[5])
+  slope1 = exp(params[6])
+  slope2 = exp(params[7])
+
+  d50 = Peak_spawn - kappa * FishLen
+  d50_2 = Peak_spawn + kappa2 * FishLen
+  Height = 1 / (1 + exp(-slope*(FishLen-L50)))
+
+  P_t_s = 1 / (1 + exp(-slope1*(DecDay-d50))) *
+    1 / (1 + exp(slope2*(DecDay-d50_2))) * Height
+
+  res = list(P_t_s=P_t_s,
+             param_pen=param_pen)
+  return(res)
+
+}
+
+
+#' Simulated data with daily proportions of spawning capable fish for a species, based on using spawning duration model
+#'
+#' This function simulates data containing daily proportions of spawning capable fish for a specified with
+#' specified growth characteristics, and spawning characteristics according to values of specified parameters
+#' for the spawning duration model (i.e. asymmetric double logistic model with variable height)
+#'
+#' @param params specified (or estimated), transformed parameter values, for the spawning duration model (including
+#' lnL50, lnslope, logitPkSpawn, lnkappa, lnkappa2, lnslope1, lnslope2)
+#' @param GrowthEqn 1=von Bertalanffy, 2=Schnute, 3=Somers seasonal curve
+#' @param nSamples number of samples
+#' @param nSexes number of sexes 1=single or combined sex, 2=separate sexes
+#' @param MinAge  minimum age
+#' @param MaxAge maximum age
+#' @param AgeStep age interval
+#' @param Linf asymptotic length
+#' @param vbK von Bertalanffy growth coefficient
+#' @param tzero hypothetical length at age zero
+#' @param Growth_sd standard deviation of lengths at age
+#'
+#' @return returns a list object containing input data for dates of fish capture in decimal days (DecDay),
+#' month of capture (MM), corresponding fish lengths (FishLen), expected probability of each fish spawning
+#' according to its date of capture and size (ExpSpawnProbs), and randomly-generated maturity status (ObsMatStatus, 0=immature,
+#' 1=mature)
+#' @examples
+#' # Simulate spawning proportion data
+#' # First, simulate length and age data
+#' set.seed(123)
+#' GrowthEqn=1 # von Bertalanffy
+#' nSamples = 5000
+#' nSexes = 1
+#' MinAge = 1
+#' MaxAge = 20
+#' AgeStep = 1
+#' Ref_ages = NA
+#' Linf = 1000
+#' vbK = 0.1
+#' tzero = 0
+#' Growth_params = c(Linf,vbK,tzero)
+#' Growth_cv = 0.08
+#' # Spawning duration model parameters
+#' lnL50 = log(300)
+#' lnslope= log(0.015)
+#' logitPkSpawn = log(0.6/(1-0.6))
+#' lnkappa = log(0.0002)
+#' lnkappa2 = log(0.0002)
+#' lnslope1 = log(30)
+#' lnslope2 = log(30)
+#' params = c(lnL50,lnslope,logitPkSpawn,lnkappa,lnkappa2,lnslope1,lnslope2)
+#' Res=SimulateSpawningDurationData(params, GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
+#'                                  AgeStep, Ref_ages, Growth_params, Growth_cv)
+#' @export
+SimulateSpawningDurationData <- function(params, GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
+                                         AgeStep, Ref_ages, Growth_params, Growth_cv) {
+
+  Res = SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
+                                AgeStep, Ref_ages, Growth_params, Growth_cv)
+
+  # Get expected probability of spawning, given size of fish and time of year
+  FishLen=round(Res$ObsLen,0)
+  DecDay = Res$ObsAge - trunc(Res$ObsAge/1)*1
+  MM = 1+((trunc(DecDay/(1/12))*(1/12))*12)
+
+  res=CalcDailySpawnProps_SpDurMod(FishLen, DecDay, params)
+  ExpSpawnProbs=res$P_t_s
+
+  # assign mature /  non-mature, based on probability and random numbers
+  ObsMatStatus = rep(NA,nSamples)
+  for (i in 1:nSamples) {
+    randnum = runif(1,0,1) # draw random number, between 0 and 1, from uniform distribution
+    if (randnum <= ExpSpawnProbs[i]) {
+      ObsMatStatus[i] = 1
+    } else {
+      ObsMatStatus[i] = 0
+    }
+  }
+
+  Results = list(FishLen=FishLen,
+                 DecDay=DecDay,
+                 MM=MM,
+                 ExpSpawnProbs=ExpSpawnProbs,
+                 ObsMatStatus=ObsMatStatus)
+}
+
+#' Calculate observed monthly proportions of spawning capable fish
+#'
+#' This function calculates monthly proportions of spawning capable fish for observed
+#' input data on months and observed maturity status
+#'
+#' @keywords internal
+#'
+#' @param subDat data frame with observed months (MM) and maturity status (ObsMatStatus,
+#' 0=immature, 1=mature)
+#'
+#' @return observed monthly proportions of spawning capable fish (Probs)
+CalcMonthlyObsSpawnProps_SpDurMod <- function(subDat) {
+  Probs = rep(0, length(seq(1,12,1))) # calculate monthly
+  for (j in seq(1,12,1)) {
+    xx = which(subDat$MM >= j-0.0001 & subDat$MM <= j+0.0001)
+    Probs[j] = length(which(subDat$ObsMatStatus[xx] == 1)) / length(xx)
+    # cat("j",j,"n",length(xx),"probs",Probs[j],'\n')
+  }
+  return(Probs)
+}
+
+#' Plot daily proportions of spawning capable fish for specified length categories
+#'
+#' This function plots calculated values for the daily proportions of spawning capable fish
+#' for specified length categories and estimated daily proportions from spawning duration model,
+#' (i.e. asymmetric double logistic model with variable height), if parameters are specified
+#'
+#' @param ObsSpawnDat list including observed fish lengths (FishLen), observed months of capture (MM)
+#' and observed maturity status categories (ObsMatStatus, 0=immature, 1=mature)
+#' @param lbnds lower bounds for length classes to be plotted
+#' @param ubnds upper bounds for length classes to be plotted
+#' @param params specified (or estimated), transformed parameter values, for the spawning duration model (including
+#' lnL50, lnslope, logitPkSpawn, lnkappa, lnkappa2, lnslope1, lnslope2)
+#'
+#' @return plots
+#' @examples
+#' # Simulate spawning proportion data
+#' # First, simulate length and age data
+#' set.seed(123)
+#' GrowthEqn=1 # von Bertalanffy
+#' nSamples = 5000
+#' nSexes = 1
+#' MinAge = 1
+#' MaxAge = 20
+#' AgeStep = 1
+#' Ref_ages = NA
+#' Linf = 1000
+#' vbK = 0.1
+#' tzero = 0
+#' Growth_params = c(Linf,vbK,tzero)
+#' Growth_cv = 0.08
+#' # Spawning duration model parameters
+#' lnL50 = log(300)
+#' lnslope= log(0.015)
+#' logitPkSpawn = log(0.6/(1-0.6))
+#' lnkappa = log(0.0002)
+#' lnkappa2 = log(0.0002)
+#' lnslope1 = log(30)
+#' lnslope2 = log(30)
+#' params = c(lnL50,lnslope,logitPkSpawn,lnkappa,lnkappa2,lnslope1,lnslope2)
+#' Res=SimulateSpawningDurationData(params, GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
+#'                                  AgeStep, Ref_ages, Growth_params, Growth_cv)
+#' ObsMatStatus=Res$ObsMatStatus
+#' FishLen=Res$FishLen
+#' MM=Res$MM
+#' ObsSpawnDat = data.frame(MM=MM,FishLen=FishLen,ObsMatStatus=ObsMatStatus)
+#' # params = c(lnL50,lnslope,logitPkSpawn,lnkappa,lnkappa2,lnslope1,lnslope2)
+#' params = NA
+#' CalcNLL_SpDurMod(params)
+#' params = NA
+#' lbnds = seq(300,900,100)
+#' ubnds = lbnds + 100
+#' PlotSpawningDurationData(ObsSpawnDat, lbnds, ubnds, params)
+#' @export
+PlotSpawningDurationData <- function(ObsSpawnDat, lbnds, ubnds, params) {
+  nLenCats = length(lbnds)
+  floor(nLenCats/2)+1
+  par(mfrow=c(floor(nLenCats/2)+1,2))
+  for (i in 1:nLenCats) {
+    subDat = ObsSpawnDat[ObsSpawnDat$FishLen >= lbnds[i] & ObsSpawnDat$FishLen < ubnds[i],]
+    Probs = CalcMonthlyObsSpawnProps_SpDurMod(subDat)
+    plot(seq(0.5,11.5,1), Probs, ylim=c(0,1),
+         xlab="Month", ylab="Prob spawning", main=paste0(lbnds[i],"-",ubnds[i]), cex.main=1)
+    if(!is.na(params[i])) {
+      FishLen=(lbnds[i] + ubnds[i])/2
+      DecDay_plot = seq(0,1,0.01)
+      Res=CalcDailySpawnProps_SpDurMod(FishLen, DecDay_plot, params)
+      lines(DecDay_plot*12,Res$P_t_s,col=i)
+    }
+  } # i
+}
+
+#' Calculate NLL for spawning duration model given data and parameter values
+#'
+#' Calculate negative log-likelihood for spawning duration model given data and parameter values
+#'
+#' @keywords internal
+#'
+#' @param params specified (or estimated), transformed parameter values, for the spawning duration model (including
+#' lnL50, lnslope, logitPkSpawn, lnkappa, lnkappa2, lnslope1, lnslope2)
+#'
+#' @return negative log-likelihood (NLL)
+CalcNLL_SpDurMod <- function(params) {
+
+  Res = CalcDailySpawnProps2_SpDurMod(params)
+  Likelihood = rep(-999, length(DecDay))
+  Likelihood[which(ObsMatStatus==1)] = Res$P_t_s[which(ObsMatStatus==1)]
+  Likelihood[which(ObsMatStatus==0)] = 1 - Res$P_t_s[which(ObsMatStatus==0)]
+
+  LL <- log(Likelihood + 1E-4)
+
+  NLL = -sum(LL) + Res$param_pen
+  results = NLL
+  cat("NLL",NLL,"params",params,"Res$param_pen",Res$param_pen,'\n')
+
+  return(results)
+
+}
+
+#' Get results for fitted spawning duration model
+#'
+#' This function fits a model for estimating spawning season timing and duration, allowing for
+#' fish length effects. The curves associated with the fitted model, for fish of a given length,
+#' have the appearance are approximately bell-shaped, and can vary in heights among fish of different
+#' lengths. The model may also described as an asymmetric double logistic model with variable height.
+#'
+#' @param params specified (or estimated), transformed parameter values, for the spawning duration model (including
+#' lnL50, lnslope, logitPkSpawn, lnkappa, lnkappa2, lnslope1, lnslope2)
+#' @param FishLen Fish lengths
+#' @param DecDay Days of year of fish capture (in decimal years)
+#' @param ObsMatStatus maturity status, 0=immature, 1=mature
+#'
+#' @return estimated parameters (params), negative log-likelihood of fitted model (NLL),
+#' convergence statistic (0=converged), estimated variance-covariance matrix for estimated parameters,
+#' estimated parameters with 95 percent asymptotic confidence limits (including back-transformed parameters),
+#' estimated parameters with 95 percent confidence limits dervied from parametric resampling of estimated
+#' parameters and associated variance-covariance matrix (including back-transformed parameters),
+#'
+#' @examples
+#' # Simulate spawning proportion data
+#' # First, simulate length and age data
+#' set.seed(123)
+#' GrowthEqn=1 # von Bertalanffy
+#' nSamples = 5000
+#' nSexes = 1
+#' MinAge = 1
+#' MaxAge = 20
+#' AgeStep = 1
+#' Ref_ages = NA
+#' Linf = 1000
+#' vbK = 0.1
+#' tzero = 0
+#' Growth_params = c(Linf,vbK,tzero)
+#' Growth_cv = 0.08
+#' # Spawning duration model parameters
+#' lnL50 = log(300)
+#' lnslope= log(0.015)
+#' logitPkSpawn = log(0.6/(1-0.6))
+#' lnkappa = log(0.0002)
+#' lnkappa2 = log(0.0002)
+#' lnslope1 = log(30)
+#' lnslope2 = log(30)
+#' params = c(lnL50,lnslope,logitPkSpawn,lnkappa,lnkappa2,lnslope1,lnslope2)
+#' Res=SimulateSpawningDurationData(params, GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
+#'                                  AgeStep, Ref_ages, Growth_params, Growth_cv)
+#' ObsMatStatus=Res$ObsMatStatus
+#' FishLen=Res$FishLen
+#' DecDay=Res$DecDay
+#' # Spawning duration model parameters - initial values
+#' lnL50 = log(350)
+#' lnslope= log(0.02)
+#' logitPkSpawn = log(0.7/(1-0.7))
+#' lnkappa = log(0.00015)
+#' lnkappa2 = log(0.00035)
+#' lnslope1 = log(25)
+#' lnslope2 = log(35)
+#' params = c(lnL50,lnslope,logitPkSpawn,lnkappa,lnkappa2,lnslope1,lnslope2)
+#' res=GetSpawningDurationModelResults(params, FishLen, DecDay, ObsMatStatus)
+#' @export
+GetSpawningDurationModelResults <- function(params, FishLen, DecDay, ObsMatStatus) {
+
+  FishLen=FishLen
+  DecDay=DecDay
+  ObsMatStatus=ObsMatStatus
+
+  for (i in 1:3) {
+    nlmb <- nlminb(params, CalcNLL_SpDurMod, gradient = NULL, hessian = TRUE,
+                   control=list(trace=1, rel.tol=0.0000001))
+    params = nlmb$par
+  }
+
+  params = nlmb$par
+  NLL = nlmb$objective
+  convergence = nlmb$convergence
+
+  # get variance-covariance matrix, from fitted model
+  hess.out = optimHess(params, CalcNLL_SpDurMod)
+  vcov.Params = solve(hess.out)
+  ses = sqrt(diag(vcov.Params))
+
+  # get parameter estimates and asymptotic error estimates
+  EstL50 = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+  Estslope = c(exp(nlmb$par[2]), exp(nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
+  temp=c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
+  EstPkSpawn = exp(temp) / (exp(temp)+1) # ilogit transform
+  Estkappa = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
+  Estkappa2 = c(exp(nlmb$par[5]), exp(nlmb$par[5] + c(-1.96, 1.96) * ses[5]))
+  Estslope1 = c(exp(nlmb$par[6]), exp(nlmb$par[6] + c(-1.96, 1.96) * ses[6]))
+  Estslope2 = c(exp(nlmb$par[7]), exp(nlmb$par[7] + c(-1.96, 1.96) * ses[7]))
+
+  ParamEst = t(data.frame(EstL50=round(EstL50,2), Estslope=round(Estslope,3),
+                          EstPkSpawn=round(EstPkSpawn,3), Estkappa=round(Estkappa,5),
+                          Estkappa2=round(Estkappa2,5), Estslope1=round(Estslope1,3),
+                          Estslope2=round(Estslope2,3)))
+
+  # Use resampling approach to get estimates of uncertainty of derived outputs for model
+
+  set.seed(123)
+  nsims = 500
+  sims = data.frame(MASS::mvrnorm(n = nsims, params, vcov.Params))
+  names(sims) = c("ln_L50", "ln_slope","lgt_PkSpawn","ln_kappa","ln_kappa2",
+                  "ln_slope1","ln_slope2")
+
+  sims$L50 = exp(sims$ln_L50)
+  sims$slope = exp(sims$ln_slope)
+  sims$Peak_spawn = exp(sims$lgt_PkSpawn) / (exp(sims$lgt_PkSpawn)+1) # ilogit transform
+  sims$kappa = exp(sims$ln_kappa)
+  sims$kappa2 = exp(sims$ln_kappa2)
+  sims$slope1 = exp(sims$ln_slope1)
+  sims$slope2 = exp(sims$ln_slope2)
+
+  # Recalculate 95% CLs for estimated parameters and back-transformed values of estimated parameters
+  sims.mean = apply(sims[, 1:14], MARGIN=2, function(x) mean(x))
+  sims.median = apply(sims[, 1:14], MARGIN=2, function(x) quantile(x, 0.5))
+  sims.lowCL = apply(sims[, 1:14], MARGIN=2, function(x) quantile(x, 0.025))
+  sims.uppCL = apply(sims[, 1:14], MARGIN=2, function(x) quantile(x, 0.975))
+  ParamEst.sim = round(cbind(sims.mean, sims.median, sims.lowCL, sims.uppCL), 3)
+
+
+  res = list(params=params,
+             NLL=NLL,
+             convergence=convergence,
+             vcov.Params=vcov.Params,
+             ParamEst=ParamEst,
+             ParamEst.sim=ParamEst.sim)
+
+  return(res)
+}
+
 
 #******************************
 # Mixture distribution analyses
@@ -1211,14 +1728,17 @@ PlotMixtureDistnResults <- function(params, DistnType, Cohorts, ObsFreq, MinSize
 #' @examples
 #' set.seed(123)
 #' # 1 sex
+#' GrowthEqn=1
+#' nSamples = 1000
 #' nSexes = 1
-#' nSamples = 300
 #' MinAge = 1
 #' MaxAge = 20
 #' AgeStep = 1
+#' Ref_ages = NA
 #' Linf = 300
 #' vbK = 0.3
 #' tzero = 0
+#' Growth_params = c(Linf,vbK,tzero)
 #' Growth_cv = 0.08
 #' Res = SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
 #' # plot lengths at age
@@ -1232,13 +1752,16 @@ PlotMixtureDistnResults <- function(params, DistnType, Cohorts, ObsFreq, MinSize
 #' arrows(ObsAgeCl, ObsMeanLen_lw95CL, ObsAgeCl, ObsMeanLen_hi95CL,
 #'        code=3, angle=90,length=0.02, col='black')
 #' # # 2 sexes
-#' # nSexes = 2
+#' # GrowthEqn = 1
 #' # nSamples = c(300,300)
+#' # nSexes = 2
 #' # MinAge = 1
 #' # MaxAge = 20
+#' # AgeStep = 1
 #' # Linf = c(300,250)
 #' # vbK = c(0.3,0.3)
 #' # tzero = c(0,0)
+#' # Growth_params = c(Linf,vbK,tzero)
 #' # Growth_cv = c(0.08,0.08)
 #' # Res = SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
 #' # # plot lengths at age
