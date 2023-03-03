@@ -62,5 +62,6 @@ CalcNLL_SpDurMod(params)
 params = NA
 lbnds = seq(300,900,100)
 ubnds = lbnds + 100
+par(mfrow=c(3,2), mar=c(4,2,2,2))
 PlotSpawningDurationData(ObsSpawnDat, lbnds, ubnds, params)
 }

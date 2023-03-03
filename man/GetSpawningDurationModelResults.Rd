@@ -4,7 +4,16 @@
 \alias{GetSpawningDurationModelResults}
 \title{Get results for fitted spawning duration model}
 \usage{
-GetSpawningDurationModelResults(params, FishLen, DecDay, ObsMatStatus)
+GetSpawningDurationModelResults(
+  params,
+  FishLen,
+  DecDay,
+  ObsMatStatus,
+  MinLen,
+  MaxLen,
+  LenInc,
+  nsims
+)
 }
 \arguments{
 \item{params}{specified (or estimated), transformed parameter values, for the spawning duration model (including
@@ -15,6 +24,14 @@ lnL50, lnslope, logitPkSpawn, lnkappa, lnkappa2, lnslope1, lnslope2)}
 \item{DecDay}{Days of year of fish capture (in decimal years)}
 
 \item{ObsMatStatus}{maturity status, 0=immature, 1=mature}
+
+\item{MinLen}{Minimum fish length (for determining lengths to output expected model curves)}
+
+\item{MaxLen}{Maximum fish length for analysis}
+
+\item{LenInc}{Length increment (for determining lengths to output expected model curves)}
+
+\item{nsims}{number of samples to generate using parametric resampling. Set to zero to turn off resampling.}
 }
 \value{
 estimated parameters (params), negative log-likelihood of fitted model (NLL),
@@ -68,5 +85,9 @@ lnkappa2 = log(0.00035)
 lnslope1 = log(25)
 lnslope2 = log(35)
 params = c(lnL50,lnslope,logitPkSpawn,lnkappa,lnkappa2,lnslope1,lnslope2)
-res=GetSpawningDurationModelResults(params, FishLen, DecDay, ObsMatStatus)
+nsims=20
+MinLen=0
+MaxLen=1100
+LenInc=100
+res=GetSpawningDurationModelResults(params, FishLen, DecDay, ObsMatStatus, MinLen, MaxLen, LenInc, nsims)
 }

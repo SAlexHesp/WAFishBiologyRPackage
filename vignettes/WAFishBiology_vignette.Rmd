@@ -223,14 +223,19 @@ SimulateWeightLengthData()
 
 ## Reproductive analyses 
 
-A logistic function may be used to describe the probability of a fish being mature at a given length (or age). The routines implemented allow for either a single curve to be fitted to the data, or two curves (i.e. females and males, or area 1 and area 2) to be fitted simultaneously. In the latter case, common variance is assumed for the two curves.   
+A logistic function may be used to describe the probability of a fish being mature at a given length (or age). The routines implemented allow for either a single curve to be fitted to the data, or two curves (i.e. females and males, or area 1 and area 2) to be fitted simultaneously. In the latter case, common variance is assumed for the two curves. Several alternative logistic functions are available, including models with fixed height (at 1), variable height, symmetric curves and asymmetric curves.  
 
 ### Logistic size and age at maturity (or sex change) curves
-The probability, $P$, of a fish, of length $L$ being mature, may be described as
+The probability, $P$, of a fish, of length $L$ being mature, may be described using the following symmetric logistic function
 $$
 \rho = {P_{\max}/(1+\exp(-\log_e(19)(L-L_{50})/(L_{95}-L_{50})))}
 $$
-where P_{max} is the maximum proportion of fish that are mature, $L_{50}$ and $L_{95}$ are the lengths at which 50 and 95% of fish are mature, respectively. The same form of equation may be used to describe the probability of maturity of fish at age, replacing $L$ with fish age, and $L_{50}$ and $L_{95}$ with $A_{50}$ and $A_{95}$, i.e. the ages at which 50 and 95% of fish are mature, respectively. In cases where $P_{\max}$ can be assumed to be equal to 1, only two parameters (either $L_{50}$ and $L_{95}$, or $A_{50}$ and $A_{95}$) are input into the model.
+where P_{max} is the maximum proportion of fish that are mature, $L_{50}$ and $L_{95}$ are the lengths at which 50 and 95% of fish are mature, respectively. The same form of equation may be used to describe the probability of maturity of fish at age, replacing $L$ with fish age, and $L_{50}$ and $L_{95}$ with $A_{50}$ and $A_{95}$, i.e. the ages at which 50 and 95% of fish are mature, respectively. In cases where $P_{\max}$ can be assumed to be equal to 1, only two parameters (either $L_{50}$ and $L_{95}$, or $A_{50}$ and $A_{95}$) are input into the model. Alternatively, the following, more flexible function, allowing for asymmetry, may be applied
+
+$$
+\rho = {P_{\max}/((1+Q\exp(-BL))^{1/V})}
+$$
+where $P_{max}$, $Q$, $B$ and $v$ are estimated parameters. Similar to above, where P_{max} can be assumed to equal one, only 3 parameters need to be estimated.
 
 
 ### Objective function for fitting size or age at maturity (or sex change) curves
@@ -270,9 +275,56 @@ Some routines have been added for rapid calculation and plotting of monthly prev
 CalcMonthlyGonadStageProps()  
 PlotMonthlyGonadStageProps()  
 
+### Spawning duration model
+
+In a recent research study (Evans-Powell et al., submitted), a model was developed for estimating time and duration of spawning, and how this differs with respect to female fish length. The proportion of female fish, of a given size, identified as ‘spawning capable’ (i.e. possessing ovaries that, on the basis of macroscopic and/or histological examination, are classified as mature/spawning) on any day of the year is described using a bell-shaped curve. The effect of female length on spawning magnitude and duration is incorporated in the model by modifying the width and height of a ('bell-shaped') double logistic curve in accordance with fish length. The proportion of spawning capable females on a given day during the year is estimated as
+
+$$
+P=[1+\exp(-s_1(d-b_1))]^{-1}[1+\exp(s_2(d-b_2))]^{-1}H
+$$
+
+where $s_1$  and $b_1$ are the slope and inflection point for the ascending curve, respectively, $s_2$  and $b_2$ are the slope and inflection point for the descending curve, respectively, and $H$ is the maximum height of the double logistic curve. The times of year (decimal day values) corresponding to the inflection points of the ascending and descending logistic curve, for fish of total length $L$,  is calculated as
+
+$$
+b_1=\rho-\kappa_1{L}
+$$
+$$
+b_2=\rho-\kappa_2{L}
+$$
+where $\rho$, $\kappa_1$ and $\kappa_2$ are model parameters. Spawning duration, for fish of length $L$, is calculated as $b_2-b_1$. The parameter $\rho$ represents the time of peak spawning, assumed to be constant across fish of all sizes. For fish of total length L, the value of $H$ is calculated as
+
+$$
+H=[1+\exp(-s_3(L-b_3))]^{-1}
+$$
+
+
+where $b_3$ is the inflection point and $s_3$ is the slope of the curve. This variation in height allows the maximum proportion of spawning fish, during the spawning season, to vary with fish size. The duration of the main period of spawning, for fish of total length $L$, is calculated as the difference between the (decimal day) values of $b_1$ and $b_2$.
+
+The model is fitted using the nlminb optimiser in R (R Core Team, 2020) by minimising the overall negative log-likelihood. Setting $X_j=1$ if the $jth$ fish possessed pre-spawning or spawning ovaries, and $X_j=0$ if it did not possess such gonads, the negative log-likelihood, $\lambda$, for each model was calculated as
+
+$$
+\lambda = \sum_{j}X_j[\log_e{P_j+0.0001}+(1-X_j)\ln(1-{P_j+0.0001})]
+$$
+
+(Moore et al., 2007), where $P_j$ is the probability of the $jth$ fish being spawning capable, given its size and date of capture. The small constant 0.0001 was added to prevent natural logarithms being calculated for any calculated values of $P_j=0$.
+To calculate uncertainty for both is parameters and derived variables, the fitted model parameters are assumed to conform to a multivariate normal distribution. A total of a specified number of samples of sets of values for the fitted parameters are randomly drawn from this distribution using the mvrnorm function within the MASS package in R (Venables & Ripley, 2002) and employing the variance-covariance matrix for the fitted model, calculated from the Hessian matrix produced by R when fitting the model (see Marks et al., 2021). Estimates of the lower and upper 95% confidence intervals for each of the fitted parameters and for each derived variable are calculated as the 2.5th and 97.5th quantiles of the values obtained from the sets of samples parameter estimates. Given estimates of batch fecundity and spawning frequency, the estimates of spawning duration can be used to calculate 'potential annual fecundity' for multiple spawning fish species with indeterminate fecundity. As highlighted by Evans-Powell et al. (2023) and other recent literature, use of fecundity, rather spawning biomass, may be more appropriate in some assessment models for estimating stocks status (due to issues associated with hyperallometric scaling of reproductive output with respect to fish mass). Note that this technique and associated paper is currently under review. 
+
+
+### Available functions related to spawning duration model
+
+SimulateSpawningDurationData()  
+PlotSpawningDurationData()  
+PlotSpawningDurationModelResults()  
+CalcDailySpawnProps_SpDurMod()  
+GetSpawningDurationModelResults()  
+
+
+
 ## References:
 
 Chapman, D. G., and D. S. Robson. (1960). The analysis of a catch curve. Biometrics 16:354-368. 
+
+Evans-Powell, R., Hesp, S. A., Denham, A., Beckley, L. E. (2023). Implications of big, old, fat, fecund female fish (BOFFFFs) in sustaining a large demersal teleost species. Submitted.
 
 French, B., Potter, I. C., Hesp, S. A., Coulson, P. G. & Hall, N. G. (2014). Biology of the harlequin fish Othos dentex (Serranidae), with particular emphasis on sexual pattern and other reproductive characteristics. Journal of Fish Biology (2014). 84, 106-132.
 

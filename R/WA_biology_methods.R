@@ -202,7 +202,7 @@ penfun <- function(x, eps) {
 #' res=CalcDailySpawnProps_SpDurMod(FishLen, DecDay, params)
 #' plot(DecDay,res$P_t_s,"l")
 #' @export
-CalcDailySpawnProps_SpDurMod <- function(FishLen, DecDay, params) {
+CalcDailySpawnProps_SpDurMod <- function(fish_size, DecDay, params) {
 
   param_pen = 0
   temp_parm = exp(params[2])
@@ -221,15 +221,18 @@ CalcDailySpawnProps_SpDurMod <- function(FishLen, DecDay, params) {
   slope1 = exp(params[6])
   slope2 = exp(params[7])
 
-  d50 = Peak_spawn - kappa * FishLen
-  d50_2 = Peak_spawn + kappa2 * FishLen
-  Height = 1 / (1 + exp(-slope*(FishLen-L50)))
+  d50 = Peak_spawn - kappa * fish_size
+  d50_2 = Peak_spawn + kappa2 * fish_size
+  Height = 1 / (1 + exp(-slope*(fish_size-L50)))
 
   P_t_s = 1 / (1 + exp(-slope1*(DecDay-d50))) *
     1 / (1 + exp(slope2*(DecDay-d50_2))) * Height
 
   res = list(P_t_s=P_t_s,
-             param_pen=param_pen)
+             param_pen=param_pen,
+             d50=d50,
+             d50_2=d50_2,
+             Height=Height)
   return(res)
 
 }
@@ -438,17 +441,22 @@ CalcMonthlyObsSpawnProps_SpDurMod <- function(subDat) {
 #' params = NA
 #' lbnds = seq(300,900,100)
 #' ubnds = lbnds + 100
+#' par(mfrow=c(3,2), mar=c(4,2,2,2))
 #' PlotSpawningDurationData(ObsSpawnDat, lbnds, ubnds, params)
 #' @export
+#'
 PlotSpawningDurationData <- function(ObsSpawnDat, lbnds, ubnds, params) {
   nLenCats = length(lbnds)
-  floor(nLenCats/2)+1
-  par(mfrow=c(floor(nLenCats/2)+1,2))
+  MMabb = substr(month.abb, 1, 1)
   for (i in 1:nLenCats) {
     subDat = ObsSpawnDat[ObsSpawnDat$FishLen >= lbnds[i] & ObsSpawnDat$FishLen < ubnds[i],]
     Probs = CalcMonthlyObsSpawnProps_SpDurMod(subDat)
-    plot(seq(0.5,11.5,1), Probs, ylim=c(0,1),
-         xlab="Month", ylab="Prob spawning", main=paste0(lbnds[i],"-",ubnds[i]), cex.main=1)
+    plot(seq(0.5,11.5,1), Probs, xaxt='n', yaxt="n", cex=0.8, cex.axis=1,bty='n', ylim=c(0,1), xlim=c(0,12),
+         xlab = list(" Month",cex=1.2), ylab=list("Prop. spawning",cex=1.2), main=paste0(lbnds[i],"-",ubnds[i]," mm"), cex.main=1)
+    axis(1, at=seq(0.5,11.5,1), tck=0.03, cex=1, labels=F,line=0.5)
+    axis(1, at=seq(0.5,11.5,1), labels = MMabb[1:12], tck=0.03, cex=1, line=0, lwd=0)
+    axis(2, at=seq(0, 1, 0.2), tck=0.03, cex=1, labels=F,line=0.5)
+    axis(2, at=seq(0, 1, 0.2), tck=0.03, cex=1, labels=T,line=0, lwd=0, las=2)
     if(!is.na(params[i])) {
       FishLen=(lbnds[i] + ubnds[i])/2
       DecDay_plot = seq(0,1,0.01)
@@ -497,6 +505,10 @@ CalcNLL_SpDurMod <- function(params) {
 #' @param FishLen Fish lengths
 #' @param DecDay Days of year of fish capture (in decimal years)
 #' @param ObsMatStatus maturity status, 0=immature, 1=mature
+#' @param MinLen Minimum fish length (for determining lengths to output expected model curves)
+#' @param MaxLen Maximum fish length for analysis
+#' @param LenInc Length increment (for determining lengths to output expected model curves)
+#' @param nsims number of samples to generate using parametric resampling. Set to zero to turn off resampling.
 #'
 #' @return estimated parameters (params), negative log-likelihood of fitted model (NLL),
 #' convergence statistic (0=converged), estimated variance-covariance matrix for estimated parameters,
@@ -543,9 +555,13 @@ CalcNLL_SpDurMod <- function(params) {
 #' lnslope1 = log(25)
 #' lnslope2 = log(35)
 #' params = c(lnL50,lnslope,logitPkSpawn,lnkappa,lnkappa2,lnslope1,lnslope2)
-#' res=GetSpawningDurationModelResults(params, FishLen, DecDay, ObsMatStatus)
+#' nsims=20
+#' MinLen=0
+#' MaxLen=1100
+#' LenInc=100
+#' res=GetSpawningDurationModelResults(params, FishLen, DecDay, ObsMatStatus, MinLen, MaxLen, LenInc, nsims)
 #' @export
-GetSpawningDurationModelResults <- function(params, FishLen, DecDay, ObsMatStatus) {
+GetSpawningDurationModelResults <- function(params, FishLen, DecDay, ObsMatStatus, MinLen, MaxLen, LenInc, nsims) {
 
   FishLen=FishLen
   DecDay=DecDay
@@ -577,39 +593,259 @@ GetSpawningDurationModelResults <- function(params, FishLen, DecDay, ObsMatStatu
                           EstPkSpawn=round(EstPkSpawn,3), Estkappa=round(Estkappa,5),
                           Estkappa2=round(Estkappa2,5), Estslope1=round(Estslope1,3),
                           Estslope2=round(Estslope2,3)))
+  ParamEst.sim = NA
+  if (nsims > 0) {
+    # Use resampling approach to get estimates of uncertainty of derived outputs for model
+    sims = data.frame(MASS::mvrnorm(n = nsims, params, vcov.Params))
+    names(sims) = c("ln_L50", "ln_slope","lgt_PkSpawn","ln_kappa","ln_kappa2",
+                    "ln_slope1","ln_slope2")
 
-  # Use resampling approach to get estimates of uncertainty of derived outputs for model
+    sims$L50 = exp(sims$ln_L50)
+    sims$slope = exp(sims$ln_slope)
+    sims$Peak_spawn = exp(sims$lgt_PkSpawn) / (exp(sims$lgt_PkSpawn)+1) # ilogit transform
+    sims$kappa = exp(sims$ln_kappa)
+    sims$kappa2 = exp(sims$ln_kappa2)
+    sims$slope1 = exp(sims$ln_slope1)
+    sims$slope2 = exp(sims$ln_slope2)
 
-  set.seed(123)
-  nsims = 500
-  sims = data.frame(MASS::mvrnorm(n = nsims, params, vcov.Params))
-  names(sims) = c("ln_L50", "ln_slope","lgt_PkSpawn","ln_kappa","ln_kappa2",
-                  "ln_slope1","ln_slope2")
+    # Recalculate 95% CLs for estimated parameters and back-transformed values of estimated parameters
+    sims.mean = apply(sims[, 1:14], MARGIN=2, function(x) mean(x))
+    sims.median = apply(sims[, 1:14], MARGIN=2, function(x) quantile(x, 0.5))
+    sims.lowCL = apply(sims[, 1:14], MARGIN=2, function(x) quantile(x, 0.025))
+    sims.uppCL = apply(sims[, 1:14], MARGIN=2, function(x) quantile(x, 0.975))
+    ParamEst.sim = round(cbind(sims.mean, sims.median, sims.lowCL, sims.uppCL), 3)
+  }
 
-  sims$L50 = exp(sims$ln_L50)
-  sims$slope = exp(sims$ln_slope)
-  sims$Peak_spawn = exp(sims$lgt_PkSpawn) / (exp(sims$lgt_PkSpawn)+1) # ilogit transform
-  sims$kappa = exp(sims$ln_kappa)
-  sims$kappa2 = exp(sims$ln_kappa2)
-  sims$slope1 = exp(sims$ln_slope1)
-  sims$slope2 = exp(sims$ln_slope2)
+  # get relationships between maximum proportion spawning and spawning duration with fish length,
+  # with uncertainty
+  FishLen = seq(0,MaxLen,1)
+  nfishsizes = length(FishLen)
+  MaxCurveHeightEst = data.frame(matrix(nrow=nsims,ncol=nfishsizes))
+  colnames(MaxCurveHeightEst) = FishLen
+  MaxCurveHeightEst = as.matrix(MaxCurveHeightEst)
+  SpawnDurEst = MaxCurveHeightEst
+  MaxPropSpawnVsFishLen=NA
+  SpawnDurVsFishLen=NA
+  if (nsims > 0) {
+    for (i in 1:nsims) {
+      for (k in 1:nfishsizes) {
+        fish_size = FishLen[k]
+        EstPar=as.numeric(sims[i,1:7])
+        res = CalcDailySpawnProps_SpDurMod(fish_size, DecDay, EstPar)
+        SpawnDurEst[i,k] = res$d50_2 - res$d50
+        MaxCurveHeightEst[i,k] = max(res$P_t_s)
+      }
+      cat("1:Resampling: i",i,"of",nsims,"nsims",'\n')
+    }
 
-  # Recalculate 95% CLs for estimated parameters and back-transformed values of estimated parameters
-  sims.mean = apply(sims[, 1:14], MARGIN=2, function(x) mean(x))
-  sims.median = apply(sims[, 1:14], MARGIN=2, function(x) quantile(x, 0.5))
-  sims.lowCL = apply(sims[, 1:14], MARGIN=2, function(x) quantile(x, 0.025))
-  sims.uppCL = apply(sims[, 1:14], MARGIN=2, function(x) quantile(x, 0.975))
-  ParamEst.sim = round(cbind(sims.mean, sims.median, sims.lowCL, sims.uppCL), 3)
+    # relationship between maximum proportion spawning and fish size, with uncertainty
+    MaxCurve.mean = apply(MaxCurveHeightEst[,], MARGIN=2, function(x) mean(x))
+    MaxCurve.median = apply(MaxCurveHeightEst[,], MARGIN=2, function(x) quantile(x, 0.5))
+    MaxCurve.lowCL = apply(MaxCurveHeightEst[,], MARGIN=2, function(x) quantile(x, 0.025))
+    MaxCurve.uppCL = apply(MaxCurveHeightEst[,], MARGIN=2, function(x) quantile(x, 0.975))
 
+    MaxPropSpawnVsFishLen = data.frame(FishLen=FishLen,
+                                       MaxCurve.mean=MaxCurve.mean,
+                                       MaxCurve.median=MaxCurve.median,
+                                       MaxCurve.lowCL=MaxCurve.lowCL,
+                                       MaxCurve.uppCL=MaxCurve.uppCL)
+
+    # relationship between spawning duration and fish size, with uncertainty
+    SpawnDur.mean = apply(SpawnDurEst[,], MARGIN=2, function(x) mean(x))
+    SpawnDur.median = apply(SpawnDurEst[,], MARGIN=2, function(x) quantile(x, 0.5))
+    SpawnDur.lowCL = apply(SpawnDurEst[,], MARGIN=2, function(x) quantile(x, 0.025))
+    SpawnDur.uppCL = apply(SpawnDurEst[,], MARGIN=2, function(x) quantile(x, 0.975))
+    SpawnDurVsFishLen = data.frame(FishLen=FishLen,
+                                   SpawnDur.mean=SpawnDur.mean,
+                                   SpawnDur.median=SpawnDur.median,
+                                   SpawnDur.lowCL=SpawnDur.lowCL,
+                                   SpawnDur.uppCL=SpawnDur.uppCL)
+  }
+
+  # get model curves with uncertainty for fish with respect to
+  # midpoints of specified size categories
+  lbnds = seq(MinLen,MaxLen-LenInc,LenInc)
+  ubnds = lbnds + LenInc
+  midpts = lbnds + (LenInc/2)
+  nSizeClasses = length(midpts)
+  DecDayPlot = seq(0,1,0.01)
+  DecDay = DecDayPlot
+  nDecDayPlot = length(DecDayPlot)
+  ModelCurveEst <- array(dim=c(nsims,nSizeClasses,nDecDayPlot))
+  if (nsims > 0) {
+    for (i in 1:nsims) {
+      for (k in 1:nSizeClasses) {
+        fish_size= midpts[k]
+        EstPar=as.numeric(sims[i,1:7])
+        res = CalcDailySpawnProps_SpDurMod(fish_size, DecDay, EstPar)
+        ModelCurveEst[i,k,] = res$P_t_s
+      }
+      cat("2:Resampling: i",i,"of",nsims,"nsims",'\n')
+    }
+  }
+
+  # estimated curve describing proportion spawning, for fish of specified sizes,
+  # corresponding to midpoints of specified length categories
+  ModelCurvesVsFishLenCl <- array(dim=c(nSizeClasses,4,nDecDayPlot))
+  dimnames(ModelCurvesVsFishLenCl)[[1]] <- midpts
+  dimnames(ModelCurvesVsFishLenCl)[[2]] <- c("Mean","Median","Lw95CL","Up95CL")
+  dimnames(ModelCurvesVsFishLenCl)[[3]] <- DecDay
+  if (nsims > 0) {
+    for (k in 1:nSizeClasses) {
+      CurveEst.mean = apply(ModelCurveEst[,k,], MARGIN=2, function(x) mean(x))
+      CurveEst.median = apply(ModelCurveEst[,k,], MARGIN=2, function(x) quantile(x, 0.5))
+      CurveEst.lowCL = apply(ModelCurveEst[,k,], MARGIN=2, function(x) quantile(x, 0.025))
+      CurveEst.uppCL = apply(ModelCurveEst[,k,], MARGIN=2, function(x) quantile(x, 0.975))
+      ModelCurvesVsFishLenCl[k,1,]= CurveEst.mean
+      ModelCurvesVsFishLenCl[k,2,]= CurveEst.median
+      ModelCurvesVsFishLenCl[k,3,]= CurveEst.lowCL
+      ModelCurvesVsFishLenCl[k,4,]= CurveEst.uppCL
+      cat("3:Estimates from resampling: k",k,"of",nSizeClasses,"fish size classes",'\n')
+    }
+  }
 
   res = list(params=params,
              NLL=NLL,
              convergence=convergence,
              vcov.Params=vcov.Params,
              ParamEst=ParamEst,
-             ParamEst.sim=ParamEst.sim)
+             ParamEst.sim=ParamEst.sim,
+             MaxPropSpawnVsFishLen=MaxPropSpawnVsFishLen,
+             SpawnDurVsFishLen=SpawnDurVsFishLen,
+             ModelCurvesVsFishLenCl=ModelCurvesVsFishLenCl,
+             lbnds=lbnds,
+             ubnds=ubnds,
+             midpts=midpts,
+             DecDayPlot=DecDayPlot)
 
   return(res)
+}
+
+#' Plot results from spawning duration model
+#'
+#' This function plots observed for the daily proportions of spawning capable fish for specified length categories,
+#' and estimated daily proportions from spawning duration model (with associated 95 percent confidence limits),
+#' (i.e. asymmetric double logistic model with variable height), and estimated relationships between proportion spawning
+#' vs fish length at the estimated time of peak spawning, and of estimated spawning duration vs fish length
+#'
+#' @param DecDay decimal days of fish capture during the year
+#' @param ObsSpawnDat list including observed fish lengths (FishLen), observed months of capture (MM)
+#' and observed maturity status categories (ObsMatStatus, 0=immature, 1=mature)
+#' @param MinLen Minimum fish length (for determining lengths to output expected model curves)
+#' @param MaxLen maximum length of fish (for plotting data for length classes)
+#' @param LenInc length increments of length classes, for plotting
+#' @param lbnds lower bounds for length classes to be plotted
+#' @param ubnds upper bounds for length classes to be plotted
+#' @param params initial (transformed) values of model parameters, for the spawning duration model (including
+#' lnL50, lnslope, logitPkSpawn, lnkappa, lnkappa2, lnslope1, lnslope2)
+#' @param nsims number of resampled parameter values, used to calculate confidence intervals
+#' @param FittedRes Outputs of fitted spawning duration model using the function GetSpawningDurationModelResults
+#'
+#' @return plots associated with fit of spawning duration model
+#' @examples
+#' # Simulate spawning proportion data
+#' # First, simulate length and age data
+#' set.seed(123)
+#' GrowthEqn=1 # von Bertalanffy
+#' nSamples = 5000
+#' nSexes = 1
+#' MinAge = 1
+#' MaxAge = 20
+#' AgeStep = 1
+#' Ref_ages = NA
+#' Linf = 1000
+#' vbK = 0.1
+#' tzero = 0
+#' Growth_params = c(Linf,vbK,tzero)
+#' Growth_cv = 0.08
+#' # Spawning duration model parameters
+#' lnL50 = log(300)
+#' lnslope= log(0.015)
+#' logitPkSpawn = log(0.6/(1-0.6))
+#' lnkappa = log(0.0002)
+#' lnkappa2 = log(0.0002)
+#' lnslope1 = log(30)
+#' lnslope2 = log(30)
+#' params = c(lnL50,lnslope,logitPkSpawn,lnkappa,lnkappa2,lnslope1,lnslope2)
+#' Res=SimulateSpawningDurationData(params, GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
+#'                                  AgeStep, Ref_ages, Growth_params, Growth_cv)
+#' ObsMatStatus=Res$ObsMatStatus
+#' FishLen=Res$FishLen
+#' MM=Res$MM
+#' DecDay=Res$DecDay
+#' # Spawning duration model parameters - initial values
+#' lnL50 = log(350)
+#' lnslope= log(0.02)
+#' logitPkSpawn = log(0.7/(1-0.7))
+#' lnkappa = log(0.00015)
+#' lnkappa2 = log(0.00035)
+#' lnslope1 = log(25)
+#' lnslope2 = log(35)
+#' params = c(lnL50,lnslope,logitPkSpawn,lnkappa,lnkappa2,lnslope1,lnslope2)
+#' nsims=20
+#' MinLen=0
+#' MaxLen=1100
+#' LenInc=100
+#' FittedRes=GetSpawningDurationModelResults(params, FishLen, DecDay, ObsMatStatus, MaxLen, LenInc, nsims)
+#' PlotSpawningDurationModelResults(DecDay, ObsSpawnDat, MinLen, MaxLen, LenInc, params, nsims, FittedRes)
+#' @export
+PlotSpawningDurationModelResults <- function(DecDay, ObsSpawnDat, MinLen, MaxLen, LenInc, params, nsims, FittedRes) {
+
+  FishLen=ObsSpawnDat$FishLen
+  ObsMatStatus=ObsSpawnDat$ObsMatStatus
+
+  if (is.list(FittedRes)) {     # if model already fitted, can input results rather than refit
+    Res =  FittedRes
+  } else {
+    Res=GetSpawningDurationModelResults(params, FishLen, DecDay, ObsMatStatus, MaxLen, LenInc, nsims)
+  }
+
+  par(mfrow=c(2,1), mar=c(4,4,2,2))
+
+  # plot maximum proportion spawning vs fish length
+  plot(Res$MaxPropSpawnVsFishLen[,1],Res$MaxPropSpawnVsFishLen[,3], "l", ylim=c(0,1), xlim=c(0,MaxLen), xaxt='n', yaxt="n",
+       las=1, xlab=list("Fish length, mm",cex=1.2), ylab=list("Prop. Spawning",cex=1.2), cex.axis=1, bty='n')
+  axis(1, at=seq(0,MaxLen,LenInc), tck=0.03, cex=1, labels=F,line=0.5)
+  axis(1, at=seq(0,MaxLen,LenInc), labels = seq(0,MaxLen,LenInc), tck=0.03, cex=1, line=0, lwd=0)
+  axis(2, at=seq(0, 1, 0.2), tck=0.03, cex=1, labels=F,line=0.5)
+  axis(2, at=seq(0, 1, 0.2), tck=0.03, cex=1, labels=T,line=0, lwd=0, las=2)
+  polygon(c(Res$MaxPropSpawnVsFishLen[,1],rev(Res$MaxPropSpawnVsFishLen[,1])),
+          c(Res$MaxPropSpawnVsFishLen[,4],rev(Res$MaxPropSpawnVsFishLen[,5])),col="lightgrey",border="grey")
+  lines(Res$MaxPropSpawnVsFishLen[,1],Res$MaxPropSpawnVsFishLen[,3])
+
+  # plot spawning duration vs fish length
+  plot(Res$SpawnDurVsFishLen[,1],Res$SpawnDurVsFishLen[,3]*12, "l", ylim=c(0,12), xlim=c(0,MaxLen), xaxt='n', yaxt="n",
+       las=1, xlab=list("Fish length, mm",cex=1.2), ylab=list("Spawning duration, m",cex=1.2), cex.axis=1, bty='n')
+  axis(1, at=seq(0,MaxLen,LenInc), tck=0.03, cex=1, labels=F,line=0.5)
+  axis(1, at=seq(0,MaxLen,LenInc), labels = seq(0,MaxLen,LenInc), tck=0.03, cex=1, line=0, lwd=0)
+  axis(2, at=seq(0, 12, 2), tck=0.03, cex=1, labels=F,line=0.5)
+  axis(2, at=seq(0, 12, 2), tck=0.03, cex=1, labels=T,line=0, lwd=0, las=2)
+  polygon(c(Res$SpawnDurVsFishLen[,1],rev(Res$SpawnDurVsFishLen[,1])),
+          c(Res$SpawnDurVsFishLen[,4]*12,rev(Res$SpawnDurVsFishLen[,5]*12)),col="lightgrey",border="grey")
+  lines(Res$SpawnDurVsFishLen[,1],Res$SpawnDurVsFishLen[,3]*12)
+
+  lbnds = seq(MinLen,MaxLen-LenInc,LenInc)
+  ubnds = lbnds + LenInc
+  midpts = lbnds + (LenInc/2)
+  nLenCats = length(lbnds)
+  floor(nLenCats/2)+1
+
+  par(mfrow=c(3,2), mar=c(4,4,2,2))
+  MMabb = substr(month.abb, 1, 1)
+  for (i in 1:nLenCats) {
+    subDat = ObsSpawnDat[ObsSpawnDat$FishLen >= lbnds[i] & ObsSpawnDat$FishLen < ubnds[i],]
+    Probs = CalcMonthlyObsSpawnProps_SpDurMod(subDat)
+    plot(seq(0.5,11.5,1), Probs, xaxt='n', yaxt="n", cex=0.8, cex.axis=1,bty='n', ylim=c(0,1), xlim=c(0,12),
+         xlab = list(" Month",cex=1.2), ylab=list("Prop. spawning",cex=1.2), main=paste0(lbnds[i],"-",ubnds[i]," mm"), cex.main=1)
+    axis(1, at=seq(0.5,11.5,1), tck=0.03, cex=1, labels=F,line=0.5)
+    axis(1, at=seq(0.5,11.5,1), labels = MMabb[1:12], tck=0.03, cex=1, line=0, lwd=0)
+    axis(2, at=seq(0, 1, 0.2), tck=0.03, cex=1, labels=F,line=0.5)
+    axis(2, at=seq(0, 1, 0.2), tck=0.03, cex=1, labels=T,line=0, lwd=0, las=2)
+    polygon(c(Res$DecDayPlot*12,rev(Res$DecDayPlot*12)),
+            c(Res$ModelCurvesVsFishLen[i,3,],rev(Res$ModelCurvesVsFishLen[i,4,])),col="lightgrey",border="grey")
+    lines(Res$DecDayPlot*12 ,Res$ModelCurvesVsFishLen[i,1,])
+    points(seq(0.5,11.5,1), Probs)
+  } # i
 }
 
 
@@ -5389,12 +5625,12 @@ CalcPropMatureAtAge <- function(MinAge, MaxAge, ObsAgeCl, ObsMatCat) {
 #' ObsMatCat=res$ObsMatCat
 #' LogisticModType = 1 # 1=length, 2=age
 #' CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
-#' # 2 parameter model
+#' # 2 parameter model symmetric curve
 #' InitL50 = 200
 #' InitL95 = 250
 #' params = c(InitL50, InitL95) # without Pmax parameter
 #' res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
-#' # 3 parameter model
+#' # # 3 parameter model symmetric curve
 #' # InitL50 = 200
 #' # InitL95 = 250
 #' # InitPmax = 0.9
@@ -5423,12 +5659,12 @@ CalcPropMatureAtAge <- function(MinAge, MaxAge, ObsAgeCl, ObsMatCat) {
 #' # MalObsMatCat=res$MalObsMatCat
 #' # ObsMatCat = as.matrix(t(data.frame(FemObsMatCat=FemObsMatCat,MalObsMatCat=MalObsMatCat)))
 #' # LogisticModType = 1 # 1=length, 2=age
-#' # # 2 parameter model
+#' # # 2 parameter model symmetric curve
 #' # InitL50 = c(200, 220)
 #' # InitL95 = c(250, 270)
 #' # params = c(InitL50, InitL95) # without Pmax parameter
 #' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
-#' # # 3 parameter model
+#' # # 3 parameter model symmetric curve
 #' # InitL50 = c(200, 220)
 #' # InitL95 = c(250, 260)
 #' # InitPmax = c(0.8, 0.8)
@@ -5461,6 +5697,37 @@ CalcPropMatureAtAge <- function(MinAge, MaxAge, ObsAgeCl, ObsMatCat) {
 #' # InitPmax = 0.9
 #' # InitPmax_logit = log(InitPmax/(1-InitPmax)) # logit transform
 #' # params = c(InitPmax_logit, InitA50, InitA95) # with Pmax parameter
+#' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
+#' # # 3 parameter age-based asymmetric curve
+#' # # generate synthetic length at maturity data
+#' # CurveType = 2  # 1 = symmetric, 2 = asymmetric
+#' # MinAge = 0
+#' # MaxAge = 20
+#' # MinLen = 0
+#' # MaxLen = 400
+#' # LenInc = 20
+#' # # single sex/combined sexes
+#' # Linf = 300
+#' # vbK = 0.3
+#' # tzero = 0
+#' # CVSizeAtAge = 0.1
+#' # GrowthParams = c(Linf, vbK, tzero, CVSizeAtAge)
+#' # nSexes = 1
+#' # nSamples = 300
+#' # Q = 0.01
+#' # B = 0.05
+#' # V = 0.5
+#' # Pmax = 1.0
+#' # MaturityParams = c(Q,B,V,Pmax)
+#' # res=SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
+#' # ObsLen=NA
+#' # ObsAgeCl=res$ObsAgeCl
+#' # ObsMatCat=res$ObsMatCat
+#' # LogisticModType = 2 # 1=length, 2=age
+#' # InitQ = log(0.000002)
+#' # InitB = log(1.5)
+#' # InitV = log(0.000001)
+#' # params = c(InitQ, InitB, InitV) # without Pmax parameter
 #' # res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
 #' # # separate sexes
 #' # nSexes = 2
@@ -5587,7 +5854,6 @@ GetLogisticMaturityCurveResults <- function(params, nSexes, LogisticModType, Cur
         }
         SampleSize = length(which(!is.na(ObsLen[1,]))) + length(which(!is.na(ObsLen[2,])))
       } # nsexes = 2
-      SampleSize = length(which(!is.na(ObsLen[1,]))) + length(which(!is.na(ObsLen[2,])))
     } #  LogisticModType = 1
     if (LogisticModType==2) { # age at maturity
       if (nSexes==1) {

@@ -4,13 +4,13 @@
 \alias{CalcDailySpawnProps_SpDurMod}
 \title{Calculate daily proportions of spawning capable fish of a given length, using spawning duration model}
 \usage{
-CalcDailySpawnProps_SpDurMod(FishLen, DecDay, params)
+CalcDailySpawnProps_SpDurMod(fish_size, DecDay, params)
 }
 \arguments{
-\item{FishLen}{specified fish length}
-
 \item{params}{specified (or estimated), transformed parameter values, for the spawning duration model (including
 lnL50, lnslope, logitPkSpawn, lnkappa, lnkappa2, lnslope1, lnslope2)}
+
+\item{FishLen}{specified fish length}
 
 \item{DistnType}{DecDay specified decimal days of the year}
 }
