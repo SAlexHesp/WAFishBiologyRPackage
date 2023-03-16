@@ -618,9 +618,12 @@ GetSpawningDurationModelResults <- function(params, FishLen, DecDay, ObsMatStatu
 
   # get relationships between maximum proportion spawning and spawning duration with fish length,
   # with uncertainty
-  FishLen = seq(0,MaxLen,1)
-  nfishsizes = length(FishLen)
-  MaxCurveHeightEst = data.frame(matrix(nrow=nsims,ncol=nfishsizes))
+  SizeIntPlot = MaxLen / 100 # calculate for 100 sizes, from 0 to maxlen
+  FishLen = seq(0,MaxLen,SizeIntPlot)
+  nFishLen = length(FishLen)
+  nDecDay = length(DecDay)
+  P_t_s.sim <- array(dim=c(nsims,nFishLen,nDecDay))
+  MaxCurveHeightEst = data.frame(matrix(nrow=nsims,ncol=nFishLen))
   colnames(MaxCurveHeightEst) = FishLen
   MaxCurveHeightEst = as.matrix(MaxCurveHeightEst)
   SpawnDurEst = MaxCurveHeightEst
@@ -628,15 +631,24 @@ GetSpawningDurationModelResults <- function(params, FishLen, DecDay, ObsMatStatu
   SpawnDurVsFishLen=NA
   if (nsims > 0) {
     for (i in 1:nsims) {
-      for (k in 1:nfishsizes) {
-        fish_size = FishLen[k]
-        EstPar=as.numeric(sims[i,1:7])
-        res = CalcDailySpawnProps_SpDurMod(fish_size, DecDay, EstPar)
-        SpawnDurEst[i,k] = res$d50_2 - res$d50
-        MaxCurveHeightEst[i,k] = max(res$P_t_s)
+
+      d50 = sims$Peak_spawn[i] - sims$kappa[i] * FishLen
+      d50_2 = sims$Peak_spawn[i] + sims$kappa2[i] * FishLen
+      Height = 1 / (1 + exp(-sims$slope[i]*(FishLen-sims$L50[i])))
+
+      # spawning duration with respect to fish length, for each set of simulated parameters
+      SpawnDurEst[i,] = d50_2 - d50 # sim, fishlen
+
+      for (k in 1:nFishLen) {
+        P_t_s.sim[i,k,] = 1 / (1 + exp(-sims$slope1[i]*(DecDay-d50[k]))) *
+          1 / (1 + exp(sims$slope2[i]*(DecDay-d50_2[k]))) * Height[k]
+
+        # maximum proportion spawning with respect to fish length, for each set of simulated parameters
+        MaxCurveHeightEst[i,k] = max(P_t_s.sim[i,k,]) # sim, fishlen, DecDay
       }
+
       cat("1:Resampling: i",i,"of",nsims,"nsims",'\n')
-    }
+    } # nsims
 
     # relationship between maximum proportion spawning and fish size, with uncertainty
     MaxCurve.mean = apply(MaxCurveHeightEst[,], MARGIN=2, function(x) mean(x))
@@ -660,7 +672,7 @@ GetSpawningDurationModelResults <- function(params, FishLen, DecDay, ObsMatStatu
                                    SpawnDur.median=SpawnDur.median,
                                    SpawnDur.lowCL=SpawnDur.lowCL,
                                    SpawnDur.uppCL=SpawnDur.uppCL)
-  }
+  } # if nsims > 0
 
   # get model curves with uncertainty for fish with respect to
   # midpoints of specified size categories
