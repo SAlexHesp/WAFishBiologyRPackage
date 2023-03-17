@@ -3954,7 +3954,11 @@ SimulateTagRecaptureData <- function(GrowthCrvChoice, nstep, nobs, MaxLen, param
                              Obs_delta_t, Obs_Initlen)
   }
 
-  StandDev = exp(params[4])
+  if (GrowthCrvChoice == 1) StandDev = exp(params[5]) # double logistic
+  if (GrowthCrvChoice == 1) StandDev = exp(params[4]) # Gaussian function
+  if (GrowthCrvChoice == 1) StandDev = exp(params[3]) # von Bertalanffy
+  if (GrowthCrvChoice == 1) StandDev = exp(params[3]) # Gompertz
+
   Obs_Finlen = rnorm(length(Exp_Finlen),Exp_Finlen, StandDev)
 
   delta_t_line = rep(365,MaxLen)
@@ -4300,22 +4304,21 @@ PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_
   EstLenAtRelAge = rep(0, nobs)
   for (j in 1:nobs) {
     EstLenAtRelAge[j] = LenAtAge_Rcpp(j, params, GrowthCrvChoice, nstep, CalculationStage, LenPrevIntAge, StartAge=0,
-                                 Obs_delta_t, Obs_Initlen)
+                                      Obs_delta_t, Obs_Initlen)
   }
 
   par(mfrow = c(3,2), mar=c(4,4,2,2))
   xlims=Get_xaxis_scale(Obs_Initlen)
   tempdat = Obs_Finlen-Obs_Initlen
-  ylims=Get_yaxis_scale(tempdat)
   plot(Obs_Initlen,Obs_Finlen-Obs_Initlen, cex=0.8, cex.axis=1, col="dark grey", xlab = list(" Init. Len. (mm)", cex=1.2),
-       ylab = list("Len. inc. (mm)",cex=1.2), bty='n', xlim=c(0,xlims$xmax), ylim=c(0,ylims$ymax), )
+       ylab = list("Len. inc. (mm)",cex=1.2), bty='n', xlim=c(0,xlims$xmax), ylim=c(0,1.2*max(tempdat)), )
   points(Obs_Initlen,EstLenAtRelAge-Obs_Initlen, pch=16, col="black", cex=0.6)
 
   # initial length vs final length
   xlims=Get_xaxis_scale(Obs_Initlen)
-  ylims=Get_yaxis_scale(Obs_Finlen)
+  ymax=xlims$xmax
   plot(Obs_Initlen,Obs_Finlen, cex=0.8, cex.axis=1, col="dark grey", xlab = list(" Init. Len. (mm)",cex=1.2),
-       ylab = list("Final inc. (mm)",cex=1.2), bty='n', xlim=c(0,xlims$xmax), ylim=c(0,ylims$ymax))
+       ylab = list("Final inc. (mm)",cex=1.2), bty='n', xlim=c(0,xlims$xmax), ylim=c(0,xlims$xmax))
   points(Obs_Initlen,EstLenAtRelAge, pch=16, col="black", cex=0.6)
 
   # res vs initial length
@@ -4323,21 +4326,23 @@ PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_
   tempdat = Obs_Finlen-EstLenAtRelAge
   ylims=Get_yaxis_scale(tempdat)
   plot(Obs_Initlen, Obs_Finlen-EstLenAtRelAge, cex=0.8, cex.axis=1, col="dark grey", xlab = list(" Init. len (mm)",cex=1.2),
-       ylab = list("Residual (mm)",cex=1.2), bty='n',xlim=c(0,xlims$xmax), ylim=c(0,ylims$ymax))
+       ylab = list("Residual (mm)",cex=1.2), bty='n',xlim=c(0,xlims$xmax), ylim=c(-ylims$ymax,ylims$ymax))
+  abline(h=0)
 
   # res vs delta_t
   xlims=Get_xaxis_scale(Obs_delta_t)
   tempdat = Obs_Finlen-EstLenAtRelAge
   ylims=Get_yaxis_scale(tempdat)
   plot(Obs_delta_t, Obs_Finlen-EstLenAtRelAge, cex=0.8, cex.axis=1, col="dark grey", xlab = list(" Delta_t (days)",cex=1.2),
-       ylab = list("Residual (mm)",cex=1.2), bty='n',xlim=c(0,xlims$xmax), ylim=c(0,ylims$ymax))
+       ylab = list("Residual (mm)",cex=1.2), bty='n',xlim=c(0,xlims$xmax), ylim=c(-ylims$ymax,ylims$ymax))
+  abline(h=0)
 
   # estimate of annual growth increment vs specified initial length
   CalculationStage = 2
   LenInc = rep(0,MaxLen)
   for (j in 1:MaxLen)  {
     LenInc[j] = LenAtAge_Rcpp(j, params, GrowthCrvChoice, nstep, CalculationStage, LenPrevIntAge, StartAge=0,
-                         Obs_delta_t, Obs_Initlen) - j
+                              Obs_delta_t, Obs_Initlen) - j
   }
 
   xlims=Get_xaxis_scale(MaxLen)
