@@ -3954,7 +3954,7 @@ SimulateTagRecaptureData <- function(GrowthCrvChoice, nstep, nobs, MaxLen, param
                              Obs_delta_t, Obs_Initlen)
   }
 
-  if (GrowthCrvChoice == 1) StandDev = exp(params[5]) # double logistic
+  if (GrowthCrvChoice == 1) StandDev = exp(params[6]) # double logistic
   if (GrowthCrvChoice == 1) StandDev = exp(params[4]) # Gaussian function
   if (GrowthCrvChoice == 1) StandDev = exp(params[3]) # von Bertalanffy
   if (GrowthCrvChoice == 1) StandDev = exp(params[3]) # Gompertz
@@ -4037,7 +4037,7 @@ CalcNLL_TaggingGrowthModel <- function(params) {
 #' @keywords internal
 #' Obs_delta_t, Obs_Initlen, Obs_Finlen (Numeric Vectors)
 #'
-#' @param params log(c(L50_1, L95_1, L50_2, L95_2)) double logistic model, or
+#' @param params log(c(L50_1, L95_1, L50_2, L95_2, Max_increment)) double logistic model, or
 #' log(c(Gaussian_A, Gaussian_u, Gaussian_sd)) Gaussian function, or log(c(vb_Linf, vb_K)) von Bertalanffy, or
 #' log(c(Gomp_Linf, Gomp_G)) Gompertz
 #' @param nstep number of numerical integration steps (higher number increases accuracy but reduces program speed)
@@ -4065,7 +4065,7 @@ FitTaggingGrowthModel <- function(params, nstep, Obs_delta_t, Obs_Initlen, Obs_F
 #' parameter estimated and associated 95 percent confidence limits and associated variance-covariance matrix,
 #' calculated using the MASS package.
 #'
-#' @param params log(c(L50_1, L95_1, L50_2, L95_2)) double logistic model, or
+#' @param params log(c(L50_1, L95_1, L50_2, L95_2, Max_increment)) double logistic model, or
 #' log(c(Gaussian_A, Gaussian_u, Gaussian_sd)) Gaussian function, or log(c(vb_Linf, vb_K)) von Bertalanffy, or
 #' log(c(Gomp_Linf, Gomp_G)) Gompertz
 #' @param nstep number of numerical integration steps (higher number increases accuracy but reduces program speed)
@@ -4122,19 +4122,20 @@ GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen
   # of length
   if (GrowthCrvChoice == 1)   { # double logistic
 
-    # L50_1, L95_1, L50_2, L95_2 (double logistic model)
+    # L50_1, L95_1, L50_2, L95_2, Max_increment (double logistic model)
 
     # calculate 95 percent confidence limits
     EstL50_1 = exp(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
     EstL95_1 =  exp(c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
     EstL50_2 =  exp(c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
     EstL95_2 =  exp(c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
-    EstStandDev =  exp(c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5]))
+    Max_increment =  exp(c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5]))
+    EstStandDev =  exp(c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6]))
 
     # store results in data frame
     ParamEst = t(data.frame(L50_1=round(EstL50_1,2), L95_1=round(EstL95_1,2),
                             L50_2=round(EstL50_2,2), L95_2=round(EstL95_2,2),
-                            StandDev=round(EstStandDev,2)))
+                            Max_increment=round(Max_increment,2), StandDev=round(EstStandDev,2)))
     colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
 
   }
