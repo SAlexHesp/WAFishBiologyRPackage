@@ -15,7 +15,7 @@ GetTaggingGrowthModelResults(
 )
 }
 \arguments{
-\item{params}{log(c(L50_1, L95_1, L50_2, L95_2)) double logistic model, or
+\item{params}{log(c(L50_1, L95_1, L50_2, L95_2, Max_increment)) double logistic model, or
 log(c(Gaussian_A, Gaussian_u, Gaussian_sd)) Gaussian function, or log(c(vb_Linf, vb_K)) von Bertalanffy, or
 log(c(Gomp_Linf, Gomp_G)) Gompertz}
 

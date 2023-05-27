@@ -1,0 +1,18 @@
+{
+    "args": [
+        "-std=gnu++17",
+        "-IC:/~/R-4.3.0/include",
+        "-DNDEBUG",
+        "-IC:/~/R-4.3.0/library/Rcpp/include",
+        "-DEIGEN_DONT_VECTORIZE",
+        "-nostdinc",
+        "-include",
+        "C:/~/WAFishBiologyRPackage/.Rproj.user/E544DAD7/compilation-database/mingw64/cpp-definitions.h"
+    ],
+    "pch": "Rcpp",
+    "is_cpp": true,
+    "hash": "1685164570",
+    "compiler": "4947574074073276986",
+    "rversion": "4.3.0",
+    "dbversion": 4
+}

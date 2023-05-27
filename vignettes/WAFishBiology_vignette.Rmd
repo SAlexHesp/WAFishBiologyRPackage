@@ -22,7 +22,7 @@ Fig_Path = "C:/~/WAFishBiology/vignettes/"
 
 
 # Introduction 
-#### Last updated July 2022 (Alex Hesp - DPIRD)
+#### Last updated May 2023 (Alex Hesp - DPIRD)
 
 This package is intended as a toolbox of methods for describing various biological traits of fish and invertebrate species, including growth, size/age at maturity, weight-length relationships etc., which represent key information for many model-based fisheries assessments. The various R functions output a range of statistics and diagnostic plots. The various biological relationships and associated parameters are required inputs a range of assessment models, e.g. per recruit analysis and statistical catch at age (and length) models.
 
