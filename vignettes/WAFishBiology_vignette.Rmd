@@ -95,23 +95,27 @@ additional process error variance estimated in the growth curve analysis, and $\
 
 ## Mixture analyses (using fish length data)
 
-The model allows mixture distributions to be fitted to length composition data with up to three modes (assumed to represent different fish cohorts). Following Marks et al. (2020), for a given length sample with a single mode (assumed to represent a single age cohort), the expected relative proportion of fish in each size class is 
+The model allows normal or gamma mixture distributions to be fitted to length composition data with up to three modes (assumed to represent different fish cohorts). For a given length sample with a single mode, if it can be assumed that these data conform to a normal distribution, the expected relative proportion of fish in each size class is calculated as 
 
 $$
 \hat{P}_{S_i} = \int_{S_i^-}^{\mathrm{S_i^+}}\frac{1}{\sigma\sqrt{2{\pi}}}\exp\bigg[\frac{(l-\mu^2)}{2\sigma{^2}}\bigg]dl
 $$
-where $l$ is the length of the fish, $S_i^-$ and $S_i^+$ are the lower and upper bounds of size class $S_i$, respectively, and $\mu$ and $\sigma$ are the mean and standard deviation, respectively, of the normal distribution describing the size distribution. 
-
-When two modes are present (assumed to represent 2 age cohorts), the size frequency data is assumed to represent a random sample from a multinomial distribution, with the overall size distribution being
-comprised of two normal distributions. Using $0^+$ and $1^+$ to represent the values of the smaller and larger cohort, respectively, $\hat{f}_{S_i}$, the overall expected frequency of fish in size class $S_i$ in the sample is calculated as
+where $l$ is the length of the fish, $S_i^-$ and $S_i^+$ are the lower and upper bounds of size class $S_i$, respectively, and $\mu$ and $\sigma$ are the mean and standard deviation, respectively, of the normal distribution describing the size distribution (Marks et al., 2020). If the data are assumed to conform to a gamma distribution, $\hat{P}_{S_i}$ is calculated as
 
 $$
-\hat{f}_{S_i} = n\bigg[\hat{P_{S_i,0+}}\phi_{0+}+\hat{P_{S_i,1+}}(1-\phi_{0+})\bigg]
+\hat{P}_{S_i} = \int_{S_i^-}^{\mathrm{S_i^+}}\frac{1}{\beta^\alpha\Gamma(\alpha)}l^{\alpha-1}\exp(-l/\beta){dl}
+$$
+where where $\alpha$ and $\beta$ are the ‘scale’ and ‘shape’ parameters, respectively, of the gamma distribution describing the size data 
+
+When two modes are present (assumed to represent 2 age cohorts), the size frequency data is assumed to represent a random sample from a multinomial distribution, with the overall size distribution being comprised of two normal distributions. Using $0^+$ and $1^+$ to represent the values of the smaller and larger cohort, respectively, $\hat{f}_{S_i}$, the overall expected frequency of fish in size class $S_i$ in the sample is calculated as
+
+$$
+\hat{f}_{S_i} = n\bigg[\hat{P}_{S_i,0+}\phi_{0+}+\hat{P}_{S_i,1+}(1-\phi_{0+})\bigg]
 $$
 where $n$ is the sample size for the month and $\phi_{0+}$ is the proportion of fish belonging to the 0+ cohort (estimated as a model parameter). Where three cohorts are present, $\hat{f}_{S_i}$ is calculated as 
 
 $$
-\hat{f}_{S_i} = n\bigg[\hat{P_{S_i,0+}}\phi_{0+}+\hat{P_{S_i,1+}}\phi_{1+}+\hat{P_{S_i,2+}}(1-\phi_{0+}-\phi_{1_+})\bigg]
+\hat{f}_{S_i} = n\bigg[\hat{P}_{S_i,0+}\phi_{0+}+\hat{P}_{S_i,1+}\phi_{1+}+\hat{P}_{S_i,2+}(1-\phi_{0+}-\phi_{1_+})\bigg]
 $$
 The expected relative proportion of fish in size class $S_i$ is be calculated as
 
@@ -123,8 +127,7 @@ The mixture distribution model is fitted to the sample data by minimizing the ne
 $$
 \lambda=\sum{S_i}{f_{S_i}}\log_e(\hat{P_{S_i}})
 $$
-where $f_{S_i}$ is the observed frequency of fish in size class $S_i$. Estimates of asymptotic standard errors (used to calculate approximate 95% confidence limits) for the estimated model parameters are derived from a variance-covariance matrix, calculated from the Hessian matrix outputted by nlminb in R.
-The estimated model parameter include mean and standard deviation for each cohort, and also proportion of the catch in the 0+ cohort (when two cohorts are present) or proportions in the 1+ and 2+ cohorts (when three cohorts are present).
+where $f_{S_i}$ is the observed frequency of fish in size class $S_i$. Estimates of asymptotic standard errors (used to calculate approximate 95% confidence limits) for the estimated model parameters are derived from a variance-covariance matrix, calculated from the Hessian matrix outputted by nlminb in R. The estimated model parameter include mean and standard deviation for each cohort, and also proportion of the catch in the 0+ cohort (when two cohorts are present) or proportions in the 1+ and 2+ cohorts (when three cohorts are present).
 
 ## Available functions related to fish growth analysis using length or length-at-age data
 
@@ -142,7 +145,7 @@ GetvonBertalanffyGrowthResults()
 GetSchnuteGrowthResults()  
 GetSeasonalGrowthResults()  
 
-Related to mixture distribution analyses:  
+The available functions related to mixture distribution analyses are:  
 GetMixtureModelResults()  
 PlotMixtureDistnResults()  
  
