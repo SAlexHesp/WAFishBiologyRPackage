@@ -399,11 +399,12 @@ according to the growth curve.</p>
 </div>
 <div id="mixture-analyses-using-fish-length-data" class="section level2">
 <h2>Mixture analyses (using fish length data)</h2>
-<p>The model allows mixture distributions to be fitted to length
-composition data with up to three modes (assumed to represent different
-fish cohorts). Following Marks et al. (2020), for a given length sample
-with a single mode (assumed to represent a single age cohort), the
-expected relative proportion of fish in each size class is</p>
+<p>The model allows normal or gamma mixture distributions to be fitted
+to length composition data with up to three modes (assumed to represent
+different fish cohorts). For a given length sample with a single mode,
+if it can be assumed that these data conform to a normal distribution,
+the expected relative proportion of fish in each size class is
+calculated as</p>
 <p><span class="math display">\[
 \hat{P}_{S_i} =
 \int_{S_i^-}^{\mathrm{S_i^+}}\frac{1}{\sigma\sqrt{2{\pi}}}\exp\bigg[\frac{(l-\mu^2)}{2\sigma{^2}}\bigg]dl
@@ -412,7 +413,16 @@ the fish, <span class="math inline">\(S_i^-\)</span> and <span class="math inlin
 size class <span class="math inline">\(S_i\)</span>, respectively, and
 <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span> are the mean and standard
 deviation, respectively, of the normal distribution describing the size
-distribution.</p>
+distribution (Marks et al., 2020). If the data are assumed to conform to
+a gamma distribution, <span class="math inline">\(\hat{P}_{S_i}\)</span>
+is calculated as</p>
+<p><span class="math display">\[
+\hat{P}_{S_i} =
+\int_{S_i^-}^{\mathrm{S_i^+}}\frac{1}{\beta^\alpha\Gamma(\alpha)}l^{\alpha-1}\exp(-l/\beta){dl}
+\]</span> where where <span class="math inline">\(\alpha\)</span> and
+<span class="math inline">\(\beta\)</span> are the ‘scale’ and ‘shape’
+parameters, respectively, of the gamma distribution describing the size
+data</p>
 <p>When two modes are present (assumed to represent 2 age cohorts), the
 size frequency data is assumed to represent a random sample from a
 multinomial distribution, with the overall size distribution being
@@ -422,14 +432,14 @@ frequency of fish in size class <span class="math inline">\(S_i\)</span>
 in the sample is calculated as</p>
 <p><span class="math display">\[
 \hat{f}_{S_i} =
-n\bigg[\hat{P_{S_i,0+}}\phi_{0+}+\hat{P_{S_i,1+}}(1-\phi_{0+})\bigg]
+n\bigg[\hat{P}_{S_i,0+}\phi_{0+}+\hat{P}_{S_i,1+}(1-\phi_{0+})\bigg]
 \]</span> where <span class="math inline">\(n\)</span> is the sample
 size for the month and <span class="math inline">\(\phi_{0+}\)</span> is
 the proportion of fish belonging to the 0+ cohort (estimated as a model
 parameter). Where three cohorts are present, <span class="math inline">\(\hat{f}_{S_i}\)</span> is calculated as</p>
 <p><span class="math display">\[
 \hat{f}_{S_i} =
-n\bigg[\hat{P_{S_i,0+}}\phi_{0+}+\hat{P_{S_i,1+}}\phi_{1+}+\hat{P_{S_i,2+}}(1-\phi_{0+}-\phi_{1_+})\bigg]
+n\bigg[\hat{P}_{S_i,0+}\phi_{0+}+\hat{P}_{S_i,1+}\phi_{1+}+\hat{P}_{S_i,2+}(1-\phi_{0+}-\phi_{1_+})\bigg]
 \]</span> The expected relative proportion of fish in size class <span class="math inline">\(S_i\)</span> is be calculated as</p>
 <p><span class="math display">\[
 \hat{P_{S_i}}=\hat{f_{S_i}}/\sum_{S_i}\hat{f_{S_i}}
@@ -464,7 +474,8 @@ data are:<br />
 GetvonBertalanffyGrowthResults()<br />
 GetSchnuteGrowthResults()<br />
 GetSeasonalGrowthResults()</p>
-<p>Related to mixture distribution analyses:<br />
+<p>The available functions related to mixture distribution analyses
+are:<br />
 GetMixtureModelResults()<br />
 PlotMixtureDistnResults()</p>
 </div>
