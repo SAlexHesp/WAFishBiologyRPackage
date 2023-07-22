@@ -19,7 +19,7 @@ c(Shape1, Shape2, Shape3, Rate1, Rate2, Rate3, PropZero, PropOne) gamma distn: 3
 \value{
 list object containing estimated proportion at age one, following feasible parameter value
 check (EstPropOne), expected frequencies for first, second and third cohorts,
-returning NA if not calculated due to specified number of cohorts (expfreq1, expfreq2, expfreq3),
+returning NA if not calculated due to specified number of cohorts (Expfreq_mode1, Expfreq_mode2, Expfreq_mode3),
 EstPropZero = PropZero, expected overall proportion at length (ExpPropAtLen), expected overall
 frequency at length (ExpFreqAtLen), values of penalties for normal disribution models, ensuring
 mode 1 is not greater than mode 2, and mode 2 is not greater than mode 3

@@ -12,13 +12,14 @@ PlotSpawningDurationModelResults(
   LenInc,
   params,
   nsims,
-  FittedRes
+  FittedRes,
+  PlotOpt
 )
 }
 \arguments{
 \item{DecDay}{decimal days of fish capture during the year}
 
-\item{ObsSpawnDat}{list including observed fish lengths (FishLen), observed months of capture (MM)
+\item{ObsSpawnDat}{data frame including observed fish lengths (FishLen), observed months of capture (MM)
 and observed maturity status categories (ObsMatStatus, 0=immature, 1=mature)}
 
 \item{MinLen}{Minimum fish length (for determining lengths to output expected model curves)}
@@ -33,6 +34,8 @@ lnL50, lnslope, logitPkSpawn, lnkappa, lnkappa2, lnslope1, lnslope2)}
 \item{nsims}{number of resampled parameter values, used to calculate confidence intervals}
 
 \item{FittedRes}{Outputs of fitted spawning duration model using the function GetSpawningDurationModelResults}
+
+\item{PlotOpt}{0=all plots, 1=prop spawning vs length, 2=spawn dur vs length, 3=prop spawn vs month (multiple plots, each by size category)}
 
 \item{lbnds}{lower bounds for length classes to be plotted}
 
@@ -49,7 +52,6 @@ vs fish length at the estimated time of peak spawning, and of estimated spawning
 }
 \examples{
 # Simulate spawning proportion data
-# First, simulate length and age data
 set.seed(123)
 GrowthEqn=1 # von Bertalanffy
 nSamples = 5000
@@ -76,7 +78,6 @@ Res=SimulateSpawningDurationData(params, GrowthEqn, nSamples, nSexes, MinAge, Ma
                                  AgeStep, Ref_ages, Growth_params, Growth_cv)
 ObsMatStatus=Res$ObsMatStatus
 FishLen=Res$FishLen
-MM=Res$MM
 DecDay=Res$DecDay
 # Spawning duration model parameters - initial values
 lnL50 = log(350)
@@ -91,6 +92,8 @@ nsims=20
 MinLen=0
 MaxLen=1100
 LenInc=100
-FittedRes=GetSpawningDurationModelResults(params, FishLen, DecDay, ObsMatStatus, MaxLen, LenInc, nsims)
-PlotSpawningDurationModelResults(DecDay, ObsSpawnDat, MinLen, MaxLen, LenInc, params, nsims, FittedRes)
+FittedRes=GetSpawningDurationModelResults(params, FishLen, DecDay, ObsMatStatus, MinLen, MaxLen, LenInc, nsims)
+ObsSpawnDat = data.frame(FishLen=FishLen, ObsMatStatus=ObsMatStatus)
+PlotOpt = 0 # 0=all plots, 1=prop spawning vs length, 2=spawn dur vs length, 3=prop spawn vs month (multiple plots, each by size category)
+PlotSpawningDurationModelResults(DecDay, ObsSpawnDat, MinLen, MaxLen, LenInc, params, nsims, FittedRes, PlotOpt)
 }

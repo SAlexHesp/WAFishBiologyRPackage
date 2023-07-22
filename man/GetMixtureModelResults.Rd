@@ -43,7 +43,7 @@ confidence limits (ParamEst), Estimates of standard deviations for estimated mea
 (normal distribution assumption) or shape parameters (gamma distribution assumption) for
 each fitted size mode (EstMean1_sd, EstMean2_sd, EstMean3_sd), point estimates
 for model parameters (params) and variance-covariance matrix (vcov.params),
-expected frequency for cohorts 1, 2 and 3 (expfreq1, expfreq2, expfreq3),
+expected frequency for cohorts 1, 2 and 3 (Expfreq_mode1, Expfreq_mode2, Expfreq_mode3),
 overall expected proportions at length across all cohorts (ExpPropAtLen), and
 overall expected frequencies at length,across all cohorts (ExpFreqAtLen).
 }
@@ -54,7 +54,7 @@ It provides various outputs in include convergence statistics, parameter estimat
 and associated 95 calculated using the MASS package.
 }
 \examples{
-Simulate data with 1 mode, specifying normal distribution
+# Simulate data with 1 mode, specifying normal distribution
 set.seed(123)
 MinSize = 0
 MaxSize = 60

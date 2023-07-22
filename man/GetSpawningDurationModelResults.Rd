@@ -48,7 +48,6 @@ lengths. The model may also described as an asymmetric double logistic model wit
 }
 \examples{
 # Simulate spawning proportion data
-# First, simulate length and age data
 set.seed(123)
 GrowthEqn=1 # von Bertalanffy
 nSamples = 5000

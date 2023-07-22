@@ -12,7 +12,8 @@ PlotFittedTaggingGrowthModelResults(
   Obs_Finlen,
   MaxAge,
   nobs,
-  FittedRes
+  FittedRes,
+  PlotOpt
 )
 }
 \arguments{
@@ -34,6 +35,9 @@ log(c(Gomp_Linf, Gomp_G)) Gompertz}
 
 \item{FittedRes}{outputs of fitted model from nlminb (can be set to NA or saved values from the
 GetTaggingGrowthModelResults function, to speed up plotting}
+
+\item{PlotOpt}{0=all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+5=annual len inc vs init len, 6=len vs age}
 }
 \value{
 various plots showing model fit to tag-recapture data, also including residual plots, and simulated length at age curve
@@ -67,5 +71,7 @@ Obs_Finlen=res$Obs_Finlen
 MaxAge = 20
 params = log(c(0.1, 80, 40, 10))
 FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
-PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes)
+PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+# 5=annual len inc vs init len, 6=len vs age
+PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
 }
