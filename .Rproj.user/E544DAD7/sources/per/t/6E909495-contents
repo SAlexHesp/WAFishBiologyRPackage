@@ -3,7 +3,7 @@
 NULL
 
 # WA Fish Biology methods package
-# Alex Hesp August 2022
+# Alex Hesp July 2023
 # Department of Primary Industries and Regional Development
 
 # **************************
@@ -930,7 +930,7 @@ PlotSpawningDurationModelResults <- function(DecDay, ObsSpawnDat, MinLen, MaxLen
 #' mode 1 is not greater than mode 2, and mode 2 is not greater than mode 3
 EstPropAtLen_MixtureDistn <- function(params) {
 
-  if (length(which(c(2,4,5,8) == length(params))) == 0) {
+  if (length(which(c(2,4,5,6,8) == length(params))) == 0) {
     stop("Problem: not correct number of parameters")
   }
 
@@ -960,9 +960,9 @@ EstPropAtLen_MixtureDistn <- function(params) {
       rate1 = exp(params[3])
       rate2 = rate1
     }
-    PropZero = ilogit(params[4]) # 2 cohorts with separate sds
+    PropZero = ilogit(params[4])
   }
-  if (length(params) == 5) {
+  if (length(params) == 5) { # 2 cohorts with separate sds
     Cohorts=2
     if (DistnType == 1) { # normal
       Mean1 = exp(params[1])
@@ -978,7 +978,28 @@ EstPropAtLen_MixtureDistn <- function(params) {
     }
     PropZero = ilogit(params[5])
   }
-  if (length(params) == 8) {
+  if (length(params) == 6) { # 3 cohorts with common sds or rates
+    Cohorts=3
+    if (DistnType == 1) { # normal
+      Mean1 = exp(params[1])
+      Mean2 = exp(params[2])
+      Mean3 = exp(params[3])
+      sd1 = exp(params[4])
+      sd2 = sd1
+      sd3 = sd1
+    }
+    if (DistnType == 2) { # gamma
+      shape1 = exp(params[1])
+      shape2 = exp(params[2])
+      shape3 = exp(params[3])
+      rate1 = exp(params[4])
+      rate2 = rate1
+      rate3 = rate1
+    }
+    PropZero = ilogit(params[5])
+    PropOne = ilogit(params[6])
+  }
+  if (length(params) == 8) { # 3 cohorts with separate sds or rates
     Cohorts=3
     if (DistnType == 1) { # normal
       Mean1 = exp(params[1])
@@ -1057,16 +1078,15 @@ EstPropAtLen_MixtureDistn <- function(params) {
     }
     # ensure sum of proportions is not > 1
     if ((PropZero + PropOne)  > 1.0) {
-      Penalty2= 1000 * ((PropZero + PropOne) - 1.0) ^2
+      Penalty2 = 10000 * ((PropZero + PropOne) - 1.0) ^ 2
       PropZero = PropZero / ((PropZero + PropOne))
       PropOne = 1 - PropZero
-      PropZero = 0.999 * PropZero
-      PropOne = 0.999 * PropOne
     }
 
     height1 <- sum(ObsFreq) * PropZero
     height2 <- sum(ObsFreq) * PropOne
     height3 <- sum(ObsFreq) * (1 - PropZero - PropOne)
+
     if (DistnType == 1) { # normal
       Expfreq_mode1 <- (pnorm(UbndSizeCl, Mean1, sd1) - pnorm(LbndSizeCl, Mean1, sd1)) * height1
       Expfreq_mode2 <- (pnorm(UbndSizeCl, Mean2, sd2) - pnorm(LbndSizeCl, Mean2, sd2)) * height2
@@ -1160,7 +1180,8 @@ CalcNLL_SizeMixtureDistn <- function(params) {
 
   # calculate the multinomial likelihood
   NLL = -sum(ObsFreq * log(ExpPropAtLen + 0.0001)) + Penalty1 + Penalty2
-  # cat("NLL",NLL,"Penalty1",Penalty1,"Penalty2",Penalty2,'\n')
+  cat("NLL",NLL,"Penalty1",Penalty1,"Penalty2",Penalty2,'\n')
+
   results <- NLL
 
   return(results)
@@ -1319,7 +1340,7 @@ FitMixtureDistnModel <- function(params, DistnType, Cohorts, MinSize, MaxSize, S
 #' @export
 GetMixtureModelResults <- function(params, DistnType, Cohorts, MinSize, MaxSize, SizeInt, ObsFreq) {
 
-  if (length(which(c(2,4,5,8) == length(params))) == 0) {
+  if (length(which(c(2,4,5,6,8) == length(params))) == 0) {
     stop("Problem: not correct number of parameters")
   }
 
@@ -1335,7 +1356,7 @@ GetMixtureModelResults <- function(params, DistnType, Cohorts, MinSize, MaxSize,
   ExpPropAtLen = Res$ExpPropAtLen
   ExpFreqAtLen = Res$ExpFreqAtLen
 
-  # calculate uncertianty for parameter estimates by getting variance-covariance matrix,
+  # calculate uncertainty for parameter estimates by getting variance-covariance matrix,
   # from fitted model, to get standard errors
   hess.out = optimHess(nlmb$par, CalcNLL_SizeMixtureDistn)
   vcov.params = solve(hess.out)
@@ -1416,6 +1437,41 @@ GetMixtureModelResults <- function(params, DistnType, Cohorts, MinSize, MaxSize,
                               EstPropZero=round(EstPropZero,2)))
     }
   }
+  if (length(params) == 6) { # 3 cohorts common sd
+    if (DistnType == 1) { # normal
+      EstMean1 = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+      EstMean2 = c(exp(nlmb$par[2]), exp(nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
+      EstMean3 = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
+      EstMean1_sd = ses[1]
+      EstMean2_sd = ses[2]
+      EstMean3_sd = ses[3]
+      Estsd1 = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
+      Estsd2 = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
+      Estsd3 = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
+      EstPropZero = ilogit(c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5]))
+      EstPropOne = ilogit(c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6]))
+      ParamEst = t(data.frame(EstMean1=round(EstMean1,2), EstMean2=round(EstMean2,2),EstMean3=round(EstMean3,2),
+                              Estsd1=round(Estsd1,2), Estsd2=round(Estsd2,2),Estsd3=round(Estsd3,2),
+                              EstPropZero=round(EstPropZero,2),EstPropOne=round(EstPropOne,2)))
+    }
+    if (DistnType == 2) { # gamma
+      EstShape1 = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+      EstShape2 = c(exp(nlmb$par[2]), exp(nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
+      EstShape3 = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
+      EstShape1_sd = ses[1]
+      EstShape2_sd = ses[2]
+      EstShape3_sd = ses[3]
+      EstRate1 = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
+      EstRate2 = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
+      EstRate3 = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
+      EstPropZero = ilogit(c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5]))
+      EstPropOne = ilogit(c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6]))
+      ParamEst = t(data.frame(EstShape1=round(EstShape1,2), EstShape2=round(EstShape2,2),EstShape3=round(EstShape3,2),
+                              EstRate1=round(EstRate1,2), EstRate2=round(EstRate2,2),EstRate3=round(EstRate3,2),
+                              EstPropZero=round(EstPropZero,2),EstPropOne=round(EstPropOne,2)))
+    }
+  }
+
   if (length(params) == 8) { # 3 cohorts
     if (DistnType == 1) { # normal
       EstMean1 = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
@@ -1446,7 +1502,7 @@ GetMixtureModelResults <- function(params, DistnType, Cohorts, MinSize, MaxSize,
       EstPropZero = ilogit(c(nlmb$par[7], nlmb$par[7] + c(-1.96, 1.96) * ses[7]))
       EstPropOne = ilogit(c(nlmb$par[8], nlmb$par[8] + c(-1.96, 1.96) * ses[8]))
       ParamEst = t(data.frame(EstShape1=round(EstShape1,2), EstShape2=round(EstShape2,2),EstShape3=round(EstShape3,2),
-                              EsttRate1=round(EsttRate1,2), EsttRate2=round(EsttRate2,2),EsttRate3=round(EsttRate3,2),
+                              EstRate1=round(EstRate1,2), EstRate2=round(EstRate2,2),EstRate3=round(EstRate3,2),
                               EstPropZero=round(EstPropZero,2),EstPropOne=round(EstPropOne,2)))
     }
   }
@@ -1582,7 +1638,7 @@ MixtureDistnCurve_SizeFreq <- function(params) {
 #' gamma_mode1_up, gamma_mode2_up, gamma_mode3_up)
 GetConfidenceLimitsForMixtureDistnCurve <- function(params, vcov.params, DistnType) {
 
-  if (length(which(c(2,4,5,8) == length(params))) == 0) {
+  if (length(which(c(2,4,5,6,8) == length(params))) == 0) {
     stop("Problem: not correct number of parameters")
   }
 
@@ -1600,7 +1656,15 @@ GetConfidenceLimitsForMixtureDistnCurve <- function(params, vcov.params, DistnTy
       names(sims) = c("Shape1", "Rate1")
     }
   }
-  if (length(params) == 5) { # Cohorts=2
+  if (length(params) == 4) { # Cohorts=2, common sd or rate
+    if (DistnType == 1) { # normal
+      names(sims) = c("Mean1", "Mean2","sd1","PropZero")
+    }
+    if (DistnType == 2) { # gamma
+      names(sims) = c("Shape1", "Shape2","Rate1","PropZero")
+    }
+  }
+  if (length(params) == 5) { # Cohorts=2, separate sds or rates
     if (DistnType == 1) { # normal
       names(sims) = c("Mean1", "Mean2","sd1","sd2","PropZero")
     }
@@ -1608,7 +1672,15 @@ GetConfidenceLimitsForMixtureDistnCurve <- function(params, vcov.params, DistnTy
       names(sims) = c("Shape1", "Shape2","Rate1","Rate2","PropZero")
     }
   }
-  if (length(params) == 8) { # Cohorts=3
+  if (length(params) == 6) { # Cohorts=3 common sd or rate
+    if (DistnType == 1) { # normal
+      names(sims) = c("Mean1", "Mean2","Mean3","sd1","PropZero","PropOne")
+    }
+    if (DistnType == 2) { # gamma
+      names(sims) = c("Shape1", "Shape2","Shape3","Rate1","PropZero","PropOne")
+    }
+  }
+  if (length(params) == 8) { # Cohorts=3 separate sds or rates
     if (DistnType == 1) { # normal
       names(sims) = c("Mean1", "Mean2","Mean3","sd1","sd2","sd3","PropZero","PropOne")
     }
@@ -1631,7 +1703,19 @@ GetConfidenceLimitsForMixtureDistnCurve <- function(params, vcov.params, DistnTy
         gmean1[i] = alpha1 * beta1
         gmode1[i] = (alpha1 - 1) * beta1
       }
-      if (length(params) == 5) { # Cohorts=2
+
+      if (length(params) == 4) { # Cohorts=2, common sd or rate
+        alpha1 = exp(sims[i,1])
+        alpha2 = exp(sims[i,2])
+        beta1 = 1 / exp(sims[i,3])
+        beta2 = beta1
+        gmean1[i] = alpha1 * beta1
+        gmode1[i] = (alpha1 - 1) * beta1
+        gmean2[i] = alpha2 * beta2
+        gmode2[i] = (alpha2 - 1) * beta2
+      }
+
+      if (length(params) == 5) { # Cohorts=2, separate sds or rates
         alpha1 = exp(sims[i,1])
         alpha2 = exp(sims[i,2])
         beta1 = 1 / exp(sims[i,3])
@@ -1641,7 +1725,21 @@ GetConfidenceLimitsForMixtureDistnCurve <- function(params, vcov.params, DistnTy
         gmean2[i] = alpha2 * beta2
         gmode2[i] = (alpha2 - 1) * beta2
       }
-      if (length(params) == 8) { # Cohorts=3
+      if (length(params) == 6) { # Cohorts=3 common sd or rate
+        alpha1 = exp(sims[i,1])
+        alpha2 = exp(sims[i,2])
+        alpha3 = exp(sims[i,3])
+        beta1 = 1 / exp(sims[i,4])
+        beta2 = beta1
+        beta3 = beta1
+        gmean1[i] = alpha1 * beta1
+        gmode1[i] = (alpha1 - 1) * beta1
+        gmean2[i] = alpha2 * beta2
+        gmode2[i] = (alpha2 - 1) * beta2
+        gmean3[i] = alpha3 * beta3
+        gmode3[i] = (alpha3 - 1) * beta3
+      }
+      if (length(params) == 8) { # Cohorts=3 separate sds or rates
         alpha1 = exp(sims[i,1])
         alpha2 = exp(sims[i,2])
         alpha3 = exp(sims[i,3])
@@ -1700,7 +1798,7 @@ GetConfidenceLimitsForMixtureDistnCurve <- function(params, vcov.params, DistnTy
       gamma_mean3_up = NA
       gamma_mode3_up = NA
     }
-    if (length(params) == 5) { # Cohorts=2
+    if (length(params) == 4 | length(params) == 5) { # Cohorts=2
       gamma_mean1 = median(gmean1)
       gamma_mode1 = median(gmode1)
       gamma_mean2 = median(gmean2)
@@ -1720,7 +1818,7 @@ GetConfidenceLimitsForMixtureDistnCurve <- function(params, vcov.params, DistnTy
       gamma_mean3_up = NA
       gamma_mode3_up = NA
     }
-    if (length(params) == 8) { # Cohorts=3
+    if (length(params) == 6 | length(params) == 8) { # Cohorts=3
       gamma_mean1 = median(gmean1)
       gamma_mode1 = median(gmode1)
       gamma_mean2 = median(gmean2)
@@ -1953,8 +2051,9 @@ PlotMixtureDistnResults <- function(params, DistnType, Cohorts, ObsFreq, MinSize
   if (length(params) == 2) Modes=1
   if (length(params) == 4) Modes=2 # common sd
   if (length(params) == 5) Modes=2 # separate sds
-  if (length(params) == 8) Modes=3
-  mtext(paste("Modes = ",Modes,sep=""), adj=0.1,side=3,las=1,line=-1,cex=0.8)
+  if (length(params) == 6) Modes=3 # common sd
+  if (length(params) == 8) Modes=3 # separate sds
+  mtext(paste("Modes = ",Modes, sep=""), adj=0.1,side=3,las=1,line=-1,cex=0.8)
 
 
   if (PlotCLs == TRUE) {
