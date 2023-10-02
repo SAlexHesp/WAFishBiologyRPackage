@@ -5198,7 +5198,7 @@ SimulateLengthAtMaturityData <- function(nSamples, CurveType, nSexes, MaxAge, Mi
   }
 
   # set up length bins
-  lbnd = seq(MinLen,MaxLen,LenInc)
+  lbnd = seq(MinLen,MaxLen-LenInc,LenInc)
   midpt = lbnd + LenInc/2
   nLenCl = length(lbnd)
 
