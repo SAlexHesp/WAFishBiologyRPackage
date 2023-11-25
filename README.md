@@ -11,4 +11,6 @@ library(devtools)
 
 devtools::install_github("SAlexHesp/WAFishBiologyRPackage", build_vignettes=TRUE)
 
-library(WAFishBiology)
+If you already have a version of the WAFishBiology package installed but wish to update, I suggest using the line of code below rather than the one above 
+to ensure the updated version is installed.
+devtools::install_github("SAlexHesp/WAFishBiologyRPackage", build_vignettes=TRUE, force=TRUE)
