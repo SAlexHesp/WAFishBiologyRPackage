@@ -53,24 +53,148 @@ calculated using the MASS package. Results are then plotted.
 params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes
 }
 \examples{
+# Gausian
+# Simulate data
 set.seed(123)
 nstep = 50 # number of steps for numerical integration
-MaxLen = 240
-Gaussian_A = 0.1
-Gaussian_u = 80
-Gaussian_sd = 40
+MaxLen = 300
+Gaussian_A = 0.94
+Gaussian_u = 55.33
+Gaussian_sd = 53.17
 StandDev = 10
 GrowthCrvChoice = 2 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
 params = log(c(Gaussian_A, Gaussian_u, Gaussian_sd, StandDev))
 nobs = 200
-CalculationStage = 1
 res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+MaxAge = 20
+params = log(c(0.1, 60, 50, 8))
+Obs_delta_t=res$Obs_delta_t
+Obs_Initlen=res$Obs_Initlen
+Obs_Finlen=res$Obs_Finlen
+# fit model to simulated data
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes$ParamEst
+params = FittedRes$params
+PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+# 5=annual len inc vs init len, 6=len vs age
+PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+#
+# von Bertalanffy
+# Simulate data
+set.seed(123)
+nstep = 100 # number of steps for numerical integration
+MaxLen = 300
+vb_Linf = 140
+vb_K = 0.2
+Stdev = 3
+GrowthCrvChoice = 3 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+params = log(c(vb_Linf, vb_K, Stdev))
+nobs = 1000
+res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+# fit model to simulated data
+params = log(c(160, 0.3, 8))
+Obs_delta_t=res$Obs_delta_t
+Obs_Initlen=res$Obs_Initlen
+Obs_Finlen=res$Obs_Finlen
+MaxAge = 40
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes$ParamEst
+params = FittedRes$params
+PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+# 5=annual len inc vs init len, 6=len vs age
+PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+#
+# Gompertz
+# Simulate data
+set.seed(123)
+nstep = 100 # number of steps for numerical integration
+MaxLen = 300
+vb_Linf = 172
+g = 0.35
+Stdev = 5
+GrowthCrvChoice = 4 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+params = log(c(vb_Linf, g, Stdev))
+nobs = 200
+res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+# fit model to simulated data
+params = log(c(160, 0.3, 8))
 Obs_delta_t=res$Obs_delta_t
 Obs_Initlen=res$Obs_Initlen
 Obs_Finlen=res$Obs_Finlen
 MaxAge = 20
-params = log(c(0.1, 80, 40, 10))
 FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes$ParamEst
+params = FittedRes$params
+PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+# 5=annual len inc vs init len, 6=len vs age
+PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+#
+# double logistic
+# Simulate data
+set.seed(123)
+nstep = 50 # number of steps for numerical integration
+MaxLen = 300
+L50_1 = 46.48
+L95_1 = 121.31
+L50_2 = 121.91
+L95_2 = 171.84
+a = 0.113
+StandDev = 5
+GrowthCrvChoice = 1 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+params = log(c(L50_1, L95_1, L50_2, L95_2, a, StandDev))
+nobs = 200
+res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+MaxAge = 20
+params = log(c(60, 110, 120, 130, 0.1, 5))
+Obs_delta_t=res$Obs_delta_t
+Obs_Initlen=res$Obs_Initlen
+Obs_Finlen=res$Obs_Finlen
+# fit model to simulated data
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes$ParamEst
+params = FittedRes$params
+PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+# 5=annual len inc vs init len, 6=len vs age
+PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+#
+# inverse logistic
+# Simulate data
+set.seed(123)
+nstep = 50 # number of steps for numerical integration
+MaxLen = 300
+L50 = 121.91
+L95 = 171.84
+a = 0.113
+StandDev = 5
+GrowthCrvChoice = 5 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve,
+# 4 = Gompertz growth curve, 5=inverse logistic
+params = log(c(L50, L95, a, StandDev))
+nobs = 200
+res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+MaxAge = 20
+params = log(c(120, 130, 0.1, 5))
+Obs_delta_t=res$Obs_delta_t
+Obs_Initlen=res$Obs_Initlen
+Obs_Finlen=res$Obs_Finlen
+# fit model to simulated data
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes$ParamEst
+params = FittedRes$params
 PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
 # 5=annual len inc vs init len, 6=len vs age
 PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)

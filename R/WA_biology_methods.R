@@ -3,7 +3,7 @@
 NULL
 
 # WA Fish Biology methods package
-# Alex Hesp July 2023
+# Alex Hesp February 2024
 # Department of Primary Industries and Regional Development
 
 # **************************
@@ -3422,6 +3422,7 @@ SchnuteGrowthfunction <- function (Age, t1, t2, y1, y2, a, b) {
 #' @param ObsAge specified ages
 #'
 #' @return expected lengths at age (ExpLen)
+#' @export
 CalcLengthAtAge_SchnuteGrowthCurve <- function(params, t1, t2, ObsAge) {
 
   # calculate expected length at age growth, for Schnute growth curve (ages of fish in sample)
@@ -4082,23 +4083,98 @@ CalcLengthAtAge_SomersSeasonalGrowthCurve2 <- function(params, nSexes, plotages)
 #' durations at liberty), using for generating the random tag-recapture data.
 #'
 #' @examples
+#' # Gausian
+#' # Simulate data
 #' set.seed(123)
 #' nstep = 50 # number of steps for numerical integration
-#' MaxLen = 240
-#' Gaussian_A = 0.1
-#' Gaussian_u = 80
-#' Gaussian_sd = 40
+#' MaxLen = 300
+#' Gaussian_A = 0.94
+#' Gaussian_u = 55.33
+#' Gaussian_sd = 53.17
 #' StandDev = 10
 #' GrowthCrvChoice = 2 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
 #' params = log(c(Gaussian_A, Gaussian_u, Gaussian_sd, StandDev))
 #' nobs = 200
-#' CalculationStage = 1
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' #
+#' # von Bertalanffy
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 100 # number of steps for numerical integration
+#' MaxLen = 300
+#' vb_Linf = 140
+#' vb_K = 0.2
+#' Stdev = 3
+#' GrowthCrvChoice = 3 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(vb_Linf, vb_K, Stdev))
+#' nobs = 1000
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+#' #
+#' # Gompertz
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 100 # number of steps for numerical integration
+#' MaxLen = 300
+#' vb_Linf = 172
+#' g = 0.35
+#' Stdev = 5
+#' GrowthCrvChoice = 4 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(vb_Linf, g, Stdev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+#' #
+#' # double logistic
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 50 # number of steps for numerical integration
+#' MaxLen = 300
+#' L50_1 = 46.48
+#' L95_1 = 121.31
+#' L50_2 = 121.91
+#' L95_2 = 171.84
+#' a = 0.113
+#' StandDev = 5
+#' GrowthCrvChoice = 1 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(L50_1, L95_1, L50_2, L95_2, a, StandDev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' #
+#' # inverse logistic
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 50 # number of steps for numerical integration
+#' MaxLen = 300
+#' L50 = 121.91
+#' L95 = 171.84
+#' a = 0.113
+#' StandDev = 5
+#' GrowthCrvChoice = 5 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve,
+#' # 4 = Gompertz growth curve, 5=inverse logistic
+#' params = log(c(L50, L95, a, StandDev))
+#' nobs = 200
 #' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
 #' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
 #' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
 #' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
 #' @export
 SimulateTagRecaptureData <- function(GrowthCrvChoice, nstep, nobs, MaxLen, params) {
+
+  if (GrowthCrvChoice == 1) StandDev = exp(params[6]) # double logistic
+  if (GrowthCrvChoice == 2) StandDev = exp(params[4]) # Gaussian function
+  if (GrowthCrvChoice == 3) StandDev = exp(params[3]) # von Bertalanffy
+  if (GrowthCrvChoice == 4) StandDev = exp(params[3]) # Gompertz
 
   EstLenAtRelAge = rep(0, nobs)
   Exp_Finlen = rep(NA, nobs)
@@ -4111,17 +4187,12 @@ SimulateTagRecaptureData <- function(GrowthCrvChoice, nstep, nobs, MaxLen, param
   StartAge = 0
   Obs_delta_t = rand_delta_t
   Obs_Initlen = rand_Initlen
-
+  CalculationStage = 1
   LenPrevIntAge=NA
   for (j in 1:nobs) {
     Exp_Finlen[j] = LenAtAge_Rcpp(j, params, GrowthCrvChoice, nstep, CalculationStage, LenPrevIntAge, StartAge,
                              Obs_delta_t, Obs_Initlen)
   }
-
-  if (GrowthCrvChoice == 1) StandDev = exp(params[6]) # double logistic
-  if (GrowthCrvChoice == 1) StandDev = exp(params[4]) # Gaussian function
-  if (GrowthCrvChoice == 1) StandDev = exp(params[3]) # von Bertalanffy
-  if (GrowthCrvChoice == 1) StandDev = exp(params[3]) # Gompertz
 
   Obs_Finlen = rnorm(length(Exp_Finlen),Exp_Finlen, StandDev)
 
@@ -4182,8 +4253,14 @@ CalcNLL_TaggingGrowthModel <- function(params) {
   if (GrowthCrvChoice == 2) { # Gaussian
     StandDev = exp(params[4])
   }
-  if (GrowthCrvChoice > 2) { # von Bert or Gompertz
+  if (GrowthCrvChoice == 3) { # von Bert
     StandDev = exp(params[3])
+  }
+  if (GrowthCrvChoice == 4) { # Gompertz
+    StandDev = exp(params[3])
+  }
+  if (GrowthCrvChoice == 5) { # Inverse logistic
+    StandDev = exp(params[4])
   }
 
   EstDeltaL = TaggingGrowthModelNLLCalcs_Rcpp(params, nobs, GrowthCrvChoice, nstep, Obs_delta_t, Obs_Initlen);
@@ -4229,9 +4306,9 @@ FitTaggingGrowthModel <- function(params, nstep, Obs_delta_t, Obs_Initlen, Obs_F
 #' parameter estimated and associated 95 percent confidence limits and associated variance-covariance matrix,
 #' calculated using the MASS package.
 #'
-#' @param params log(c(L50_1, L95_1, L50_2, L95_2, Max_increment)) double logistic model, or
-#' log(c(Gaussian_A, Gaussian_u, Gaussian_sd)) Gaussian function, or log(c(vb_Linf, vb_K)) von Bertalanffy, or
-#' log(c(Gomp_Linf, Gomp_G)) Gompertz
+#' @param params log(c(L50_1, L95_1, L50_2, L95_2, Max_increment, sd)) double logistic model, or
+#' log(c(Gaussian_A, Gaussian_u, Gaussian_sd, sd)) Gaussian function, or log(c(vb_Linf, vb_K, sd)),
+#' von Bertalanffy, log(c(Gomp_Linf, Gomp_G, sd)) Gompertz or log(c(L50, L95, Max_increment, sd)) Inverse logistic
 #' @param nstep number of numerical integration steps (higher number increases accuracy but reduces program speed)
 #' @param Obs_delta_t observed durations at liberty for individual animals
 #' @param Obs_Initlen observed initial lengths for individual animals
@@ -4248,24 +4325,131 @@ FitTaggingGrowthModel <- function(params, nstep, Obs_delta_t, Obs_Initlen, Obs_F
 #' at integer ages for plotting (plot_EstLenAtIntAge)
 #'
 #' @examples
+#' # Gausian
+#' # Simulate data
 #' set.seed(123)
 #' nstep = 50 # number of steps for numerical integration
-#' MaxLen = 240
-#' Gaussian_A = 0.1
-#' Gaussian_u = 80
-#' Gaussian_sd = 40
+#' MaxLen = 300
+#' Gaussian_A = 0.94
+#' Gaussian_u = 55.33
+#' Gaussian_sd = 53.17
 #' StandDev = 10
 #' GrowthCrvChoice = 2 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
 #' params = log(c(Gaussian_A, Gaussian_u, Gaussian_sd, StandDev))
 #' nobs = 200
-#' CalculationStage = 1
 #' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' MaxAge = 20
+#' params = log(c(0.1, 60, 50, 8))
 #' Obs_delta_t=res$Obs_delta_t
 #' Obs_Initlen=res$Obs_Initlen
 #' Obs_Finlen=res$Obs_Finlen
-#' params = log(c(0.1, 80, 40, 10))
+#' # fit model to simulated data
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes$ParamEst
+#' #
+#' # von Bertalanffy
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 100 # number of steps for numerical integration
+#' MaxLen = 300
+#' vb_Linf = 140
+#' vb_K = 0.2
+#' Stdev = 3
+#' GrowthCrvChoice = 3 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(vb_Linf, vb_K, Stdev))
+#' nobs = 1000
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+#' # fit model to simulated data
+#' params = log(c(160, 0.3, 8))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' MaxAge = 40
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes$ParamEst
+#' #
+#' # Gompertz
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 100 # number of steps for numerical integration
+#' MaxLen = 300
+#' vb_Linf = 172
+#' g = 0.35
+#' Stdev = 5
+#' GrowthCrvChoice = 4 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(vb_Linf, g, Stdev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+#' # fit model to simulated data
+#' params = log(c(160, 0.3, 8))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
 #' MaxAge = 20
-#' GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes$ParamEst
+#' #
+#' # double logistic
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 50 # number of steps for numerical integration
+#' MaxLen = 300
+#' L50_1 = 46.48
+#' L95_1 = 121.31
+#' L50_2 = 121.91
+#' L95_2 = 171.84
+#' a = 0.113
+#' StandDev = 5
+#' GrowthCrvChoice = 1 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(L50_1, L95_1, L50_2, L95_2, a, StandDev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' MaxAge = 20
+#' params = log(c(60, 110, 120, 130, 0.1, 5))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' # fit model to simulated data
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes$ParamEst
+#' #
+#' # inverse logistic
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 50 # number of steps for numerical integration
+#' MaxLen = 300
+#' L50 = 121.91
+#' L95 = 171.84
+#' a = 0.113
+#' StandDev = 5
+#' GrowthCrvChoice = 5 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve,
+#' # 4 = Gompertz growth curve, 5=inverse logistic
+#' params = log(c(L50, L95, a, StandDev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' MaxAge = 20
+#' params = log(c(120, 130, 0.1, 5))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' # fit model to simulated data
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes$ParamEst
 #' @export
 #'
 GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs) {
@@ -4277,9 +4461,10 @@ GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen
   convergence = nlmb$convergence  # store convergence value
 
   # get variance-covariance matrix, from fitted model, to get standard errors
-  (hess.out = optimHess(nlmb$par, CalcNLL_TaggingGrowthModel))
-  (vcov.params = solve(hess.out))
-  (ses = sqrt(diag(vcov.params))) # get asymptotic standard errors of parameter estimates
+  params = nlmb$par
+  hess.out = optimHess(nlmb$par, CalcNLL_TaggingGrowthModel)
+  vcov.params = solve(hess.out)
+  ses = sqrt(diag(vcov.params)) # get asymptotic standard errors of parameter estimates
 
 
   # Calculate the terms that are used to produce the estimate of the derivative
@@ -4343,10 +4528,23 @@ GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen
     EstStandDev =  exp(c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
 
     # store results in data frame
-    ParamEst = t(data.frame(Gomp_Linf=round(EstGomp_Linf,2), Gomp_G=round(Estvb_K,2),
+    ParamEst = t(data.frame(Gomp_Linf=round(EstGomp_Linf,2), Gomp_G=round(EstGomp_G,2),
                             StandDev=round(EstStandDev,2)))
     colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
 
+  }
+
+  if (GrowthCrvChoice == 5)   { # Inverse logistic growth curve.
+
+    EstL50 =  exp(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+    EstL95 =  exp(c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
+    Max_increment =  exp(c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
+    EstStandDev =  exp(c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
+
+    # store results in data frame
+    ParamEst = t(data.frame(EstL50=round(EstL50,2), EstL95=round(EstL95,2),
+                            Max_increment=round(Max_increment,2), StandDev=round(EstStandDev,2)))
+    colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
   }
 
   # deltaL vs initial length
@@ -4372,6 +4570,9 @@ GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen
   for (j in seq(1,MaxAge+1,1)) {
     if (j==1) {
       EstLenAtIntAge[j] = 0 # age zero
+      if (GrowthCrvChoice == 4) {
+        EstLenAtIntAge[j] = 0.1 # age zero
+      }
     } else {
       LenPrevIntAge = EstLenAtIntAge[j-1]
       EstLenAtIntAge[j] = LenAtAge_Rcpp(j, params, GrowthCrvChoice, nstep, CalculationStage, LenPrevIntAge, StartAge=0,
@@ -4432,24 +4633,148 @@ GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen
 #' @return various plots showing model fit to tag-recapture data, also including residual plots, and simulated length at age curve
 #'
 #' @examples
+#' # Gausian
+#' # Simulate data
 #' set.seed(123)
 #' nstep = 50 # number of steps for numerical integration
-#' MaxLen = 240
-#' Gaussian_A = 0.1
-#' Gaussian_u = 80
-#' Gaussian_sd = 40
+#' MaxLen = 300
+#' Gaussian_A = 0.94
+#' Gaussian_u = 55.33
+#' Gaussian_sd = 53.17
 #' StandDev = 10
 #' GrowthCrvChoice = 2 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
 #' params = log(c(Gaussian_A, Gaussian_u, Gaussian_sd, StandDev))
 #' nobs = 200
-#' CalculationStage = 1
 #' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' MaxAge = 20
+#' params = log(c(0.1, 60, 50, 8))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' # fit model to simulated data
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes$ParamEst
+#' params = FittedRes$params
+#' PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+#' # 5=annual len inc vs init len, 6=len vs age
+#' PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+#' #
+#' # von Bertalanffy
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 100 # number of steps for numerical integration
+#' MaxLen = 300
+#' vb_Linf = 140
+#' vb_K = 0.2
+#' Stdev = 3
+#' GrowthCrvChoice = 3 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(vb_Linf, vb_K, Stdev))
+#' nobs = 1000
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+#' # fit model to simulated data
+#' params = log(c(160, 0.3, 8))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' MaxAge = 40
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes$ParamEst
+#' params = FittedRes$params
+#' PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+#' # 5=annual len inc vs init len, 6=len vs age
+#' PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+#' #
+#' # Gompertz
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 100 # number of steps for numerical integration
+#' MaxLen = 300
+#' vb_Linf = 172
+#' g = 0.35
+#' Stdev = 5
+#' GrowthCrvChoice = 4 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(vb_Linf, g, Stdev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+#' # fit model to simulated data
+#' params = log(c(160, 0.3, 8))
 #' Obs_delta_t=res$Obs_delta_t
 #' Obs_Initlen=res$Obs_Initlen
 #' Obs_Finlen=res$Obs_Finlen
 #' MaxAge = 20
-#' params = log(c(0.1, 80, 40, 10))
 #' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes$ParamEst
+#' params = FittedRes$params
+#' PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+#' # 5=annual len inc vs init len, 6=len vs age
+#' PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+#' #
+#' # double logistic
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 50 # number of steps for numerical integration
+#' MaxLen = 300
+#' L50_1 = 46.48
+#' L95_1 = 121.31
+#' L50_2 = 121.91
+#' L95_2 = 171.84
+#' a = 0.113
+#' StandDev = 5
+#' GrowthCrvChoice = 1 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(L50_1, L95_1, L50_2, L95_2, a, StandDev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' MaxAge = 20
+#' params = log(c(60, 110, 120, 130, 0.1, 5))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' # fit model to simulated data
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes$ParamEst
+#' params = FittedRes$params
+#' PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+#' # 5=annual len inc vs init len, 6=len vs age
+#' PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+#' #
+#' # inverse logistic
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 50 # number of steps for numerical integration
+#' MaxLen = 300
+#' L50 = 121.91
+#' L95 = 171.84
+#' a = 0.113
+#' StandDev = 5
+#' GrowthCrvChoice = 5 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve,
+#' # 4 = Gompertz growth curve, 5=inverse logistic
+#' params = log(c(L50, L95, a, StandDev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' MaxAge = 20
+#' params = log(c(120, 130, 0.1, 5))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' # fit model to simulated data
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes$ParamEst
+#' params = FittedRes$params
 #' PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
 #' # 5=annual len inc vs init len, 6=len vs age
 #' PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
