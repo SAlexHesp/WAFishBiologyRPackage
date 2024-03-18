@@ -9,7 +9,9 @@ CalcNLL_TaggingGrowthModel(params)
 \arguments{
 \item{Model}{1: L50_1, L95_1, L50_2, L95_2, Max_increment (double logistic model)
 Model 3: vb_Linf, vb_K (von Bertalanffy)
-Model 4: Gomp_Linf, Gomp_G}
+Model 4: Gomp_Linf, Gomp_G
+Model 5: L50, L95, Max_increment
+Model 6: MinGrowth, MaxGrowth, RateOfGrowthChange}
 }
 \value{
 Negative-log likelihood associated with growth curve fit to tag-recapture data

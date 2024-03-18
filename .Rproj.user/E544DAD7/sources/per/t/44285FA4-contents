@@ -4083,17 +4083,87 @@ CalcLengthAtAge_SomersSeasonalGrowthCurve2 <- function(params, nSexes, plotages)
 #' durations at liberty), using for generating the random tag-recapture data.
 #'
 #' @examples
+#' # Gausian
+#' # Simulate data
 #' set.seed(123)
 #' nstep = 50 # number of steps for numerical integration
-#' MaxLen = 240
-#' Gaussian_A = 0.1
-#' Gaussian_u = 80
-#' Gaussian_sd = 40
+#' MaxLen = 300
+#' Gaussian_A = 0.94
+#' Gaussian_u = 55.33
+#' Gaussian_sd = 53.17
 #' StandDev = 10
 #' GrowthCrvChoice = 2 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
 #' params = log(c(Gaussian_A, Gaussian_u, Gaussian_sd, StandDev))
 #' nobs = 200
-#' CalculationStage = 1
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' #
+#' # von Bertalanffy
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 100 # number of steps for numerical integration
+#' MaxLen = 300
+#' vb_Linf = 140
+#' vb_K = 0.2
+#' Stdev = 3
+#' GrowthCrvChoice = 3 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(vb_Linf, vb_K, Stdev))
+#' nobs = 1000
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+#' #
+#' # Gompertz
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 100 # number of steps for numerical integration
+#' MaxLen = 300
+#' vb_Linf = 172
+#' g = 0.35
+#' Stdev = 5
+#' GrowthCrvChoice = 4 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(vb_Linf, g, Stdev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+#' #
+#' # double logistic
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 50 # number of steps for numerical integration
+#' MaxLen = 300
+#' L50_1 = 46.48
+#' L95_1 = 121.31
+#' L50_2 = 121.91
+#' L95_2 = 171.84
+#' a = 0.113
+#' StandDev = 5
+#' GrowthCrvChoice = 1 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(L50_1, L95_1, L50_2, L95_2, a, StandDev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' #
+#' # inverse logistic
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 50 # number of steps for numerical integration
+#' MaxLen = 300
+#' L50 = 121.91
+#' L95 = 171.84
+#' a = 0.113
+#' StandDev = 5
+#' GrowthCrvChoice = 5 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve,
+#' # 4 = Gompertz growth curve, 5=inverse logistic
+#' params = log(c(L50, L95, a, StandDev))
+#' nobs = 200
 #' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
 #' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
 #' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
@@ -4173,6 +4243,8 @@ SimulateTagRecaptureData <- function(GrowthCrvChoice, nstep, nobs, MaxLen, param
 # ' Model 2: Gaussian_A, Gaussian_u, Gaussian_sd (Gaussian function)
 #'  Model 3: vb_Linf, vb_K (von Bertalanffy)
 #'  Model 4: Gomp_Linf, Gomp_G
+#'  Model 5: L50, L95, Max_increment
+#'  Model 6: MinGrowth, MaxGrowth, RateOfGrowthChange
 #' @return Negative-log likelihood associated with growth curve fit to tag-recapture data
 #' @export
 CalcNLL_TaggingGrowthModel <- function(params) {
@@ -4191,6 +4263,9 @@ CalcNLL_TaggingGrowthModel <- function(params) {
   }
   if (GrowthCrvChoice == 5) { # Inverse logistic
     StandDev = exp(params[4])
+  }
+  if (GrowthCrvChoice == 6) { # Exponential decay
+    StandDev = exp(params[3])
   }
 
   EstDeltaL = TaggingGrowthModelNLLCalcs_Rcpp(params, nobs, GrowthCrvChoice, nstep, Obs_delta_t, Obs_Initlen);
@@ -4236,14 +4311,15 @@ FitTaggingGrowthModel <- function(params, nstep, Obs_delta_t, Obs_Initlen, Obs_F
 #' parameter estimated and associated 95 percent confidence limits and associated variance-covariance matrix,
 #' calculated using the MASS package.
 #'
-#' @param params log(c(L50_1, L95_1, L50_2, L95_2, Max_increment)) double logistic model, or
-#' log(c(Gaussian_A, Gaussian_u, Gaussian_sd)) Gaussian function, or log(c(vb_Linf, vb_K)) von Bertalanffy, or
-#' log(c(Gomp_Linf, Gomp_G)) Gompertz
+#' @param params log(c(L50_1, L95_1, L50_2, L95_2, Max_increment, sd)) double logistic model, or
+#' log(c(Gaussian_A, Gaussian_u, Gaussian_sd, sd)) Gaussian function, or log(c(vb_Linf, vb_K, sd)),
+#' von Bertalanffy, log(c(Gomp_Linf, Gomp_G, sd)) Gompertz or log(c(L50, L95, Max_increment, sd)) Inverse logistic
 #' @param nstep number of numerical integration steps (higher number increases accuracy but reduces program speed)
 #' @param Obs_delta_t observed durations at liberty for individual animals
 #' @param Obs_Initlen observed initial lengths for individual animals
 #' @param Obs_Finlen observed final lengths for individual animals
 #' @param MaxAge specified maximum age for species
+#' @param MaxLen maximum length to consider for analysis
 #' @param nobs number of observations
 #' @return negative log-likelihood (nll), nlminb convergence diagnostic (convergence),
 #' growth parameter estimates with lower and upper 95 percent confidence limits (ParamEst),
@@ -4255,27 +4331,134 @@ FitTaggingGrowthModel <- function(params, nstep, Obs_delta_t, Obs_Initlen, Obs_F
 #' at integer ages for plotting (plot_EstLenAtIntAge)
 #'
 #' @examples
+#' # Gausian
+#' # Simulate data
 #' set.seed(123)
 #' nstep = 50 # number of steps for numerical integration
-#' MaxLen = 240
-#' Gaussian_A = 0.1
-#' Gaussian_u = 80
-#' Gaussian_sd = 40
+#' MaxLen = 300
+#' Gaussian_A = 0.94
+#' Gaussian_u = 55.33
+#' Gaussian_sd = 53.17
 #' StandDev = 10
 #' GrowthCrvChoice = 2 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
 #' params = log(c(Gaussian_A, Gaussian_u, Gaussian_sd, StandDev))
 #' nobs = 200
-#' CalculationStage = 1
 #' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' MaxAge = 20
+#' params = log(c(0.1, 60, 50, 8))
 #' Obs_delta_t=res$Obs_delta_t
 #' Obs_Initlen=res$Obs_Initlen
 #' Obs_Finlen=res$Obs_Finlen
-#' params = log(c(0.1, 80, 40, 10))
+#' # fit model to simulated data
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
+#' FittedRes$ParamEst
+#' #
+#' # von Bertalanffy
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 100 # number of steps for numerical integration
+#' MaxLen = 300
+#' vb_Linf = 140
+#' vb_K = 0.2
+#' Stdev = 3
+#' GrowthCrvChoice = 3 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(vb_Linf, vb_K, Stdev))
+#' nobs = 1000
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+#' # fit model to simulated data
+#' params = log(c(160, 0.3, 8))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' MaxAge = 40
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
+#' FittedRes$ParamEst
+#' #
+#' # Gompertz
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 100 # number of steps for numerical integration
+#' MaxLen = 300
+#' vb_Linf = 172
+#' g = 0.35
+#' Stdev = 5
+#' GrowthCrvChoice = 4 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(vb_Linf, g, Stdev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+#' # fit model to simulated data
+#' params = log(c(160, 0.3, 8))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
 #' MaxAge = 20
-#' GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
+#' FittedRes$ParamEst
+#' #
+#' # double logistic
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 50 # number of steps for numerical integration
+#' MaxLen = 300
+#' L50_1 = 46.48
+#' L95_1 = 121.31
+#' L50_2 = 121.91
+#' L95_2 = 171.84
+#' a = 0.113
+#' StandDev = 5
+#' GrowthCrvChoice = 1 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(L50_1, L95_1, L50_2, L95_2, a, StandDev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' MaxAge = 20
+#' params = log(c(60, 110, 120, 130, 0.1, 5))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' # fit model to simulated data
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
+#' FittedRes$ParamEst
+#' #
+#' # inverse logistic
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 50 # number of steps for numerical integration
+#' MaxLen = 300
+#' L50 = 121.91
+#' L95 = 171.84
+#' a = 0.113
+#' StandDev = 5
+#' GrowthCrvChoice = 5 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve,
+#' # 4 = Gompertz growth curve, 5=inverse logistic
+#' params = log(c(L50, L95, a, StandDev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' MaxAge = 20
+#' params = log(c(120, 130, 0.1, 5))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' # fit model to simulated data
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
+#' FittedRes$ParamEst
 #' @export
 #'
-GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs) {
+GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs) {
 
   # fit maturity curve
   nlmb = FitTaggingGrowthModel(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, nobs)
@@ -4370,6 +4553,19 @@ GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen
     colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
   }
 
+  if (GrowthCrvChoice == 6)   { # Exponential decay model
+
+    MaxGrowth =  exp(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+    RateOfGrowthChange =  exp(c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
+    EstStandDev =  exp(c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
+
+    # store results in data frame
+    ParamEst = t(data.frame(EstMaxGrowth=round(MaxGrowth,2),
+                            RateOfGrowthChange=round(RateOfGrowthChange,2),
+                            StandDev=round(EstStandDev,2)))
+    colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
+  }
+
   # deltaL vs initial length
   CalculationStage = 1
   LenPrevIntAge = NA
@@ -4447,6 +4643,7 @@ GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen
 #' @param Obs_Initlen observed initial lengths for individual animals
 #' @param Obs_Finlen observed final lengths for individual animals
 #' @param MaxAge specified maximum age for species
+#' @param MaxLen maximum length to consider for analysis
 #' @param nobs number of observation
 #' @param FittedRes outputs of fitted model from nlminb (can be set to NA or saved values from the
 #' GetTaggingGrowthModelResults function, to speed up plotting
@@ -4456,29 +4653,153 @@ GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen
 #' @return various plots showing model fit to tag-recapture data, also including residual plots, and simulated length at age curve
 #'
 #' @examples
+#' # Gausian
+#' # Simulate data
 #' set.seed(123)
 #' nstep = 50 # number of steps for numerical integration
-#' MaxLen = 240
-#' Gaussian_A = 0.1
-#' Gaussian_u = 80
-#' Gaussian_sd = 40
+#' MaxLen = 300
+#' Gaussian_A = 0.94
+#' Gaussian_u = 55.33
+#' Gaussian_sd = 53.17
 #' StandDev = 10
 #' GrowthCrvChoice = 2 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
 #' params = log(c(Gaussian_A, Gaussian_u, Gaussian_sd, StandDev))
 #' nobs = 200
-#' CalculationStage = 1
 #' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' MaxAge = 20
+#' params = log(c(0.1, 60, 50, 8))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' # fit model to simulated data
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
+#' FittedRes$ParamEst
+#' params = FittedRes$params
+#' PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+#' # 5=annual len inc vs init len, 6=len vs age
+#' PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs, FittedRes, PlotOpt)
+#' #
+#' # von Bertalanffy
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 100 # number of steps for numerical integration
+#' MaxLen = 300
+#' vb_Linf = 140
+#' vb_K = 0.2
+#' Stdev = 3
+#' GrowthCrvChoice = 3 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(vb_Linf, vb_K, Stdev))
+#' nobs = 1000
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+#' # fit model to simulated data
+#' params = log(c(160, 0.3, 8))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' MaxAge = 40
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
+#' FittedRes$ParamEst
+#' params = FittedRes$params
+#' PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+#' # 5=annual len inc vs init len, 6=len vs age
+#' PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs, FittedRes, PlotOpt)
+#' #
+#' # Gompertz
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 100 # number of steps for numerical integration
+#' MaxLen = 300
+#' vb_Linf = 172
+#' g = 0.35
+#' Stdev = 5
+#' GrowthCrvChoice = 4 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(vb_Linf, g, Stdev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Initlen_line, res$Exp_Finlen2, col="blue", "l")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' lines(res$Obs_Initlen, res$Obs_Finlen, "p")
+#' # fit model to simulated data
+#' params = log(c(160, 0.3, 8))
 #' Obs_delta_t=res$Obs_delta_t
 #' Obs_Initlen=res$Obs_Initlen
 #' Obs_Finlen=res$Obs_Finlen
 #' MaxAge = 20
-#' params = log(c(0.1, 80, 40, 10))
-#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
+#' FittedRes$ParamEst
+#' params = FittedRes$params
 #' PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
 #' # 5=annual len inc vs init len, 6=len vs age
-#' PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+#' PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs, FittedRes, PlotOpt)
+#' #
+#' # double logistic
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 50 # number of steps for numerical integration
+#' MaxLen = 300
+#' L50_1 = 46.48
+#' L95_1 = 121.31
+#' L50_2 = 121.91
+#' L95_2 = 171.84
+#' a = 0.113
+#' StandDev = 5
+#' GrowthCrvChoice = 1 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve, 4 = Gompertz growth curve
+#' params = log(c(L50_1, L95_1, L50_2, L95_2, a, StandDev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' MaxAge = 20
+#' params = log(c(60, 110, 120, 130, 0.1, 5))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' # fit model to simulated data
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
+#' FittedRes$ParamEst
+#' params = FittedRes$params
+#' PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+#' # 5=annual len inc vs init len, 6=len vs age
+#' PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs, FittedRes, PlotOpt)
+#' #
+#' # inverse logistic
+#' # Simulate data
+#' set.seed(123)
+#' nstep = 50 # number of steps for numerical integration
+#' MaxLen = 300
+#' L50 = 121.91
+#' L95 = 171.84
+#' a = 0.113
+#' StandDev = 5
+#' GrowthCrvChoice = 5 # 1 = double logistic, 2 = Gaussian function, 3 = von Bertalanffy growth curve,
+#' # 4 = Gompertz growth curve, 5=inverse logistic
+#' params = log(c(L50, L95, a, StandDev))
+#' nobs = 200
+#' res=SimulateTagRecaptureData(GrowthCrvChoice, nstep, nobs, MaxLen, params)
+#' plot(res$Obs_Initlen, res$Obs_Finlen, pch=16, cex=0.6)
+#' lines(res$Initlen_line, res$Exp_Finlen2, col="blue")
+#' lines(res$Initlen_line2, res$Exp_Finlen3, col="blue")
+#' MaxAge = 20
+#' params = log(c(120, 130, 0.1, 5))
+#' Obs_delta_t=res$Obs_delta_t
+#' Obs_Initlen=res$Obs_Initlen
+#' Obs_Finlen=res$Obs_Finlen
+#' # fit model to simulated data
+#' FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
+#' FittedRes$ParamEst
+#' params = FittedRes$params
+#' PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
+#' # 5=annual len inc vs init len, 6=len vs age
+#' PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs, FittedRes, PlotOpt)
 #' @export
-PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt) {
+PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs, FittedRes, PlotOpt) {
 
   .pardefault <- par(no.readonly = TRUE) # store default par settings
 
@@ -4486,7 +4807,7 @@ PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_
   if (is.list(FittedRes)) {
     res =  FittedRes
   } else {
-    res=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+    res=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
   }
 
   # params=res$params
@@ -4568,50 +4889,97 @@ PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_
 #' This function calculates mean monthly gonaosomatic indices GSI values and associated 95 percent confidence limits
 #'
 #' @param MatL50 length at first maturity
-#' @param FishRepdat data frame containing data for individual fish, including month of capture (MM), fish length (FishLen),
+#' @param FishRepdat data frame containing data for individual fish, including month of capture (Mnth), fish length (FishLen),
 #' gonad wet weight (GonadWt) and fish total body weight (FishWt)
 #'
-#' @return data frame (Result) containing elements month (MM), mean GSI (Mean), standard
+#' @return data frame (Result) containing elements month (Mnth), mean GSI (Mean), standard
 #' deviation (sd), monthly sample size (n), standard error (se), lower and upper 95 percent
 #' confidence limits (Low95 and Up95)
 #'
 #' @examples
+#' # Generate synthetic length composition data from a simple population model
+#' library(L3Assess)
 #' set.seed(123)
-#' nMnths = 12
-#' MnthSampeSizes = 20
-#' MMSampSize = rep(MnthSampeSizes,nMnths)
-#' TotSampSize = MnthSampeSizes * nMnths
-#' Mnths = 1:nMnths
-#' MeanMMGSI = rep(c(rep(0.1,4),0.25, 0.7, 0.6, 0.3, rep(0.1,4)),MMSampSize)
-#' randMMGSI = exp(rnorm(TotSampSize,log(MeanMMGSI),0.5))
-#' length(randMMGSI)
-#' MM = rep(Mnths,times=MMSampSize)
-#' FishLen = round(runif(TotSampSize,100,500),0)
-#' FishWt = (0.0000001 * FishLen ^ 3)
-#' GonadWt = (randMMGSI / 100) * FishWt
-#' FishRepdat = data.frame(MM=MM, FishLen=FishLen, GonadWt=GonadWt, FishWt=FishWt)
-#' MatL50 = 200
-#' CalcMeanMonthlyGSIs(MatL50, FishRepdat)
+#' SampleSize=5000 # sample size for retained catches (and same number for released fish, if an MLL is specified)
+#' MaxAge = 30
+#' TimeStep = 1 # model timestep (e.g. 1 = annual, 1/12 = monthly)
+#' NatMort = 4.22/MaxAge
+#' FishMort = 0.2
+#' MaxLen = 1200
+#' LenInc = 1
+#' MLL=NA # (minimum legal length) # retention set to 1 for all lengths if MLL set to NA and retention parameters not specified
+#' SelectivityType=2 # 1=selectivity inputted as vector, 2=asymptotic logistic selectivity curve
+#' SelectivityVec = NA # selectivity vector
+#' SelParams = c(300, 50) # L50, L95-L50 for gear selectivity
+#' RetenParams = c(500, 50) # L50, L95-L50 for retention
+#' DiscMort = 0 # proportion of fish that die due to natural mortality
+#' GrowthCurveType = 1 # 1 = von Bertalanffy, 2 = Schnute
+#' Linf = 800
+#' vbK = 0.2
+#' CVSizeAtAge = 0.08
+#' GrowthParams = c(Linf, vbK)
+#' RefnceAges = NA
+#' Res=SimLenAndAgeFreqData(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
+#'                          SelParams, RetenParams, SelectivityVec, DiscMort, GrowthCurveType, GrowthParams, RefnceAges, CVSizeAtAge)
+#' # Simulate length-frequency data from Dirchlet multinomial distribution.
+#' # install.packages("dirmult")
+#' library(dirmult)
+#' set.seed(123)
+#' nSampEvents = 5 # number of sampling events per month
+#' nFishPerSampEvent = 5 # number of fish caught per sampling event
+#' theta_val = 0.1 # level of autocorrelation of lengths within sampling events
+#' midpt = Res$midpt
+#' ExpPropAtLen = Res$ModelDiag$ExpRetCatchPropAtLen
+#' # Generate fish lengths (taken as midpts of length classes)
+#' FishLen <- NA
+#' for (mm in 1:12) {
+#'   res=SimLenFreqDat_DirMultDistn(nSampEvents, nFishPerSampEvent, theta_val, midpt, ExpPropAtLen)
+#'   if (mm == 1) {
+#'     FishLen <- rep(res$midpt, res$simLenFreq)
+#'   } else {
+#'     tempFishLen <- rep(res$midpt, res$simLenFreq)
+#'     FishLen <- c(FishLen,tempFishLen)
+#'   }
+#' }
+#' FishWt <- 0.00002 * FishLen ^ 3
+#' # specify monthly true trend in standardised gonad weight
+#' MnthEff <- c(0.5,0.5,1.1,1.4,1.8,2.3,1.7,1.2,1,0.5,0.5,0.5)
+#' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
+#' a1 <- 0.05 # fish length effect
+#' GonadWt <- rep(0,length(FishLen))
+#' for (i in 1:length(FishLen)) {
+#'   tempMnth <- Mnth[i]
+#'   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
+#' }
+#' FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
+#' # Create scatter plots of the dependent variable by the covariates
+#' # par(mfrow = c(3, 2)) # Set the layout of the plots
+#' # plot(FishWt ~ FishLen, data = FishRepdat, main = "Fish weight by Fish length")
+#' # boxplot(FishLen ~ Mnth, data = FishRepdat, main = "FishLen by Month")
+#' # boxplot(GonadWt ~ Mnth, data = FishRepdat, main = "GonadWt by Month")
+#' # hist(FishLen)
+#' # hist(FishWt)
+#' res <- CalcMeanMonthlyGSIs(MatL50=200, FishRepdat)
 #' @export
 CalcMeanMonthlyGSIs <- function(MatL50, FishRepdat) {
 
-  # subset data for females above our guess at size at maturity
+  # subset data for females above at size at maturity
   subdat = FishRepdat[FishRepdat$FishLen>=MatL50,]
 
   # calculate GSIs for individual fish
   subdat$GSI = (subdat$GonadWt / subdat$FishWt) * 100
 
   # monthly means
-  temp <- aggregate(GSI ~ MM, subdat, FUN=mean)
+  temp <- aggregate(GSI ~ Mnth, subdat, FUN=mean)
   Mnth = temp[,1]
   MeanGSI = temp[,2]
 
   # monthly counts
-  temp <- aggregate(GSI ~ MM, subdat, FUN=length)
+  temp <- aggregate(GSI ~ Mnth, subdat, FUN=length)
   nGSI = temp[,2]
 
   # monthly standard deviations
-  temp <- aggregate(GSI ~ MM, subdat, FUN=sd)
+  temp <- aggregate(GSI ~ Mnth, subdat, FUN=sd)
   sdGSI = temp[,2]
 
   # create single data frame with desired fields
@@ -4631,41 +4999,205 @@ CalcMeanMonthlyGSIs <- function(MatL50, FishRepdat) {
 
 }
 
+#' Calculate mean monthly, standardised gonad weights
+#'
+#' This function calculates mean monthly standardised gonad weights (for a specified fish length),
+#' and associated 95 percent confidence limits, using GLM analysis
+#'
+#' @param MatL50 length at first maturity
+#' @param SpecFishLength specified fish length (to which gonad weights will be standardised)
+#' @param FishRepdat data frame containing data for individual fish, including month of capture (Mnth), fish length (FishLen),
+#' gonad wet weight (GonadWt) and fish total body weight (FishWt)
+#' @return list object containing list of calendar months with reprodutive data (MonthsWithData), monthly sample sizes,
+#' output of GLM analysis, with estimated monthly effects on gonad weights (GLMResults), output of GLM prediction
+#' analyses, with means and errors for standardised gonad weights (GLMPredResults), mean monthly standardised gonad weights
+#' (MnthStdGonadWts_mean) and associated standard errors (MnthStdGonadWts_se), specified standard fish length inputted by user (SpecFishLength)
+#' @examples
+#' # Generate synthetic length composition data from a simple population model
+#' library(L3Assess)
+#' set.seed(123)
+#' SampleSize=5000 # sample size for retained catches (and same number for released fish, if an MLL is specified)
+#' MaxAge = 30
+#' TimeStep = 1 # model timestep (e.g. 1 = annual, 1/12 = monthly)
+#' NatMort = 4.22/MaxAge
+#' FishMort = 0.2
+#' MaxLen = 1200
+#' LenInc = 1
+#' MLL=NA # (minimum legal length) # retention set to 1 for all lengths if MLL set to NA and retention parameters not specified
+#' SelectivityType=2 # 1=selectivity inputted as vector, 2=asymptotic logistic selectivity curve
+#' SelectivityVec = NA # selectivity vector
+#' SelParams = c(300, 50) # L50, L95-L50 for gear selectivity
+#' RetenParams = c(500, 50) # L50, L95-L50 for retention
+#' DiscMort = 0 # proportion of fish that die due to natural mortality
+#' GrowthCurveType = 1 # 1 = von Bertalanffy, 2 = Schnute
+#' Linf = 800
+#' vbK = 0.2
+#' CVSizeAtAge = 0.08
+#' GrowthParams = c(Linf, vbK)
+#' RefnceAges = NA
+#' Res=SimLenAndAgeFreqData(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
+#'                          SelParams, RetenParams, SelectivityVec, DiscMort, GrowthCurveType, GrowthParams, RefnceAges, CVSizeAtAge)
+#' # Simulate length-frequency data from Dirchlet multinomial distribution.
+#' # install.packages("dirmult")
+#' library(dirmult)
+#' set.seed(123)
+#' nSampEvents = 5 # number of sampling events per month
+#' nFishPerSampEvent = 5 # number of fish caught per sampling event
+#' theta_val = 0.9 # level of autocorrelation of lengths within sampling events
+#' midpt = Res$midpt
+#' ExpPropAtLen = Res$ModelDiag$ExpRetCatchPropAtLen
+#' # Generate fish lengths (taken as midpts of length classes)
+#' FishLen <- NA
+#' for (mm in 1:12) {
+#'   res=SimLenFreqDat_DirMultDistn(nSampEvents, nFishPerSampEvent, theta_val, midpt, ExpPropAtLen)
+#'   if (mm == 1) {
+#'     FishLen <- rep(res$midpt, res$simLenFreq)
+#'   } else {
+#'     tempFishLen <- rep(res$midpt, res$simLenFreq)
+#'     FishLen <- c(FishLen,tempFishLen)
+#'   }
+#' }
+#' FishWt <- 0.00002 * FishLen ^ 3
+#' # specify monthly true trend in standardised gonad weight
+#' MnthEff <- c(0.5,0.5,1.1,1.4,1.8,2.3,1.7,1.2,1,0.5,0.5,0.5)
+#' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
+#' a1 <- 0.05 # fish length effect
+#' GonadWt <- rep(0,length(FishLen))
+#' for (i in 1:length(FishLen)) {
+#'   tempMnth <- Mnth[i]
+#'   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
+#' }
+#' FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
+#' # Create scatter plots of the dependent variable by the covariates
+#' # par(mfrow = c(3, 2)) # Set the layout of the plots
+#' # plot(FishWt ~ FishLen, data = FishRepdat, main = "Fish weight by Fish length")
+#' # boxplot(FishLen ~ Mnth, data = FishRepdat, main = "FishLen by Month")
+#' # boxplot(GonadWt ~ Mnth, data = FishRepdat, main = "GonadWt by Month")
+#' # hist(FishLen)
+#' # hist(FishWt)
+#' res <- CalcMeanMonthlyStGonadWts(MatL50=200, SpecFishLength=600, FishRepdat)
+#' @export
+CalcMeanMonthlyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat) {
+
+  # subset data for females above at size at maturity
+  subdat = FishRepdat[FishRepdat$FishLen>=MatL50,]
+  MeanLenAboveL50 <- mean(subdat$FishLen)
+
+  temp <- aggregate(FishWt  ~ Mnth, subdat, FUN=length)
+  nMonthlyFishWts = temp[,2]
+
+  # fit glm
+  model_glm <- glm(GonadWt ~ as.factor(Mnth) + FishLen, data = subdat)
+  GLMResults <- summary(model_glm)
+
+  # get predicted mean monthly standardised gonad weights, for fish of specified length
+  newdata = data.frame(Mnth=sort(unique(subdat$Mnth)), FishLen=SpecFishLength)
+  GLMPredResults = predict(model_glm, newdata, type="response",se.fit=TRUE)
+
+  CalendarMonths = 1:12
+  MonthsWithData = sort(unique(subdat$Mnth))
+  MnthStdGonadWts_mean <- rep(NA,12)
+  MnthStdGonadWts_se <- rep(NA,12)
+  MnthStdGonadWts_mean[MonthsWithData] = GLMPredResults$fit
+  MnthStdGonadWts_se[MonthsWithData] = GLMPredResults$se.fit
+
+  ResultsSummary <- list(MonthsWithData = sort(unique(subdat$Mnth)),
+                         MeanLenAboveL50 = MeanLenAboveL50,
+                         nMonthlyFishWts = nMonthlyFishWts,
+                         GLMResults = GLMResults,
+                         GLMPredResults = GLMPredResults,
+                         MnthStdGonadWts_mean = MnthStdGonadWts_mean,
+                         MnthStdGonadWts_se = MnthStdGonadWts_se,
+                         SpecFishLength = SpecFishLength)
+
+  return(ResultsSummary)
+
+}
+
 #' Plot mean monthly GSIs
 #'
 #' This function plots mean monthly GSI values and associated 95 percent confidence limits,
 #' used to assess time and duration of spawning
 #'
 #' @param MatL50 length at first maturity
-#' @param FishRepdat data frame containing data for individual fish, including month of capture (MM), fish length (FishLen),
+#' @param FishRepdat data frame containing data for individual fish, including month of capture (Mnth), fish length (FishLen),
 #' @param ymax maximum value for y axis
 #' @param yint y axis interval
 #' @param GraphTitle graph title
 #' @param xaxis_lab x axis label
 #' @param yaxis_lab y axis label
+#' @param SampSizelabPosAdj position of monthly sample sizes on plot above upper 95 percent CLs
+#' @param SampSizelab_cex size of monthly sample size labels
 #'
 #' @return plot of mean month GSIs with 95 percent confidence limits
 #' @examples
+#' # Generate synthetic length composition data from a simple population model
+#' library(L3Assess)
 #' set.seed(123)
-#' nMnths = 12
-#' MnthSampeSizes = 20
-#' MMSampSize = rep(MnthSampeSizes,nMnths)
-#' TotSampSize = MnthSampeSizes * nMnths
-#' Mnths = 1:nMnths
-#' MeanMMGSI = rep(c(rep(0.1,4),0.25, 0.7, 0.6, 0.3, rep(0.1,4)),MMSampSize)
-#' randMMGSI = rnorm(TotSampSize,MeanMMGSI,0.1)
-#' length(randMMGSI)
-#' MM = rep(Mnths,times=MMSampSize)
-#' FishLen = round(runif(TotSampSize,100,500),0)
-#' FishWt = (0.0000001 * FishLen ^ 3)
-#' GonadWt = (randMMGSI / 100) * FishWt
-#' FishRepdat = data.frame(MM=MM, FishLen=FishLen, GonadWt=GonadWt, FishWt=FishWt)
-#' MatL50 = 200
-#' PlotGSIData(MatL50, FishRepdat, ymax=NA, yint=NA, GraphTitle="Females",
-#'                                 xaxis_lab="Month",yaxis_lab="Mean GSI")
+#' SampleSize=5000 # sample size for retained catches (and same number for released fish, if an MLL is specified)
+#' MaxAge = 30
+#' TimeStep = 1 # model timestep (e.g. 1 = annual, 1/12 = monthly)
+#' NatMort = 4.22/MaxAge
+#' FishMort = 0.2
+#' MaxLen = 1200
+#' LenInc = 1
+#' MLL=NA # (minimum legal length) # retention set to 1 for all lengths if MLL set to NA and retention parameters not specified
+#' SelectivityType=2 # 1=selectivity inputted as vector, 2=asymptotic logistic selectivity curve
+#' SelectivityVec = NA # selectivity vector
+#' SelParams = c(300, 50) # L50, L95-L50 for gear selectivity
+#' RetenParams = c(500, 50) # L50, L95-L50 for retention
+#' DiscMort = 0 # proportion of fish that die due to natural mortality
+#' GrowthCurveType = 1 # 1 = von Bertalanffy, 2 = Schnute
+#' Linf = 800
+#' vbK = 0.2
+#' CVSizeAtAge = 0.08
+#' GrowthParams = c(Linf, vbK)
+#' RefnceAges = NA
+#' Res=SimLenAndAgeFreqData(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
+#'                          SelParams, RetenParams, SelectivityVec, DiscMort, GrowthCurveType, GrowthParams, RefnceAges, CVSizeAtAge)
+#' # Simulate length-frequency data from Dirchlet multinomial distribution.
+#' # install.packages("dirmult")
+#' library(dirmult)
+#' set.seed(123)
+#' nSampEvents = 5 # number of sampling events per month
+#' nFishPerSampEvent = 5 # number of fish caught per sampling event
+#' theta_val = 0.1 # level of autocorrelation of lengths within sampling events
+#' midpt = Res$midpt
+#' ExpPropAtLen = Res$ModelDiag$ExpRetCatchPropAtLen
+#' # Generate fish lengths (taken as midpts of length classes)
+#' FishLen <- NA
+#' for (mm in 1:12) {
+#'   res=SimLenFreqDat_DirMultDistn(nSampEvents, nFishPerSampEvent, theta_val, midpt, ExpPropAtLen)
+#'   if (mm == 1) {
+#'     FishLen <- rep(res$midpt, res$simLenFreq)
+#'   } else {
+#'     tempFishLen <- rep(res$midpt, res$simLenFreq)
+#'     FishLen <- c(FishLen,tempFishLen)
+#'   }
+#' }
+#' FishWt <- 0.00002 * FishLen ^ 3
+#' # specify monthly true trend in standardised gonad weight
+#' MnthEff <- c(0.5,0.5,1.1,1.4,1.8,2.3,1.7,1.2,1,0.5,0.5,0.5)
+#' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
+#' a1 <- 0.05 # fish length effect
+#' GonadWt <- rep(0,length(FishLen))
+#' for (i in 1:length(FishLen)) {
+#'   tempMnth <- Mnth[i]
+#'   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
+#' }
+#' FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
+#' # Create scatter plots of the dependent variable by the covariates
+#' # par(mfrow = c(3, 2)) # Set the layout of the plots
+#' # plot(FishWt ~ FishLen, data = FishRepdat, main = "Fish weight by Fish length")
+#' # boxplot(FishLen ~ Mnth, data = FishRepdat, main = "FishLen by Month")
+#' # boxplot(GonadWt ~ Mnth, data = FishRepdat, main = "GonadWt by Month")
+#' # hist(FishLen)
+#' # hist(FishWt)
+#' PlotMeanMonthlyGSIs(MatL50=200, FishRepdat, ymax=2, yint=0.2, GraphTitle="Females", xaxis_lab="Month",
+#'                            yaxis_lab="GSI", SampSizelabPosAdj=0.05, SampSizelab_cex=0.8)
 #' @export
-PlotGSIData <- function(MatL50, FishRepdat, ymax, yint, GraphTitle,
-                        xaxis_lab="Mean GSI", yaxis_lab="Month") {
+PlotMeanMonthlyGSIs <- function(MatL50, FishRepdat, ymax, yint, GraphTitle, xaxis_lab, yaxis_lab,
+                                SampSizelabPosAdj, SampSizelab_cex) {
 
   res=CalcMeanMonthlyGSIs(MatL50, FishRepdat)
 
@@ -4685,7 +5217,117 @@ PlotGSIData <- function(MatL50, FishRepdat, ymax, yint, GraphTitle,
   axis(1, at=1:12, labels = MMabb[1:12], tck=0.03, cex=1, line=0, lwd=0)
   axis(2, at=seq(0, ymax, yint), tck=0.03, cex=1, labels=F,line=0.5)
   axis(2, at=seq(0, ymax, yint), tck=0.03, cex=1, labels=T,line=0, lwd=0, las=2)
+  pos = res$Up95+SampSizelabPosAdj
+  text(res$Mnth, pos, res$nGSI, cex=SampSizelab_cex)
+}
 
+#' Plot mean monthly standardised gonad weights
+#'
+#' This function plots mean monthly standardised gonad weights (for specified fish length value) and associated
+#' 95 percent confidence limits, used to assess time and duration of spawning
+#'
+#' @param MatL50 length at first maturity
+#' @param SpecFishLength specified fish lengths to which gonad weights are to be standardised
+#' @param FishRepdat data frame containing data for individual fish, including month of capture (Mnth), fish length (FishLen),
+#' @param ymax maximum value for y axis
+#' @param yint y axis interval
+#' @param GraphTitle graph title
+#' @param xaxis_lab x axis label
+#' @param yaxis_lab y axis label
+#' @param SampSizelabPosAdj position of monthly sample sizes on plot above upper 95 percent CLs
+#' @param SampSizelab_cex size of monthly sample size labels
+#'
+#' @return plot of mean month GSIs with 95 percent confidence limits
+#' @examples
+#' # Generate synthetic length composition data from a simple population model
+#' library(L3Assess)
+#' set.seed(123)
+#' SampleSize=5000 # sample size for retained catches (and same number for released fish, if an MLL is specified)
+#' MaxAge = 30
+#' TimeStep = 1 # model timestep (e.g. 1 = annual, 1/12 = monthly)
+#' NatMort = 4.22/MaxAge
+#' FishMort = 0.2
+#' MaxLen = 1200
+#' LenInc = 1
+#' MLL=NA # (minimum legal length) # retention set to 1 for all lengths if MLL set to NA and retention parameters not specified
+#' SelectivityType=2 # 1=selectivity inputted as vector, 2=asymptotic logistic selectivity curve
+#' SelectivityVec = NA # selectivity vector
+#' SelParams = c(300, 50) # L50, L95-L50 for gear selectivity
+#' RetenParams = c(500, 50) # L50, L95-L50 for retention
+#' DiscMort = 0 # proportion of fish that die due to natural mortality
+#' GrowthCurveType = 1 # 1 = von Bertalanffy, 2 = Schnute
+#' Linf = 800
+#' vbK = 0.2
+#' CVSizeAtAge = 0.08
+#' GrowthParams = c(Linf, vbK)
+#' RefnceAges = NA
+#' Res=SimLenAndAgeFreqData(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
+#'                          SelParams, RetenParams, SelectivityVec, DiscMort, GrowthCurveType, GrowthParams, RefnceAges, CVSizeAtAge)
+#' # Simulate length-frequency data from Dirchlet multinomial distribution.
+#' # install.packages("dirmult")
+#' library(dirmult)
+#' set.seed(123)
+#' nSampEvents = 5 # number of sampling events per month
+#' nFishPerSampEvent = 5 # number of fish caught per sampling event
+#' theta_val = 0.9 # level of autocorrelation of lengths within sampling events
+#' midpt = Res$midpt
+#' ExpPropAtLen = Res$ModelDiag$ExpRetCatchPropAtLen
+#' # Generate fish lengths (taken as midpts of length classes)
+#' FishLen <- NA
+#' for (mm in 1:12) {
+#'   res=SimLenFreqDat_DirMultDistn(nSampEvents, nFishPerSampEvent, theta_val, midpt, ExpPropAtLen)
+#'   if (mm == 1) {
+#'     FishLen <- rep(res$midpt, res$simLenFreq)
+#'   } else {
+#'     tempFishLen <- rep(res$midpt, res$simLenFreq)
+#'     FishLen <- c(FishLen,tempFishLen)
+#'   }
+#' }
+#' FishWt <- 0.00002 * FishLen ^ 3
+#' # specify monthly true trend in standardised gonad weight
+#' MnthEff <- c(0.5,0.5,1.1,1.4,1.8,2.3,1.7,1.2,1,0.5,0.5,0.5)
+#' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
+#' a1 <- 0.05 # fish length effect
+#' GonadWt <- rep(0,length(FishLen))
+#' for (i in 1:length(FishLen)) {
+#'   tempMnth <- Mnth[i]
+#'   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
+#' }
+#' FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
+#' # Create scatter plots of the dependent variable by the covariates
+#' # par(mfrow = c(3, 2)) # Set the layout of the plots
+#' # plot(FishWt ~ FishLen, data = FishRepdat, main = "Fish weight by Fish length")
+#' # boxplot(FishLen ~ Mnth, data = FishRepdat, main = "FishLen by Month")
+#' # boxplot(GonadWt ~ Mnth, data = FishRepdat, main = "GonadWt by Month")
+#' # hist(FishLen)
+#' # hist(FishWt)
+#' PlotMeanMonthyStGonadWts(MatL50=200, SpecFishLength=600, FishRepdat, ymax=100, yint=20, GraphTitle="Females",
+#'                          xaxis_lab="Month", yaxis_lab="Stand. gonad wt.", SampSizelabPosAdj=2, SampSizelab_cex=0.8)
+#' @export
+PlotMeanMonthyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat, ymax, yint, GraphTitle,
+                                     xaxis_lab, yaxis_lab, SampSizelabPosAdj, SampSizelab_cex) {
+
+  res=CalcMeanMonthlyStGonadWts(MatL50, SpecFishLength, FishRepdat)
+
+  if (is.na(ymax)) {
+    ymax = 2 + trunc(ceiling(max(res$MnthStdGonadWts_mean+(1.96*res$MnthStdGonadWts_se)))/2)*2
+  }
+  if (is.na(yint)) {
+    yint = 2
+  }
+
+  MMabb = substr(month.abb, 1, 1)
+  plot(1:12, res$MnthStdGonadWts_mean, "o", pch=16, frame=F, xlim = c(1,12), ylim = c(0,ymax),
+       xaxt='n', yaxt="n", xlab=list(xaxis_lab,cex=1.2), ylab=list(yaxis_lab,cex=1.2), main=list(GraphTitle,cex=1.2))
+  arrows(1:12,res$MnthStdGonadWts_mean-(1.96*res$MnthStdGonadWts_se),
+         1:12,res$MnthStdGonadWts_mean+(1.96*res$MnthStdGonadWts_se),
+         code=3, angle=90, length=0.03)
+  axis(1, at=1:12, tck=0.03, cex=1, labels=F,line=0.5)
+  axis(1, at=1:12, labels = MMabb[1:12], tck=0.03, cex=1, line=0, lwd=0)
+  axis(2, at=seq(0, ymax, yint), tck=0.03, cex=1, labels=F,line=0.5)
+  axis(2, at=seq(0, ymax, yint), tck=0.03, cex=1, labels=T,line=0, lwd=0, las=2)
+  pos = res$MnthStdGonadWts_mean+(1.96*res$MnthStdGonadWts_se)+SampSizelabPosAdj
+  text(1:12, pos, res$nMonthlyFishWts, cex=SampSizelab_cex)
 }
 
 #' Calculate monthly proportions of each gonad stage
@@ -6150,7 +6792,7 @@ GetLogisticMaturityCurveResults <- function(params, nSexes, LogisticModType, Cur
 #' L50 = 220
 #' L95 = 270
 #' Pmax = 1.0
-#' Maturity_params = c(L50, L95, Pmax)
+#' MaturityParams = c(L50, L95, Pmax)
 #' # nSexes = 2
 #' # nSamples = c(300,300)
 #' # CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic

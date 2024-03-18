@@ -11,6 +11,7 @@ PlotFittedTaggingGrowthModelResults(
   Obs_Initlen,
   Obs_Finlen,
   MaxAge,
+  MaxLen,
   nobs,
   FittedRes,
   PlotOpt
@@ -30,6 +31,8 @@ log(c(Gomp_Linf, Gomp_G)) Gompertz}
 \item{Obs_Finlen}{observed final lengths for individual animals}
 
 \item{MaxAge}{specified maximum age for species}
+
+\item{MaxLen}{maximum length to consider for analysis}
 
 \item{nobs}{number of observation}
 
@@ -75,12 +78,12 @@ Obs_delta_t=res$Obs_delta_t
 Obs_Initlen=res$Obs_Initlen
 Obs_Finlen=res$Obs_Finlen
 # fit model to simulated data
-FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
 FittedRes$ParamEst
 params = FittedRes$params
 PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
 # 5=annual len inc vs init len, 6=len vs age
-PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs, FittedRes, PlotOpt)
 #
 # von Bertalanffy
 # Simulate data
@@ -103,12 +106,12 @@ Obs_delta_t=res$Obs_delta_t
 Obs_Initlen=res$Obs_Initlen
 Obs_Finlen=res$Obs_Finlen
 MaxAge = 40
-FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
 FittedRes$ParamEst
 params = FittedRes$params
 PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
 # 5=annual len inc vs init len, 6=len vs age
-PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs, FittedRes, PlotOpt)
 #
 # Gompertz
 # Simulate data
@@ -131,12 +134,12 @@ Obs_delta_t=res$Obs_delta_t
 Obs_Initlen=res$Obs_Initlen
 Obs_Finlen=res$Obs_Finlen
 MaxAge = 20
-FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
 FittedRes$ParamEst
 params = FittedRes$params
 PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
 # 5=annual len inc vs init len, 6=len vs age
-PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs, FittedRes, PlotOpt)
 #
 # double logistic
 # Simulate data
@@ -162,12 +165,12 @@ Obs_delta_t=res$Obs_delta_t
 Obs_Initlen=res$Obs_Initlen
 Obs_Finlen=res$Obs_Finlen
 # fit model to simulated data
-FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
 FittedRes$ParamEst
 params = FittedRes$params
 PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
 # 5=annual len inc vs init len, 6=len vs age
-PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs, FittedRes, PlotOpt)
 #
 # inverse logistic
 # Simulate data
@@ -192,10 +195,10 @@ Obs_delta_t=res$Obs_delta_t
 Obs_Initlen=res$Obs_Initlen
 Obs_Finlen=res$Obs_Finlen
 # fit model to simulated data
-FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
 FittedRes$ParamEst
 params = FittedRes$params
 PlotOpt = 0 # all plots, 1=len inc vs init len, 2=final len vs init len, 3=resid vs init len, 4=res vs delta t,
 # 5=annual len inc vs init len, 6=len vs age
-PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs, FittedRes, PlotOpt)
+PlotFittedTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs, FittedRes, PlotOpt)
 }

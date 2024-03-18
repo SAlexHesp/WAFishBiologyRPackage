@@ -30,6 +30,8 @@ double derivs_x_wr_t_Rcpp(const int GrowthCrvChoice, const int function_call,
   double vb_K;
   double Gomp_Linf;
   double Gomp_G;
+  double MaxGrowth;
+  double RateOfGrowthChange;
   dxdt = 0;
 
   if (function_call == 1) {
@@ -85,9 +87,9 @@ double derivs_x_wr_t_Rcpp(const int GrowthCrvChoice, const int function_call,
     dxdt = Gomp_Linf * pow((InitialLength / Gomp_Linf),exp(-Gomp_G * (1./365))) - InitialLength;
   }
 
-    if (GrowthCrvChoice == 5)   { // Inverse logistic model
+  if (GrowthCrvChoice == 5)   { // Inverse logistic model
 
-    // L50, L95, Max_increment (double logistic model)
+    // L50, L95, Max_increment
     L50 = exp(params(0));
     L95 = exp(params(1));
     Max_increment = exp(params(2));
@@ -95,6 +97,15 @@ double derivs_x_wr_t_Rcpp(const int GrowthCrvChoice, const int function_call,
 
     // Calculate the derivative
     dxdt = Max_increment * Prop;
+  }
+
+  if (GrowthCrvChoice == 6)   { // Exponential decay model
+
+    // MaxGrowth, RateOfGrowthChange
+    MaxGrowth = exp(params(0));
+    RateOfGrowthChange = exp(params(1));
+    dxdt = MaxGrowth * exp(-InitialLength / RateOfGrowthChange);
+
   }
 
   return(dxdt);

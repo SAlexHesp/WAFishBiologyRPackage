@@ -154,31 +154,62 @@ PlotMixtureDistnResults()
 
 Four models are available in this R package for describing growth from tagging data. As described in Strain et al. (2017), these include the von Bertalanffy growth model (assuming a linear pattern of change in growth rate with respect to initial length), the Gompertz growth model (allows for initially increasing and then decreasing growth rates as the initial lengths of animals increase), a Gaussian function (allowing for low growth rates over a range of both small and large initial lengths) and a double-logistic curve (which incorporates the “inverse logistic” curve described by Haddon et al. (2008) but also contains an ascending logistic curve for describing the growth of the very small individuals).
 
+### von Bertalanffy growth model - tag increment data
+
 Applying the von Bertalanffy growth model, $dL_t/dt$, the instantaneous rate of change in 
-length of an individual, given its length at age $t$ years, $L_t$, is
+length of an individual, given its initial length at age $t$ years, $L_t$, is
 
 $$
 dL_t/dt=(L_{\infty}-L_t)(1-\exp(-k\Delta_t))
 $$
 where $L_\infty$ is the average maximum length of individuals in the population, $k$ is the growth 
-coefficient, and $\Delta_t$ is a minute number between capture and recapture (e.g. Haddon, 2011). Fitting the Gompertz growth model, $dL_t/dt$ is estimated as
+coefficient, and $\Delta_t$ is a minute number between capture and recapture (e.g. Haddon, 2011). 
+
+### Gompertz growth model - tag increment data
+
+Fitting the Gompertz growth model, $dL_t/dt$ is estimated as
 
 $$
 dL_t/dt=L_{\infty}\bigg(\frac{L_t}{L_{\infty}}\bigg)\exp(-g\Delta_t)
 $$
-where $g$ is a growth constant (Heliodoniotis et al. 2011). Using the Gaussian function, $dL_t/dt$
+where $g$ is a growth constant (Heliodoniotis et al. 2011). 
+
+### Gaussian function - tag increment data
+
+Using the Gaussian function, $dL_t/dt$
 is estimated as 
 
 $$
 dL_t/dt=A\exp\bigg(\frac{-(L_t-\mu)^2}{2\sigma^2_{GF}}\bigg)
 $$
-where $A$ is the maximum growth (mm $y^{-1}$), $\mu$ is the size at maximum growth (mm) and $\sigma_{GF}$ is the standard deviation of the distribution of maximum growth vs size (Rogers-Bennett et al. 2007). Using the double-logistic curve, $dL_t/dt$ is
+where $A$ is the maximum growth (mm $y^{-1}$), $\mu$ is the size at maximum growth (mm) and $\sigma_{GF}$ is the standard deviation of the distribution of maximum growth vs size (Rogers-Bennett et al. 2007). 
+
+### Double logistic curve - tag increment data
+
+Using the double-logistic curve, $dL_t/dt$ is
 
 $$
 dL_t/dt=a\Bigg(1/\bigg[1+\exp(-\log_e(19)(L_t-L_{{50}_1})(L_{{95}_1}-L_{{50}_1})\bigg]\Bigg)
 \Bigg(1/\bigg[1+\exp(\log_e(19)(L_t-L_{{50}_2})(L_{{95}_2}-L_{{50}_2})\bigg]\Bigg)
 $$
-where $a$ is the estimated maximum length increment attained by individuals at any initial length, $L_{{50}_1}$ is the initial length midway between the smallest and maximum growth increment on the ascending limb of the curve, $L_{{95}_1}$ is the initial length at which 95% of the difference between the smallest growth increment and maximum growth increment on the ascending limb of the curve is reached, $L_{{50}_2}$ is the initial length midway between the largest and smallest growth increment on the descending limb of the curve, and $L_{{95}_2}$ is the initial length at which 95% of the difference between the largest and smallest growth increment on the descending limb of the curve is reached. This growth curve incorporates the (non-seasonal) “inverse logistic” curve described by Haddon et al. (2008), but also contains an ascending logistic curve for describing the growth of the very small individuals.
+where $a$ is the estimated maximum length increment attained by individuals at any initial length, $L_{{50}_1}$ is the initial length midway between the smallest and maximum growth increment on the ascending limb of the curve, $L_{{95}_1}$ is the initial length at which 95% of the difference between the smallest growth increment and maximum growth increment on the ascending limb of the curve is reached, $L_{{50}_2}$ is the initial length midway between the largest and smallest growth increment on the descending limb of the curve, and $L_{{95}_2}$ is the initial length at which 95% of the difference between the largest and smallest growth increment on the descending limb of the curve is reached. 
+
+### Inverse logistic curve - tag increment data
+
+The “inverse logistic” curve (e.g. Haddon et al., 2008) is as described above for the double logistic model, but with only a descending limb, i.e.
+
+$$
+dL_t/dt=a\Bigg(1/\bigg[1+\exp(-\log_e(19)(L_t-L_{{50}_1})(L_{{95}_1}-L_{{50}_1})\bigg]\Bigg)
+$$
+    
+### Exponential decay curve - tag increment data
+
+$$
+dL_t/dt=a\exp(-L_t/\tau)
+$$
+where $a$ is the maximum length increment attained by individuals at any initial length and $\tau$ is the rate of change in growth with length. This model is similar to that described by deLestang (2018), but with one less parameter, i.e. excluding a term describing the minimum length increment attained by individuals.
+
+### Calculation of expected lengths for specified time intervals (with any of the above tagging models)
 
 Applying the Gaussian function, for example, if the length of a fish at time $t=t_0$ is $L_{t=t_0}$, then its expected length $\hat{L}_{t=t_0+T}$ at time $t=t_0+T$ is
 
@@ -265,22 +296,42 @@ PlotFittedLengthAtMaturityCurve()
 SimulateLengthAtMaturityData()  
 SimulateAgeAtMaturityData()  
 
-### Available functions related to monthly gonadosomatic indices, GSIs (with 95% confidence limits)
+### Available functions related to mean monthly gonadosomatic indices GSIs)
 
-Routines for rapid calculation and plotting of mean monthly gonadosomatic indices. Available functions include:  
+Routines are available for rapid calculation and plotting of mean monthly gonadosomatic indices (GSIs) and associated 95 percent confidence limits. As standard in fish biological studies, GSIs for individual fish are calculated as
+
+$$
+GSI = \bigg(\frac{GW}{BW}\bigg)100
+$$
+where $GW$ is the gonad weight and $BW$ is the total body weight of the fish. 95% confidence limits for mean monthly gonad weights are calculated as 1.96 multiplied by their standard errors.
+
+Available functions include:  
 CalcMeanMonthlyGSIs()  
-PlotGSIData()  
+PlotMeanMonthlyGSIs()  
+
+### Available functions related to mean monthly standardised gonad weights
+
+Trends in mean monthly GSIs can be impacted by variations in the sizes of fish collected in monthly samples. Thus, some researchers prefer to consider trends in mean monthly gonad weights (or GSIs) after they have been standardised for length effects, such as by using Analyis of Covariance (ANCOVA) or a generalised linear model(glm) (e.g. Cossington et al., 2011). WAFishBiology calculates standardised mean monthly gonad weights (and associated 95% confidence limits), using the glm function within R. The model used to calculate mean gonad weights according to fish total length and month is
+
+$$
+GW_{i,k}=M_k+L_i{\sim} N(0,\sigma^2)
+$$
+where $GW_{i,k}$ is the standardised gonad weight, $M_k$ is the month effect and $L_i$ is the length effect. 
+
+Available functions include:  
+CalcMeanMonthlyStGonadWts()  
+PlotMeanMonthyStGonadWts()
 
 ### Available functions related to monthly prevalences of fish at different gonadal development stages
 
-Some routines have been added for rapid calculation and plotting of monthly prevalences of fish at different gonadal development stages. Available functions include:  
+Some routines have been added for calculation and plotting of monthly prevalences of fish at different gonadal development stages. Available functions include:  
 
 CalcMonthlyGonadStageProps()  
 PlotMonthlyGonadStageProps()  
 
 ### Spawning duration model
 
-In a recent research study (Evans-Powell et al., submitted), a model was developed for estimating time and duration of spawning, and how this differs with respect to female fish length. The proportion of female fish, of a given size, identified as ‘spawning capable’ (i.e. possessing ovaries that, on the basis of macroscopic and/or histological examination, are classified as mature/spawning) on any day of the year is described using a bell-shaped curve. The effect of female length on spawning magnitude and duration is incorporated in the model by modifying the width and height of a ('bell-shaped') double logistic curve in accordance with fish length. The proportion of spawning capable females on a given day during the year is estimated as
+In a recent research study (Evans-Powell et al., 2024) a model was developed for estimating mean time and duration of spawning, and how this differs with respect to female fish length. The proportion of female fish, of a given size, identified as ‘spawning capable’ (i.e. possessing ovaries that, on the basis of macroscopic and/or histological examination, are classified as mature or spawning) on any day of the year is described using a bell-shaped curve (which may or may not be symmetric). The effect of female length on spawning magnitude and duration is incorporated in the model by modifying the width and height of a ('bell-shaped') double logistic curve in accordance with fish length. The proportion of spawning capable females on a given day during the year is estimated as
 
 $$
 P=[1+\exp(-s_1(d-b_1))]^{-1}[1+\exp(s_2(d-b_2))]^{-1}H
@@ -327,7 +378,12 @@ GetSpawningDurationModelResults()
 
 Chapman, D. G., and D. S. Robson. (1960). The analysis of a catch curve. Biometrics 16:354-368. 
 
-Evans-Powell, R., Hesp, S. A., Denham, A., Beckley, L. E. (2023). Implications of big, old, fat, fecund female fish (BOFFFFs) in sustaining a large demersal teleost species. Submitted.
+Cossington, S., Hesp, S. A., Hall, N. G. & Potter, I. C. (2011). Growth and reproductive biology of the foxfish Bodianus
+frenchii, a very long-lived and monandric protogynous hermaphroditic labrid. Journal of Fish Biology (2010) 77, 600–626.
+
+deLestang, S. (2018). Could warming oceans and increased lobster biomass rates be affecting growth rates in Australia’s largest lobster fishery? Bull Mar Sci. 94, 1055–1075.
+
+Evans-Powell, R., Hesp, S. A., Denham, A., Beckley, L. E. (2024). Implications of big, old, fat, fecund female fish (BOFFFFs) in sustaining a large demersal teleost species. Fisheries Research.
 
 French, B., Potter, I. C., Hesp, S. A., Coulson, P. G. & Hall, N. G. (2014). Biology of the harlequin fish Othos dentex (Serranidae), with particular emphasis on sexual pattern and other reproductive characteristics. Journal of Fish Biology (2014). 84, 106-132.
 

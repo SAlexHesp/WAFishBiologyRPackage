@@ -11,6 +11,7 @@ GetTaggingGrowthModelResults(
   Obs_Initlen,
   Obs_Finlen,
   MaxAge,
+  MaxLen,
   nobs
 )
 }
@@ -28,6 +29,8 @@ von Bertalanffy, log(c(Gomp_Linf, Gomp_G, sd)) Gompertz or log(c(L50, L95, Max_i
 \item{Obs_Finlen}{observed final lengths for individual animals}
 
 \item{MaxAge}{specified maximum age for species}
+
+\item{MaxLen}{maximum length to consider for analysis}
 
 \item{nobs}{number of observations}
 }
@@ -71,7 +74,7 @@ Obs_delta_t=res$Obs_delta_t
 Obs_Initlen=res$Obs_Initlen
 Obs_Finlen=res$Obs_Finlen
 # fit model to simulated data
-FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
 FittedRes$ParamEst
 #
 # von Bertalanffy
@@ -95,7 +98,7 @@ Obs_delta_t=res$Obs_delta_t
 Obs_Initlen=res$Obs_Initlen
 Obs_Finlen=res$Obs_Finlen
 MaxAge = 40
-FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
 FittedRes$ParamEst
 #
 # Gompertz
@@ -119,7 +122,7 @@ Obs_delta_t=res$Obs_delta_t
 Obs_Initlen=res$Obs_Initlen
 Obs_Finlen=res$Obs_Finlen
 MaxAge = 20
-FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
 FittedRes$ParamEst
 #
 # double logistic
@@ -146,7 +149,7 @@ Obs_delta_t=res$Obs_delta_t
 Obs_Initlen=res$Obs_Initlen
 Obs_Finlen=res$Obs_Finlen
 # fit model to simulated data
-FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
 FittedRes$ParamEst
 #
 # inverse logistic
@@ -172,6 +175,6 @@ Obs_delta_t=res$Obs_delta_t
 Obs_Initlen=res$Obs_Initlen
 Obs_Finlen=res$Obs_Finlen
 # fit model to simulated data
-FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, nobs)
+FittedRes=GetTaggingGrowthModelResults(params, nstep, Obs_delta_t, Obs_Initlen, Obs_Finlen, MaxAge, MaxLen, nobs)
 FittedRes$ParamEst
 }

@@ -263,6 +263,21 @@ data</a></li>
 <li><a href="#growth-analysis-from-tagging-data" id="toc-growth-analysis-from-tagging-data">Growth analysis from tagging
 data</a>
 <ul>
+<li><a href="#von-bertalanffy-growth-model---tag-increment-data" id="toc-von-bertalanffy-growth-model---tag-increment-data">von
+Bertalanffy growth model - tag increment data</a></li>
+<li><a href="#gompertz-growth-model---tag-increment-data" id="toc-gompertz-growth-model---tag-increment-data">Gompertz growth
+model - tag increment data</a></li>
+<li><a href="#gaussian-function---tag-increment-data" id="toc-gaussian-function---tag-increment-data">Gaussian function - tag
+increment data</a></li>
+<li><a href="#double-logistic-curve---tag-increment-data" id="toc-double-logistic-curve---tag-increment-data">Double logistic
+curve - tag increment data</a></li>
+<li><a href="#inverse-logistic-curve---tag-increment-data" id="toc-inverse-logistic-curve---tag-increment-data">Inverse logistic
+curve - tag increment data</a></li>
+<li><a href="#exponential-decay-curve---tag-increment-data" id="toc-exponential-decay-curve---tag-increment-data">Exponential decay
+curve - tag increment data</a></li>
+<li><a href="#calculation-of-expected-lengths-for-specified-time-intervals-with-any-of-the-above-tagging-models" id="toc-calculation-of-expected-lengths-for-specified-time-intervals-with-any-of-the-above-tagging-models">Calculation
+of expected lengths for specified time intervals (with any of the above
+tagging models)</a></li>
 <li><a href="#available-functions-related-to-fish-growth-analysis-using-length-or-length-at-age-data-1" id="toc-available-functions-related-to-fish-growth-analysis-using-length-or-length-at-age-data-1">Available
 functions related to fish growth analysis using length or length-at-age
 data</a></li>
@@ -283,9 +298,10 @@ curves</a></li>
 <li><a href="#available-functions-related-to-analysis-of-fish-length-at-maturity-and-age-at-maturity-or-sex-change-data" id="toc-available-functions-related-to-analysis-of-fish-length-at-maturity-and-age-at-maturity-or-sex-change-data">Available
 functions related to analysis of fish length at maturity and age at
 maturity (or sex change) data</a></li>
-<li><a href="#available-functions-related-to-monthly-gonadosomatic-indices-gsis-with-95-confidence-limits" id="toc-available-functions-related-to-monthly-gonadosomatic-indices-gsis-with-95-confidence-limits">Available
-functions related to monthly gonadosomatic indices, GSIs (with 95%
-confidence limits)</a></li>
+<li><a href="#available-functions-related-to-mean-monthly-gonadosomatic-indices-gsis" id="toc-available-functions-related-to-mean-monthly-gonadosomatic-indices-gsis">Available
+functions related to mean monthly gonadosomatic indices GSIs)</a></li>
+<li><a href="#available-functions-related-to-mean-monthly-standardised-gonad-weights" id="toc-available-functions-related-to-mean-monthly-standardised-gonad-weights">Available
+functions related to mean monthly standardised gonad weights</a></li>
 <li><a href="#available-functions-related-to-monthly-prevalences-of-fish-at-different-gonadal-development-stages" id="toc-available-functions-related-to-monthly-prevalences-of-fish-at-different-gonadal-development-stages">Available
 functions related to monthly prevalences of fish at different gonadal
 development stages</a></li>
@@ -492,25 +508,38 @@ and a double-logistic curve (which incorporates the “inverse logistic”
 curve described by Haddon et al. (2008) but also contains an ascending
 logistic curve for describing the growth of the very small
 individuals).</p>
+<div id="von-bertalanffy-growth-model---tag-increment-data" class="section level3">
+<h3>von Bertalanffy growth model - tag increment data</h3>
 <p>Applying the von Bertalanffy growth model, <span class="math inline">\(dL_t/dt\)</span>, the instantaneous rate of change
-in length of an individual, given its length at age <span class="math inline">\(t\)</span> years, <span class="math inline">\(L_t\)</span>, is</p>
+in length of an individual, given its initial length at age <span class="math inline">\(t\)</span> years, <span class="math inline">\(L_t\)</span>, is</p>
 <p><span class="math display">\[
 dL_t/dt=(L_{\infty}-L_t)(1-\exp(-k\Delta_t))
 \]</span> where <span class="math inline">\(L_\infty\)</span> is the
 average maximum length of individuals in the population, <span class="math inline">\(k\)</span> is the growth coefficient, and <span class="math inline">\(\Delta_t\)</span> is a minute number between
-capture and recapture (e.g. Haddon, 2011). Fitting the Gompertz growth
-model, <span class="math inline">\(dL_t/dt\)</span> is estimated as</p>
+capture and recapture (e.g. Haddon, 2011).</p>
+</div>
+<div id="gompertz-growth-model---tag-increment-data" class="section level3">
+<h3>Gompertz growth model - tag increment data</h3>
+<p>Fitting the Gompertz growth model, <span class="math inline">\(dL_t/dt\)</span> is estimated as</p>
 <p><span class="math display">\[
 dL_t/dt=L_{\infty}\bigg(\frac{L_t}{L_{\infty}}\bigg)\exp(-g\Delta_t)
 \]</span> where <span class="math inline">\(g\)</span> is a growth
-constant (Heliodoniotis et al. 2011). Using the Gaussian function, <span class="math inline">\(dL_t/dt\)</span> is estimated as</p>
+constant (Heliodoniotis et al. 2011).</p>
+</div>
+<div id="gaussian-function---tag-increment-data" class="section level3">
+<h3>Gaussian function - tag increment data</h3>
+<p>Using the Gaussian function, <span class="math inline">\(dL_t/dt\)</span> is estimated as</p>
 <p><span class="math display">\[
 dL_t/dt=A\exp\bigg(\frac{-(L_t-\mu)^2}{2\sigma^2_{GF}}\bigg)
 \]</span> where <span class="math inline">\(A\)</span> is the maximum
 growth (mm <span class="math inline">\(y^{-1}\)</span>), <span class="math inline">\(\mu\)</span> is the size at maximum growth (mm)
 and <span class="math inline">\(\sigma_{GF}\)</span> is the standard
 deviation of the distribution of maximum growth vs size (Rogers-Bennett
-et al. 2007). Using the double-logistic curve, <span class="math inline">\(dL_t/dt\)</span> is</p>
+et al. 2007).</p>
+</div>
+<div id="double-logistic-curve---tag-increment-data" class="section level3">
+<h3>Double logistic curve - tag increment data</h3>
+<p>Using the double-logistic curve, <span class="math inline">\(dL_t/dt\)</span> is</p>
 <p><span class="math display">\[
 dL_t/dt=a\Bigg(1/\bigg[1+\exp(-\log_e(19)(L_t-L_{{50}_1})(L_{{95}_1}-L_{{50}_1})\bigg]\Bigg)
 \Bigg(1/\bigg[1+\exp(\log_e(19)(L_t-L_{{50}_2})(L_{{95}_2}-L_{{50}_2})\bigg]\Bigg)
@@ -525,10 +554,30 @@ between the largest and smallest growth increment on the descending limb
 of the curve, and <span class="math inline">\(L_{{95}_2}\)</span> is the
 initial length at which 95% of the difference between the largest and
 smallest growth increment on the descending limb of the curve is
-reached. This growth curve incorporates the (non-seasonal) “inverse
-logistic” curve described by Haddon et al. (2008), but also contains an
-ascending logistic curve for describing the growth of the very small
-individuals.</p>
+reached.</p>
+</div>
+<div id="inverse-logistic-curve---tag-increment-data" class="section level3">
+<h3>Inverse logistic curve - tag increment data</h3>
+<p>The “inverse logistic” curve (e.g. Haddon et al., 2008) is as
+described above for the double logistic model, but with only a
+descending limb, i.e.</p>
+<p><span class="math display">\[
+dL_t/dt=a\Bigg(1/\bigg[1+\exp(-\log_e(19)(L_t-L_{{50}_1})(L_{{95}_1}-L_{{50}_1})\bigg]\Bigg)
+\]</span></p>
+</div>
+<div id="exponential-decay-curve---tag-increment-data" class="section level3">
+<h3>Exponential decay curve - tag increment data</h3>
+<p><span class="math display">\[
+dL_t/dt=a\exp(-L_t/\tau)
+\]</span> where <span class="math inline">\(a\)</span> is the maximum
+length increment attained by individuals at any initial length and <span class="math inline">\(\tau\)</span> is the rate of change in growth with
+length. This model is similar to that described by deLestang (2018), but
+with one less parameter, i.e. excluding a term describing the minimum
+length increment attained by individuals.</p>
+</div>
+<div id="calculation-of-expected-lengths-for-specified-time-intervals-with-any-of-the-above-tagging-models" class="section level3">
+<h3>Calculation of expected lengths for specified time intervals (with
+any of the above tagging models)</h3>
 <p>Applying the Gaussian function, for example, if the length of a fish
 at time <span class="math inline">\(t=t_0\)</span> is <span class="math inline">\(L_{t=t_0}\)</span>, then its expected length <span class="math inline">\(\hat{L}_{t=t_0+T}\)</span> at time <span class="math inline">\(t=t_0+T\)</span> is</p>
 <p><span class="math display">\[
@@ -552,6 +601,7 @@ for which measurements were taken of their initial and final length
 lengths and <span class="math inline">\(\hat{\sigma}\)</span> is the
 standard deviation associated with the deviations between the observed
 and predicted final lengths.</p>
+</div>
 <div id="available-functions-related-to-fish-growth-analysis-using-length-or-length-at-age-data-1" class="section level3">
 <h3>Available functions related to fish growth analysis using length or
 length-at-age data</h3>
@@ -655,36 +705,68 @@ PlotFittedLengthAtMaturityCurve()<br />
 SimulateLengthAtMaturityData()<br />
 SimulateAgeAtMaturityData()</p>
 </div>
-<div id="available-functions-related-to-monthly-gonadosomatic-indices-gsis-with-95-confidence-limits" class="section level3">
-<h3>Available functions related to monthly gonadosomatic indices, GSIs
-(with 95% confidence limits)</h3>
-<p>Routines for rapid calculation and plotting of mean monthly
-gonadosomatic indices. Available functions include:<br />
+<div id="available-functions-related-to-mean-monthly-gonadosomatic-indices-gsis" class="section level3">
+<h3>Available functions related to mean monthly gonadosomatic indices
+GSIs)</h3>
+<p>Routines are available for rapid calculation and plotting of mean
+monthly gonadosomatic indices (GSIs) and associated 95 percent
+confidence limits. As standard in fish biological studies, GSIs for
+individual fish are calculated as</p>
+<p><span class="math display">\[
+GSI = \bigg(\frac{GW}{BW}\bigg)100
+\]</span> where <span class="math inline">\(GW\)</span> is the gonad
+weight and <span class="math inline">\(BW\)</span> is the total body
+weight of the fish. 95% confidence limits for mean monthly gonad weights
+are calculated as 1.96 multiplied by their standard errors.</p>
+<p>Available functions include:<br />
 CalcMeanMonthlyGSIs()<br />
-PlotGSIData()</p>
+PlotMeanMonthlyGSIs()</p>
+</div>
+<div id="available-functions-related-to-mean-monthly-standardised-gonad-weights" class="section level3">
+<h3>Available functions related to mean monthly standardised gonad
+weights</h3>
+<p>Trends in mean monthly GSIs can be impacted by variations in the
+sizes of fish collected in monthly samples. Thus, some researchers
+prefer to consider trends in mean monthly gonad weights (or GSIs) after
+they have been standardised for length effects, such as by using Analyis
+of Covariance (ANCOVA) or a generalised linear model(glm)
+(e.g. Cossington et al., 2011). WAFishBiology calculates standardised
+mean monthly gonad weights (and associated 95% confidence limits), using
+the glm function within R. The model used to calculate mean gonad
+weights according to fish total length and month is</p>
+<p><span class="math display">\[
+GW_{i,k}=M_k+L_i{\sim} N(0,\sigma^2)
+\]</span> where <span class="math inline">\(GW_{i,k}\)</span> is the
+standardised gonad weight, <span class="math inline">\(M_k\)</span> is
+the month effect and <span class="math inline">\(L_i\)</span> is the
+length effect.</p>
+<p>Available functions include:<br />
+CalcMeanMonthlyStGonadWts()<br />
+PlotMeanMonthyStGonadWts()</p>
 </div>
 <div id="available-functions-related-to-monthly-prevalences-of-fish-at-different-gonadal-development-stages" class="section level3">
 <h3>Available functions related to monthly prevalences of fish at
 different gonadal development stages</h3>
-<p>Some routines have been added for rapid calculation and plotting of
-monthly prevalences of fish at different gonadal development stages.
-Available functions include:</p>
+<p>Some routines have been added for calculation and plotting of monthly
+prevalences of fish at different gonadal development stages. Available
+functions include:</p>
 <p>CalcMonthlyGonadStageProps()<br />
 PlotMonthlyGonadStageProps()</p>
 </div>
 <div id="spawning-duration-model" class="section level3">
 <h3>Spawning duration model</h3>
-<p>In a recent research study (Evans-Powell et al., submitted), a model
-was developed for estimating time and duration of spawning, and how this
-differs with respect to female fish length. The proportion of female
-fish, of a given size, identified as ‘spawning capable’ (i.e. possessing
-ovaries that, on the basis of macroscopic and/or histological
-examination, are classified as mature/spawning) on any day of the year
-is described using a bell-shaped curve. The effect of female length on
-spawning magnitude and duration is incorporated in the model by
-modifying the width and height of a (‘bell-shaped’) double logistic
-curve in accordance with fish length. The proportion of spawning capable
-females on a given day during the year is estimated as</p>
+<p>In a recent research study (Evans-Powell et al., 2024) a model was
+developed for estimating mean time and duration of spawning, and how
+this differs with respect to female fish length. The proportion of
+female fish, of a given size, identified as ‘spawning capable’
+(i.e. possessing ovaries that, on the basis of macroscopic and/or
+histological examination, are classified as mature or spawning) on any
+day of the year is described using a bell-shaped curve (which may or may
+not be symmetric). The effect of female length on spawning magnitude and
+duration is incorporated in the model by modifying the width and height
+of a (‘bell-shaped’) double logistic curve in accordance with fish
+length. The proportion of spawning capable females on a given day during
+the year is estimated as</p>
 <p><span class="math display">\[
 P=[1+\exp(-s_1(d-b_1))]^{-1}[1+\exp(s_2(d-b_2))]^{-1}H
 \]</span></p>
@@ -761,9 +843,16 @@ GetSpawningDurationModelResults()</p>
 <h2>References:</h2>
 <p>Chapman, D. G., and D. S. Robson. (1960). The analysis of a catch
 curve. Biometrics 16:354-368.</p>
-<p>Evans-Powell, R., Hesp, S. A., Denham, A., Beckley, L. E. (2023).
+<p>Cossington, S., Hesp, S. A., Hall, N. G. &amp; Potter, I. C. (2011).
+Growth and reproductive biology of the foxfish Bodianus frenchii, a very
+long-lived and monandric protogynous hermaphroditic labrid. Journal of
+Fish Biology (2010) 77, 600–626.</p>
+<p>deLestang, S. (2018). Could warming oceans and increased lobster
+biomass rates be affecting growth rates in Australia’s largest lobster
+fishery? Bull Mar Sci. 94, 1055–1075.</p>
+<p>Evans-Powell, R., Hesp, S. A., Denham, A., Beckley, L. E. (2024).
 Implications of big, old, fat, fecund female fish (BOFFFFs) in
-sustaining a large demersal teleost species. Submitted.</p>
+sustaining a large demersal teleost species. Fisheries Research.</p>
 <p>French, B., Potter, I. C., Hesp, S. A., Coulson, P. G. &amp; Hall, N.
 G. (2014). Biology of the harlequin fish Othos dentex (Serranidae), with
 particular emphasis on sexual pattern and other reproductive

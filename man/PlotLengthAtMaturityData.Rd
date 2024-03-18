@@ -63,7 +63,7 @@ GrowthParams = c(Linf, vbK, tzero, CVSizeAtAge)
 L50 = 220
 L95 = 270
 Pmax = 1.0
-Maturity_params = c(L50, L95, Pmax)
+MaturityParams = c(L50, L95, Pmax)
 # nSexes = 2
 # nSamples = c(300,300)
 # CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
