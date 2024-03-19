@@ -67,14 +67,15 @@ for (mm in 1:12) {
 }
 FishWt <- 0.00002 * FishLen ^ 3
 # specify monthly true trend in standardised gonad weight
-MnthEff <- c(0.5,0.5,1.1,1.4,1.8,2.3,1.7,1.2,1,0.5,0.5,0.5)
+MnthEff <- c(0.22,0.25,0.26,0.28,0.35,0.54,0.45,0.33,0.21,0.18,0.25,0.22)
 Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
-a1 <- 0.05 # fish length effect
+a1 <- 0.25 # fish length effect
 GonadWt <- rep(0,length(FishLen))
 for (i in 1:length(FishLen)) {
   tempMnth <- Mnth[i]
   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
 }
+GonadWt[which(GonadWt<0.01)] <- 0.01
 FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
 # Create scatter plots of the dependent variable by the covariates
 # par(mfrow = c(3, 2)) # Set the layout of the plots

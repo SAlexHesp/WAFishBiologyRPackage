@@ -4943,14 +4943,15 @@ PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_
 #' }
 #' FishWt <- 0.00002 * FishLen ^ 3
 #' # specify monthly true trend in standardised gonad weight
-#' MnthEff <- c(0.5,0.5,1.1,1.4,1.8,2.3,1.7,1.2,1,0.5,0.5,0.5)
+#' MnthEff <- c(0.22,0.25,0.26,0.28,0.35,0.54,0.45,0.33,0.21,0.18,0.25,0.22)
 #' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
-#' a1 <- 0.05 # fish length effect
+#' a1 <- 0.25 # fish length effect
 #' GonadWt <- rep(0,length(FishLen))
 #' for (i in 1:length(FishLen)) {
 #'   tempMnth <- Mnth[i]
 #'   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
 #' }
+#' GonadWt[which(GonadWt<0.01)] <- 0.01
 #' FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
 #' # Create scatter plots of the dependent variable by the covariates
 #' # par(mfrow = c(3, 2)) # Set the layout of the plots
@@ -5059,14 +5060,15 @@ CalcMeanMonthlyGSIs <- function(MatL50, FishRepdat) {
 #' }
 #' FishWt <- 0.00002 * FishLen ^ 3
 #' # specify monthly true trend in standardised gonad weight
-#' MnthEff <- c(0.5,0.5,1.1,1.4,1.8,2.3,1.7,1.2,1,0.5,0.5,0.5)
+#' MnthEff <- c(0.22,0.25,0.26,0.28,0.35,0.54,0.45,0.33,0.21,0.18,0.25,0.22)
 #' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
-#' a1 <- 0.05 # fish length effect
+#' a1 <- 0.25 # fish length effect
 #' GonadWt <- rep(0,length(FishLen))
 #' for (i in 1:length(FishLen)) {
 #'   tempMnth <- Mnth[i]
 #'   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
 #' }
+#' GonadWt[which(GonadWt<0.01)] <- 0.01
 #' FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
 #' # Create scatter plots of the dependent variable by the covariates
 #' # par(mfrow = c(3, 2)) # Set the layout of the plots
@@ -5087,19 +5089,22 @@ CalcMeanMonthlyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat) {
   nMonthlyFishWts = temp[,2]
 
   # fit glm
-  model_glm <- glm(GonadWt ~ as.factor(Mnth) + FishLen, data = subdat)
+  ln_GonadWt <- log(GonadWt)
+  ln_FishLen <- log(FishLen)
+  model_glm <- glm(ln_GonadWt ~ as.factor(Mnth) + ln_FishLen, data = subdat)
   GLMResults <- summary(model_glm)
 
   # get predicted mean monthly standardised gonad weights, for fish of specified length
-  newdata = data.frame(Mnth=sort(unique(subdat$Mnth)), FishLen=SpecFishLength)
+  newdata = data.frame(Mnth=sort(unique(subdat$Mnth)), ln_FishLen=log(SpecFishLength))
   GLMPredResults = predict(model_glm, newdata, type="response",se.fit=TRUE)
 
   CalendarMonths = 1:12
   MonthsWithData = sort(unique(subdat$Mnth))
   MnthStdGonadWts_mean <- rep(NA,12)
-  MnthStdGonadWts_se <- rep(NA,12)
-  MnthStdGonadWts_mean[MonthsWithData] = GLMPredResults$fit
-  MnthStdGonadWts_se[MonthsWithData] = GLMPredResults$se.fit
+  MnthStdGonadWts_lw95 <- rep(NA,12)
+  MnthStdGonadWts_mean[MonthsWithData] = exp(GLMPredResults$fit[MonthsWithData])
+  MnthStdGonadWts_lw95 = exp(GLMPredResults$fit[MonthsWithData] - (1.96*GLMPredResults$se.fit[MonthsWithData]))
+  MnthStdGonadWts_up95 = exp(GLMPredResults$fit[MonthsWithData] + (1.96*GLMPredResults$se.fit[MonthsWithData]))
 
   ResultsSummary <- list(MonthsWithData = sort(unique(subdat$Mnth)),
                          MeanLenAboveL50 = MeanLenAboveL50,
@@ -5107,12 +5112,14 @@ CalcMeanMonthlyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat) {
                          GLMResults = GLMResults,
                          GLMPredResults = GLMPredResults,
                          MnthStdGonadWts_mean = MnthStdGonadWts_mean,
-                         MnthStdGonadWts_se = MnthStdGonadWts_se,
+                         MnthStdGonadWts_lw95 = MnthStdGonadWts_lw95,
+                         MnthStdGonadWts_up95 = MnthStdGonadWts_up95,
                          SpecFishLength = SpecFishLength)
 
   return(ResultsSummary)
 
 }
+
 
 #' Plot mean monthly GSIs
 #'
@@ -5177,14 +5184,15 @@ CalcMeanMonthlyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat) {
 #' }
 #' FishWt <- 0.00002 * FishLen ^ 3
 #' # specify monthly true trend in standardised gonad weight
-#' MnthEff <- c(0.5,0.5,1.1,1.4,1.8,2.3,1.7,1.2,1,0.5,0.5,0.5)
+#' MnthEff <- c(0.22,0.25,0.26,0.28,0.35,0.54,0.45,0.33,0.21,0.18,0.25,0.22)
 #' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
-#' a1 <- 0.05 # fish length effect
+#' a1 <- 0.25 # fish length effect
 #' GonadWt <- rep(0,length(FishLen))
 #' for (i in 1:length(FishLen)) {
 #'   tempMnth <- Mnth[i]
 #'   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
 #' }
+#' GonadWt[which(GonadWt<0.01)] <- 0.01
 #' FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
 #' # Create scatter plots of the dependent variable by the covariates
 #' # par(mfrow = c(3, 2)) # Set the layout of the plots
@@ -5285,14 +5293,15 @@ PlotMeanMonthlyGSIs <- function(MatL50, FishRepdat, ymax, yint, GraphTitle, xaxi
 #' }
 #' FishWt <- 0.00002 * FishLen ^ 3
 #' # specify monthly true trend in standardised gonad weight
-#' MnthEff <- c(0.5,0.5,1.1,1.4,1.8,2.3,1.7,1.2,1,0.5,0.5,0.5)
+#' MnthEff <- c(0.22,0.25,0.26,0.28,0.35,0.54,0.45,0.33,0.21,0.18,0.25,0.22)
 #' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
-#' a1 <- 0.05 # fish length effect
+#' a1 <- 0.25 # fish length effect
 #' GonadWt <- rep(0,length(FishLen))
 #' for (i in 1:length(FishLen)) {
 #'   tempMnth <- Mnth[i]
 #'   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
 #' }
+#' GonadWt[which(GonadWt<0.01)] <- 0.01
 #' FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
 #' # Create scatter plots of the dependent variable by the covariates
 #' # par(mfrow = c(3, 2)) # Set the layout of the plots
@@ -5310,7 +5319,7 @@ PlotMeanMonthyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat, ymax, y
   res=CalcMeanMonthlyStGonadWts(MatL50, SpecFishLength, FishRepdat)
 
   if (is.na(ymax)) {
-    ymax = 2 + trunc(ceiling(max(res$MnthStdGonadWts_mean+(1.96*res$MnthStdGonadWts_se)))/2)*2
+    ymax = 2 + trunc(ceiling(max(res$MnthStdGonadWts_up95))/2)*2
   }
   if (is.na(yint)) {
     yint = 2
@@ -5319,14 +5328,13 @@ PlotMeanMonthyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat, ymax, y
   MMabb = substr(month.abb, 1, 1)
   plot(1:12, res$MnthStdGonadWts_mean, "o", pch=16, frame=F, xlim = c(1,12), ylim = c(0,ymax),
        xaxt='n', yaxt="n", xlab=list(xaxis_lab,cex=1.2), ylab=list(yaxis_lab,cex=1.2), main=list(GraphTitle,cex=1.2))
-  arrows(1:12,res$MnthStdGonadWts_mean-(1.96*res$MnthStdGonadWts_se),
-         1:12,res$MnthStdGonadWts_mean+(1.96*res$MnthStdGonadWts_se),
+  arrows(1:12,res$MnthStdGonadWts_lw95, 1:12,res$MnthStdGonadWts_up95,
          code=3, angle=90, length=0.03)
   axis(1, at=1:12, tck=0.03, cex=1, labels=F,line=0.5)
   axis(1, at=1:12, labels = MMabb[1:12], tck=0.03, cex=1, line=0, lwd=0)
   axis(2, at=seq(0, ymax, yint), tck=0.03, cex=1, labels=F,line=0.5)
   axis(2, at=seq(0, ymax, yint), tck=0.03, cex=1, labels=T,line=0, lwd=0, las=2)
-  pos = res$MnthStdGonadWts_mean+(1.96*res$MnthStdGonadWts_se)+SampSizelabPosAdj
+  pos = res$MnthStdGonadWts_up95+SampSizelabPosAdj
   text(1:12, pos, res$nMonthlyFishWts, cex=SampSizelab_cex)
 }
 

@@ -3,7 +3,7 @@
     "path": "~/WAFishBiologyRPackage/R/WA_biology_methods.R",
     "project_path": "R/WA_biology_methods.R",
     "type": "r_source",
-    "hash": "2427883176",
+    "hash": "3984313954",
     "contents": "",
     "dirty": false,
     "created": 1710743152213.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "13,2",
+        "cursorPosition": "12,44",
         "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1710745624,
+    "lastKnownWriteTime": 1710840459,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1710745624,
+    "last_content_update": 1710840459,
     "read_only": false,
     "read_only_alternatives": []
 }
