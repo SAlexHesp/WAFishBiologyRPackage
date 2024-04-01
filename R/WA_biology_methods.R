@@ -4897,40 +4897,43 @@ PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_
 #' confidence limits (Low95 and Up95)
 #'
 #' @examples
-#' # Generate synthetic length composition data from a simple population model
+#' # Generate synthetic length composition data for a fished population at equilbrium
 #' library(L3Assess)
 #' set.seed(123)
 #' SampleSize=5000 # sample size for retained catches (and same number for released fish, if an MLL is specified)
-#' MaxAge = 30
+#' MaxAge = 15
 #' TimeStep = 1 # model timestep (e.g. 1 = annual, 1/12 = monthly)
 #' NatMort = 4.22/MaxAge
-#' FishMort = 0.2
-#' MaxLen = 1200
+#' FishMort = NatMort
+#' MaxLen = 500
 #' LenInc = 1
 #' MLL=NA # (minimum legal length) # retention set to 1 for all lengths if MLL set to NA and retention parameters not specified
 #' SelectivityType=2 # 1=selectivity inputted as vector, 2=asymptotic logistic selectivity curve
 #' SelectivityVec = NA # selectivity vector
-#' SelParams = c(300, 50) # L50, L95-L50 for gear selectivity
-#' RetenParams = c(500, 50) # L50, L95-L50 for retention
+#' SelParams = c(150, 20) # L50, L95-L50 for gear selectivity
+#' RetenParams = NA # L50, L95-L50 for retention
 #' DiscMort = 0 # proportion of fish that die due to natural mortality
 #' GrowthCurveType = 1 # 1 = von Bertalanffy, 2 = Schnute
-#' Linf = 800
-#' vbK = 0.2
+#' Linf = 350
+#' vbK = 0.4
 #' CVSizeAtAge = 0.08
 #' GrowthParams = c(Linf, vbK)
 #' RefnceAges = NA
 #' Res=SimLenAndAgeFreqData(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
 #'                          SelParams, RetenParams, SelectivityVec, DiscMort, GrowthCurveType, GrowthParams, RefnceAges, CVSizeAtAge)
-#' # Simulate length-frequency data from Dirchlet multinomial distribution.
+#' # plot(Res$ObsDecAgeRetCatch_Fem, Res$ObsRandLenRetCatch_Fem, ylim=c(0,MaxLen), xlim=c(0,MaxAge))
+#' # Now simulate length data from a Dirchlet multinomial distribution, with specified autocorrelation,
+#' # to replicate non-random sampling (i.e. due to limited sampling intensity and fish schooling according to size)
 #' # install.packages("dirmult")
 #' library(dirmult)
 #' set.seed(123)
 #' nSampEvents = 5 # number of sampling events per month
 #' nFishPerSampEvent = 5 # number of fish caught per sampling event
-#' theta_val = 0.1 # level of autocorrelation of lengths within sampling events
+#' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
+#' nSamples = length(Mnth)
+#' theta_val = 0.9 # level of autocorrelation of lengths within sampling events
 #' midpt = Res$midpt
 #' ExpPropAtLen = Res$ModelDiag$ExpRetCatchPropAtLen
-#' # Generate fish lengths (taken as midpts of length classes)
 #' FishLen <- NA
 #' for (mm in 1:12) {
 #'   res=SimLenFreqDat_DirMultDistn(nSampEvents, nFishPerSampEvent, theta_val, midpt, ExpPropAtLen)
@@ -4941,26 +4944,31 @@ PlotFittedTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_
 #'     FishLen <- c(FishLen,tempFishLen)
 #'   }
 #' }
-#' FishWt <- 0.00002 * FishLen ^ 3
-#' # specify monthly true trend in standardised gonad weight
-#' MnthEff <- c(0.22,0.25,0.26,0.28,0.35,0.54,0.45,0.33,0.21,0.18,0.25,0.22)
-#' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
-#' a1 <- 0.25 # fish length effect
-#' GonadWt <- rep(0,length(FishLen))
-#' for (i in 1:length(FishLen)) {
-#'   tempMnth <- Mnth[i]
-#'   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
+#' FishLen <- round(FishLen,0)
+#' FishWt <- round(0.00002 * FishLen ^ 3,0)
+#' # set up a linear model with specified coefficients, from which
+#' # fish gonad weight data will be simulated, with error
+#' a = -17.5
+#' b = c(0, -0.2, -0.1, -0.1, -0.1, 0, 0.3, 0.8, 1.1, 1.5, 0.8, 0.2)
+#' c = 3.5
+#' ln_GonadWt <- rep(NA, nSamples)
+#' for (i in 1:nSamples) {
+#'   ln_GonadWt[i] =  (a + b[Mnth[i]] + c*log(FishLen[i])) + rnorm(1,0,1)
 #' }
-#' GonadWt[which(GonadWt<0.01)] <- 0.01
-#' FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
-#' # Create scatter plots of the dependent variable by the covariates
+#' FishRepdat <- data.frame(GonadWt=exp(ln_GonadWt), ln_GonadWt=ln_GonadWt,
+#'                          FishLen=FishLen, ln_FishLen = log(FishLen),
+#'                          FishWt=FishWt, ln_FishWt = log(FishWt), Mnth)
+#' # inspect simulated data
 #' # par(mfrow = c(3, 2)) # Set the layout of the plots
 #' # plot(FishWt ~ FishLen, data = FishRepdat, main = "Fish weight by Fish length")
 #' # boxplot(FishLen ~ Mnth, data = FishRepdat, main = "FishLen by Month")
+#' # boxplot(ln_FishLen ~ Mnth, data = FishRepdat, main = "ln_FishLen by Month")
 #' # boxplot(GonadWt ~ Mnth, data = FishRepdat, main = "GonadWt by Month")
-#' # hist(FishLen)
-#' # hist(FishWt)
-#' res <- CalcMeanMonthlyGSIs(MatL50=200, FishRepdat)
+#' # boxplot(ln_FishLen ~ Mnth, data = FishRepdat, main = "ln_GonadWt by Month")
+#' # hist(FishRepdat$FishLen)
+#' # hist(FishRepdat$GonadWt)
+#' # hist(FishRepdat$FishWt)
+#' res=CalcMeanMonthlyGSIs(MatL50=150, FishRepdat)
 #' @export
 CalcMeanMonthlyGSIs <- function(MatL50, FishRepdat) {
 
@@ -5014,40 +5022,43 @@ CalcMeanMonthlyGSIs <- function(MatL50, FishRepdat) {
 #' analyses, with means and errors for standardised gonad weights (GLMPredResults), mean monthly standardised gonad weights
 #' (MnthStdGonadWts_mean) and associated standard errors (MnthStdGonadWts_se), specified standard fish length inputted by user (SpecFishLength)
 #' @examples
-#' # Generate synthetic length composition data from a simple population model
+#' # Generate synthetic length composition data for a fished population at equilbrium
 #' library(L3Assess)
 #' set.seed(123)
 #' SampleSize=5000 # sample size for retained catches (and same number for released fish, if an MLL is specified)
-#' MaxAge = 30
+#' MaxAge = 15
 #' TimeStep = 1 # model timestep (e.g. 1 = annual, 1/12 = monthly)
 #' NatMort = 4.22/MaxAge
-#' FishMort = 0.2
-#' MaxLen = 1200
+#' FishMort = NatMort
+#' MaxLen = 500
 #' LenInc = 1
 #' MLL=NA # (minimum legal length) # retention set to 1 for all lengths if MLL set to NA and retention parameters not specified
 #' SelectivityType=2 # 1=selectivity inputted as vector, 2=asymptotic logistic selectivity curve
 #' SelectivityVec = NA # selectivity vector
-#' SelParams = c(300, 50) # L50, L95-L50 for gear selectivity
-#' RetenParams = c(500, 50) # L50, L95-L50 for retention
+#' SelParams = c(150, 20) # L50, L95-L50 for gear selectivity
+#' RetenParams = NA # L50, L95-L50 for retention
 #' DiscMort = 0 # proportion of fish that die due to natural mortality
 #' GrowthCurveType = 1 # 1 = von Bertalanffy, 2 = Schnute
-#' Linf = 800
-#' vbK = 0.2
+#' Linf = 350
+#' vbK = 0.4
 #' CVSizeAtAge = 0.08
 #' GrowthParams = c(Linf, vbK)
 #' RefnceAges = NA
 #' Res=SimLenAndAgeFreqData(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
 #'                          SelParams, RetenParams, SelectivityVec, DiscMort, GrowthCurveType, GrowthParams, RefnceAges, CVSizeAtAge)
-#' # Simulate length-frequency data from Dirchlet multinomial distribution.
+#' # plot(Res$ObsDecAgeRetCatch_Fem, Res$ObsRandLenRetCatch_Fem, ylim=c(0,MaxLen), xlim=c(0,MaxAge))
+#' # Now simulate length data from a Dirchlet multinomial distribution, with specified autocorrelation,
+#' # to replicate non-random sampling (i.e. due to limited sampling intensity and fish schooling according to size)
 #' # install.packages("dirmult")
 #' library(dirmult)
 #' set.seed(123)
 #' nSampEvents = 5 # number of sampling events per month
 #' nFishPerSampEvent = 5 # number of fish caught per sampling event
+#' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
+#' nSamples = length(Mnth)
 #' theta_val = 0.9 # level of autocorrelation of lengths within sampling events
 #' midpt = Res$midpt
 #' ExpPropAtLen = Res$ModelDiag$ExpRetCatchPropAtLen
-#' # Generate fish lengths (taken as midpts of length classes)
 #' FishLen <- NA
 #' for (mm in 1:12) {
 #'   res=SimLenFreqDat_DirMultDistn(nSampEvents, nFishPerSampEvent, theta_val, midpt, ExpPropAtLen)
@@ -5058,26 +5069,40 @@ CalcMeanMonthlyGSIs <- function(MatL50, FishRepdat) {
 #'     FishLen <- c(FishLen,tempFishLen)
 #'   }
 #' }
-#' FishWt <- 0.00002 * FishLen ^ 3
-#' # specify monthly true trend in standardised gonad weight
-#' MnthEff <- c(0.22,0.25,0.26,0.28,0.35,0.54,0.45,0.33,0.21,0.18,0.25,0.22)
-#' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
-#' a1 <- 0.25 # fish length effect
-#' GonadWt <- rep(0,length(FishLen))
-#' for (i in 1:length(FishLen)) {
-#'   tempMnth <- Mnth[i]
-#'   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
+#' FishLen <- round(FishLen,0)
+#' FishWt <- round(0.00002 * FishLen ^ 3,0)
+#' # set up a linear model with specified coefficients, from which
+#' # fish gonad weight data will be simulated, with error
+#' a = -17.5
+#' b = c(0, -0.2, -0.1, -0.1, -0.1, 0, 0.3, 0.8, 1.1, 1.5, 0.8, 0.2)
+#' c = 3.5
+#' ln_GonadWt <- rep(NA, nSamples)
+#' for (i in 1:nSamples) {
+#'   ln_GonadWt[i] =  (a + b[Mnth[i]] + c*log(FishLen[i])) + rnorm(1,0,1)
 #' }
-#' GonadWt[which(GonadWt<0.01)] <- 0.01
-#' FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
-#' # Create scatter plots of the dependent variable by the covariates
+#' FishRepdat <- data.frame(GonadWt=exp(ln_GonadWt), ln_GonadWt=ln_GonadWt,
+#'                          FishLen=FishLen, ln_FishLen = log(FishLen),
+#'                          FishWt=FishWt, ln_FishWt = log(FishWt), Mnth)
+#' # inspect simulated data
 #' # par(mfrow = c(3, 2)) # Set the layout of the plots
 #' # plot(FishWt ~ FishLen, data = FishRepdat, main = "Fish weight by Fish length")
 #' # boxplot(FishLen ~ Mnth, data = FishRepdat, main = "FishLen by Month")
+#' # boxplot(ln_FishLen ~ Mnth, data = FishRepdat, main = "ln_FishLen by Month")
 #' # boxplot(GonadWt ~ Mnth, data = FishRepdat, main = "GonadWt by Month")
-#' # hist(FishLen)
-#' # hist(FishWt)
-#' res <- CalcMeanMonthlyStGonadWts(MatL50=200, SpecFishLength=600, FishRepdat)
+#' # boxplot(ln_FishLen ~ Mnth, data = FishRepdat, main = "ln_GonadWt by Month")
+#' # hist(FishRepdat$FishLen)
+#' # hist(FishRepdat$GonadWt)
+#' # hist(FishRepdat$FishWt)
+#' #
+#' # plot 'true' monthly (relative) trend
+#' par(mfrow=c(2,2))
+#' plot(1:12, b, "o")
+#' # plot GSIs
+#' PlotMeanMonthlyGSIs(MatL50=150, FishRepdat, ymax=30, yint=5, GraphTitle="Females", xaxis_lab="Month",
+#'                     yaxis_lab="GSI", SampSizelabPosAdj=2, SampSizelab_cex=0.8)
+#' # get monthly gonad weights, standardised for length, and plot
+#' res=CalcMeanMonthlyStGonadWts(MatL50=150, SpecFishLength=300, FishRepdat)
+#' res$ModelResults
 #' @export
 CalcMeanMonthlyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat) {
 
@@ -5089,28 +5114,29 @@ CalcMeanMonthlyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat) {
   nMonthlyFishWts = temp[,2]
 
   # fit glm
-  ln_GonadWt <- log(GonadWt)
-  ln_FishLen <- log(FishLen)
-  model_glm <- glm(ln_GonadWt ~ as.factor(Mnth) + ln_FishLen, data = subdat)
-  GLMResults <- summary(model_glm)
+  ln_GonadWt <- log(FishRepdat$GonadWt)
+  ln_FishLen <- log(FishRepdat$FishLen)
+  mod1 <- lm(ln_GonadWt ~ as.factor(Mnth) + ln_FishLen, data = subdat)
+  # summary(mod1)
 
   # get predicted mean monthly standardised gonad weights, for fish of specified length
   newdata = data.frame(Mnth=sort(unique(subdat$Mnth)), ln_FishLen=log(SpecFishLength))
-  GLMPredResults = predict(model_glm, newdata, type="response",se.fit=TRUE)
+  Mod1Pred = predict(mod1, newdata, type="response", interval = "confidence")
 
   CalendarMonths = 1:12
   MonthsWithData = sort(unique(subdat$Mnth))
   MnthStdGonadWts_mean <- rep(NA,12)
   MnthStdGonadWts_lw95 <- rep(NA,12)
-  MnthStdGonadWts_mean[MonthsWithData] = exp(GLMPredResults$fit[MonthsWithData])
-  MnthStdGonadWts_lw95 = exp(GLMPredResults$fit[MonthsWithData] - (1.96*GLMPredResults$se.fit[MonthsWithData]))
-  MnthStdGonadWts_up95 = exp(GLMPredResults$fit[MonthsWithData] + (1.96*GLMPredResults$se.fit[MonthsWithData]))
+  MnthStdGonadWts_up95 <- rep(NA,12)
+  MnthStdGonadWts_mean[MonthsWithData] = exp(Mod1Pred[,1])
+  MnthStdGonadWts_lw95[MonthsWithData] = exp(Mod1Pred[,2])
+  MnthStdGonadWts_up95[MonthsWithData] = exp(Mod1Pred[,3])
 
   ResultsSummary <- list(MonthsWithData = sort(unique(subdat$Mnth)),
                          MeanLenAboveL50 = MeanLenAboveL50,
                          nMonthlyFishWts = nMonthlyFishWts,
-                         GLMResults = GLMResults,
-                         GLMPredResults = GLMPredResults,
+                         ModelResults = summary(mod1),
+                         ModelPredictResults = Mod1Pred,
                          MnthStdGonadWts_mean = MnthStdGonadWts_mean,
                          MnthStdGonadWts_lw95 = MnthStdGonadWts_lw95,
                          MnthStdGonadWts_up95 = MnthStdGonadWts_up95,
@@ -5119,7 +5145,6 @@ CalcMeanMonthlyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat) {
   return(ResultsSummary)
 
 }
-
 
 #' Plot mean monthly GSIs
 #'
@@ -5138,40 +5163,43 @@ CalcMeanMonthlyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat) {
 #'
 #' @return plot of mean month GSIs with 95 percent confidence limits
 #' @examples
-#' # Generate synthetic length composition data from a simple population model
+#' # Generate synthetic length composition data for a fished population at equilbrium
 #' library(L3Assess)
 #' set.seed(123)
 #' SampleSize=5000 # sample size for retained catches (and same number for released fish, if an MLL is specified)
-#' MaxAge = 30
+#' MaxAge = 15
 #' TimeStep = 1 # model timestep (e.g. 1 = annual, 1/12 = monthly)
 #' NatMort = 4.22/MaxAge
-#' FishMort = 0.2
-#' MaxLen = 1200
+#' FishMort = NatMort
+#' MaxLen = 500
 #' LenInc = 1
 #' MLL=NA # (minimum legal length) # retention set to 1 for all lengths if MLL set to NA and retention parameters not specified
 #' SelectivityType=2 # 1=selectivity inputted as vector, 2=asymptotic logistic selectivity curve
 #' SelectivityVec = NA # selectivity vector
-#' SelParams = c(300, 50) # L50, L95-L50 for gear selectivity
-#' RetenParams = c(500, 50) # L50, L95-L50 for retention
+#' SelParams = c(150, 20) # L50, L95-L50 for gear selectivity
+#' RetenParams = NA # L50, L95-L50 for retention
 #' DiscMort = 0 # proportion of fish that die due to natural mortality
 #' GrowthCurveType = 1 # 1 = von Bertalanffy, 2 = Schnute
-#' Linf = 800
-#' vbK = 0.2
+#' Linf = 350
+#' vbK = 0.4
 #' CVSizeAtAge = 0.08
 #' GrowthParams = c(Linf, vbK)
 #' RefnceAges = NA
 #' Res=SimLenAndAgeFreqData(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
 #'                          SelParams, RetenParams, SelectivityVec, DiscMort, GrowthCurveType, GrowthParams, RefnceAges, CVSizeAtAge)
-#' # Simulate length-frequency data from Dirchlet multinomial distribution.
+#' # plot(Res$ObsDecAgeRetCatch_Fem, Res$ObsRandLenRetCatch_Fem, ylim=c(0,MaxLen), xlim=c(0,MaxAge))
+#' # Now simulate length data from a Dirchlet multinomial distribution, with specified autocorrelation,
+#' # to replicate non-random sampling (i.e. due to limited sampling intensity and fish schooling according to size)
 #' # install.packages("dirmult")
 #' library(dirmult)
 #' set.seed(123)
 #' nSampEvents = 5 # number of sampling events per month
 #' nFishPerSampEvent = 5 # number of fish caught per sampling event
-#' theta_val = 0.1 # level of autocorrelation of lengths within sampling events
+#' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
+#' nSamples = length(Mnth)
+#' theta_val = 0.9 # level of autocorrelation of lengths within sampling events
 #' midpt = Res$midpt
 #' ExpPropAtLen = Res$ModelDiag$ExpRetCatchPropAtLen
-#' # Generate fish lengths (taken as midpts of length classes)
 #' FishLen <- NA
 #' for (mm in 1:12) {
 #'   res=SimLenFreqDat_DirMultDistn(nSampEvents, nFishPerSampEvent, theta_val, midpt, ExpPropAtLen)
@@ -5182,27 +5210,37 @@ CalcMeanMonthlyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat) {
 #'     FishLen <- c(FishLen,tempFishLen)
 #'   }
 #' }
-#' FishWt <- 0.00002 * FishLen ^ 3
-#' # specify monthly true trend in standardised gonad weight
-#' MnthEff <- c(0.22,0.25,0.26,0.28,0.35,0.54,0.45,0.33,0.21,0.18,0.25,0.22)
-#' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
-#' a1 <- 0.25 # fish length effect
-#' GonadWt <- rep(0,length(FishLen))
-#' for (i in 1:length(FishLen)) {
-#'   tempMnth <- Mnth[i]
-#'   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
+#' FishLen <- round(FishLen,0)
+#' FishWt <- round(0.00002 * FishLen ^ 3,0)
+#' # set up a linear model with specified coefficients, from which
+#' # fish gonad weight data will be simulated, with error
+#' a = -17.5
+#' b = c(0, -0.2, -0.1, -0.1, -0.1, 0, 0.3, 0.8, 1.1, 1.5, 0.8, 0.2)
+#' c = 3.5
+#' ln_GonadWt <- rep(NA, nSamples)
+#' for (i in 1:nSamples) {
+#'   ln_GonadWt[i] =  (a + b[Mnth[i]] + c*log(FishLen[i])) + rnorm(1,0,1)
 #' }
-#' GonadWt[which(GonadWt<0.01)] <- 0.01
-#' FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
-#' # Create scatter plots of the dependent variable by the covariates
+#' FishRepdat <- data.frame(GonadWt=exp(ln_GonadWt), ln_GonadWt=ln_GonadWt,
+#'                          FishLen=FishLen, ln_FishLen = log(FishLen),
+#'                          FishWt=FishWt, ln_FishWt = log(FishWt), Mnth)
+#' # inspect simulated data
 #' # par(mfrow = c(3, 2)) # Set the layout of the plots
 #' # plot(FishWt ~ FishLen, data = FishRepdat, main = "Fish weight by Fish length")
 #' # boxplot(FishLen ~ Mnth, data = FishRepdat, main = "FishLen by Month")
+#' # boxplot(ln_FishLen ~ Mnth, data = FishRepdat, main = "ln_FishLen by Month")
 #' # boxplot(GonadWt ~ Mnth, data = FishRepdat, main = "GonadWt by Month")
-#' # hist(FishLen)
-#' # hist(FishWt)
-#' PlotMeanMonthlyGSIs(MatL50=200, FishRepdat, ymax=2, yint=0.2, GraphTitle="Females", xaxis_lab="Month",
-#'                            yaxis_lab="GSI", SampSizelabPosAdj=0.05, SampSizelab_cex=0.8)
+#' # boxplot(ln_FishLen ~ Mnth, data = FishRepdat, main = "ln_GonadWt by Month")
+#' # hist(FishRepdat$FishLen)
+#' # hist(FishRepdat$GonadWt)
+#' # hist(FishRepdat$FishWt)
+#' #
+#' # plot 'true' monthly (relative) trend
+#' par(mfrow=c(2,2))
+#' plot(1:12, b, "o")
+#' # plot GSIs
+#' PlotMeanMonthlyGSIs(MatL50=150, FishRepdat, ymax=30, yint=5, GraphTitle="Females", xaxis_lab="Month",
+#'                     yaxis_lab="GSI", SampSizelabPosAdj=2, SampSizelab_cex=0.8)
 #' @export
 PlotMeanMonthlyGSIs <- function(MatL50, FishRepdat, ymax, yint, GraphTitle, xaxis_lab, yaxis_lab,
                                 SampSizelabPosAdj, SampSizelab_cex) {
@@ -5247,40 +5285,43 @@ PlotMeanMonthlyGSIs <- function(MatL50, FishRepdat, ymax, yint, GraphTitle, xaxi
 #'
 #' @return plot of mean month GSIs with 95 percent confidence limits
 #' @examples
-#' # Generate synthetic length composition data from a simple population model
+#' # Generate synthetic length composition data for a fished population at equilbrium
 #' library(L3Assess)
 #' set.seed(123)
 #' SampleSize=5000 # sample size for retained catches (and same number for released fish, if an MLL is specified)
-#' MaxAge = 30
+#' MaxAge = 15
 #' TimeStep = 1 # model timestep (e.g. 1 = annual, 1/12 = monthly)
 #' NatMort = 4.22/MaxAge
-#' FishMort = 0.2
-#' MaxLen = 1200
+#' FishMort = NatMort
+#' MaxLen = 500
 #' LenInc = 1
 #' MLL=NA # (minimum legal length) # retention set to 1 for all lengths if MLL set to NA and retention parameters not specified
 #' SelectivityType=2 # 1=selectivity inputted as vector, 2=asymptotic logistic selectivity curve
 #' SelectivityVec = NA # selectivity vector
-#' SelParams = c(300, 50) # L50, L95-L50 for gear selectivity
-#' RetenParams = c(500, 50) # L50, L95-L50 for retention
+#' SelParams = c(150, 20) # L50, L95-L50 for gear selectivity
+#' RetenParams = NA # L50, L95-L50 for retention
 #' DiscMort = 0 # proportion of fish that die due to natural mortality
 #' GrowthCurveType = 1 # 1 = von Bertalanffy, 2 = Schnute
-#' Linf = 800
-#' vbK = 0.2
+#' Linf = 350
+#' vbK = 0.4
 #' CVSizeAtAge = 0.08
 #' GrowthParams = c(Linf, vbK)
 #' RefnceAges = NA
 #' Res=SimLenAndAgeFreqData(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
 #'                          SelParams, RetenParams, SelectivityVec, DiscMort, GrowthCurveType, GrowthParams, RefnceAges, CVSizeAtAge)
-#' # Simulate length-frequency data from Dirchlet multinomial distribution.
+#' # plot(Res$ObsDecAgeRetCatch_Fem, Res$ObsRandLenRetCatch_Fem, ylim=c(0,MaxLen), xlim=c(0,MaxAge))
+#' # Now simulate length data from a Dirchlet multinomial distribution, with specified autocorrelation,
+#' # to replicate non-random sampling (i.e. due to limited sampling intensity and fish schooling according to size)
 #' # install.packages("dirmult")
 #' library(dirmult)
 #' set.seed(123)
 #' nSampEvents = 5 # number of sampling events per month
 #' nFishPerSampEvent = 5 # number of fish caught per sampling event
+#' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
+#' nSamples = length(Mnth)
 #' theta_val = 0.9 # level of autocorrelation of lengths within sampling events
 #' midpt = Res$midpt
 #' ExpPropAtLen = Res$ModelDiag$ExpRetCatchPropAtLen
-#' # Generate fish lengths (taken as midpts of length classes)
 #' FishLen <- NA
 #' for (mm in 1:12) {
 #'   res=SimLenFreqDat_DirMultDistn(nSampEvents, nFishPerSampEvent, theta_val, midpt, ExpPropAtLen)
@@ -5291,26 +5332,41 @@ PlotMeanMonthlyGSIs <- function(MatL50, FishRepdat, ymax, yint, GraphTitle, xaxi
 #'     FishLen <- c(FishLen,tempFishLen)
 #'   }
 #' }
-#' FishWt <- 0.00002 * FishLen ^ 3
-#' # specify monthly true trend in standardised gonad weight
-#' MnthEff <- c(0.22,0.25,0.26,0.28,0.35,0.54,0.45,0.33,0.21,0.18,0.25,0.22)
-#' Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
-#' a1 <- 0.25 # fish length effect
-#' GonadWt <- rep(0,length(FishLen))
-#' for (i in 1:length(FishLen)) {
-#'   tempMnth <- Mnth[i]
-#'   GonadWt[i] <-  MnthEff[tempMnth] * (a1 * FishLen[i]) + rnorm(1,0,10)
+#' FishLen <- round(FishLen,0)
+#' FishWt <- round(0.00002 * FishLen ^ 3,0)
+#' # set up a linear model with specified coefficients, from which
+#' # fish gonad weight data will be simulated, with error
+#' a = -17.5
+#' b = c(0, -0.2, -0.1, -0.1, -0.1, 0, 0.3, 0.8, 1.1, 1.5, 0.8, 0.2)
+#' c = 3.5
+#' ln_GonadWt <- rep(NA, nSamples)
+#' for (i in 1:nSamples) {
+#'   ln_GonadWt[i] =  (a + b[Mnth[i]] + c*log(FishLen[i])) + rnorm(1,0,1)
 #' }
-#' GonadWt[which(GonadWt<0.01)] <- 0.01
-#' FishRepdat <- data.frame(GonadWt, FishLen, FishWt, Mnth)
-#' # Create scatter plots of the dependent variable by the covariates
+#' FishRepdat <- data.frame(GonadWt=exp(ln_GonadWt), ln_GonadWt=ln_GonadWt,
+#'                          FishLen=FishLen, ln_FishLen = log(FishLen),
+#'                          FishWt=FishWt, ln_FishWt = log(FishWt), Mnth)
+#' # inspect simulated data
 #' # par(mfrow = c(3, 2)) # Set the layout of the plots
 #' # plot(FishWt ~ FishLen, data = FishRepdat, main = "Fish weight by Fish length")
 #' # boxplot(FishLen ~ Mnth, data = FishRepdat, main = "FishLen by Month")
+#' # boxplot(ln_FishLen ~ Mnth, data = FishRepdat, main = "ln_FishLen by Month")
 #' # boxplot(GonadWt ~ Mnth, data = FishRepdat, main = "GonadWt by Month")
-#' # hist(FishLen)
-#' # hist(FishWt)
-#' PlotMeanMonthyStGonadWts(MatL50=200, SpecFishLength=600, FishRepdat, ymax=100, yint=20, GraphTitle="Females",
+#' # boxplot(ln_FishLen ~ Mnth, data = FishRepdat, main = "ln_GonadWt by Month")
+#' # hist(FishRepdat$FishLen)
+#' # hist(FishRepdat$GonadWt)
+#' # hist(FishRepdat$FishWt)
+#' #
+#' # plot 'true' monthly (relative) trend
+#' par(mfrow=c(2,2))
+#' plot(1:12, b, "o")
+#' # plot GSIs
+#' PlotMeanMonthlyGSIs(MatL50=150, FishRepdat, ymax=30, yint=5, GraphTitle="Females", xaxis_lab="Month",
+#'                     yaxis_lab="GSI", SampSizelabPosAdj=2, SampSizelab_cex=0.8)
+#' # get monthly gonad weights, standardised for length, and plot
+#' res=CalcMeanMonthlyStGonadWts(MatL50=150, SpecFishLength=300, FishRepdat)
+#' res$ModelResults
+#' PlotMeanMonthyStGonadWts(MatL50=150, SpecFishLength=300, FishRepdat, ymax=100, yint=20, GraphTitle="Females",
 #'                          xaxis_lab="Month", yaxis_lab="Stand. gonad wt.", SampSizelabPosAdj=2, SampSizelab_cex=0.8)
 #' @export
 PlotMeanMonthyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat, ymax, yint, GraphTitle,
@@ -5324,6 +5380,7 @@ PlotMeanMonthyStGonadWts <- function(MatL50, SpecFishLength, FishRepdat, ymax, y
   if (is.na(yint)) {
     yint = 2
   }
+
 
   MMabb = substr(month.abb, 1, 1)
   plot(1:12, res$MnthStdGonadWts_mean, "o", pch=16, frame=F, xlim = c(1,12), ylim = c(0,ymax),

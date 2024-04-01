@@ -729,13 +729,13 @@ weights</h3>
 sizes of fish collected in monthly samples. Thus, some researchers
 prefer to consider trends in mean monthly gonad weights (or GSIs) after
 they have been standardised for length effects, such as by using Analyis
-of Covariance (ANCOVA) or a generalised linear model(glm)
+of Covariance (ANCOVA) linear model or generalised linear model
 (e.g. Cossington et al., 2011). WAFishBiology calculates standardised
 mean monthly gonad weights (and associated 95% confidence limits), using
-the glm function within R. The model used to calculate mean gonad
-weights according to fish total length and month is</p>
+the linear model (lm) function within R. The model used to calculate
+mean gonad weights according to fish total length and month is</p>
 <p><span class="math display">\[
-GW_{i,k}=M_k+L_i{\sim} N(0,\sigma^2)
+\log_e{GW}_{i,k}=M_k+a{\log_e{L_i}}{\sim} N(0,\sigma^2)
 \]</span> where <span class="math inline">\(GW_{i,k}\)</span> is the
 standardised gonad weight, <span class="math inline">\(M_k\)</span> is
 the month effect and <span class="math inline">\(L_i\)</span> is the
