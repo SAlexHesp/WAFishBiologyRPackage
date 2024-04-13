@@ -7349,7 +7349,7 @@ PlotFittedLengthAtMaturityCurve <- function(params, CurveType, nSexes, ObsLen, O
     axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=1, las=1)
     axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=1, las=1)
     mtext(xaxis_lab, 1, line = 2.5, cex=1.2)
-    mtext(yaxis_lab, 2, line = 2.5, cex=1.2)
+    mtext(yaxis_lab, 2, line = 2.5, cex=1.2, las=3)
     if (ShowSampSizes) {
       temp = seq(1,length(LenClSampSize),2)
       text(midpt[temp], 1.1, LenClSampSize[temp], cex = SampSizelab_cex, srt = 0)
@@ -7420,7 +7420,7 @@ PlotFittedLengthAtMaturityCurve <- function(params, CurveType, nSexes, ObsLen, O
     axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0, cex.axis=1, las=1)
     axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0, cex.axis=1, las=1)
     mtext(xaxis_lab, 1, line = 2.5, cex=1.2)
-    mtext(yaxis_lab, 2, line = 2.5, cex=1.2)
+    mtext(yaxis_lab, 2, line = 2.5, cex=1.2, las=3)
     if (ShowSampSizes) {
       temp = seq(1,length(LenClSampSize[1,]),2)
       text(midpt[temp], 1.1, LenClSampSize[1,temp], cex = SampSizelab_cex, srt = 0)
@@ -7491,7 +7491,7 @@ PlotFittedLengthAtMaturityCurve <- function(params, CurveType, nSexes, ObsLen, O
     axis(1,at=seq(0,xmax,xint),lwd=0, labels=T, line=0,cex.axis=1, las=1)
     axis(2,at=seq(0,1,0.2), lwd=0, labels=T, line=0,cex.axis=1, las=1)
     mtext(xaxis_lab, 1, line = 2.5, cex=1.2)
-    mtext(yaxis_lab, 2, line = 2.5, cex=1.2)
+    mtext(yaxis_lab, 2, line = 2.5, cex=1.2, las=3)
     if (ShowSampSizes) {
       temp = seq(1,length(LenClSampSize[2,]),2)
       text(midpt[temp], 1.1, LenClSampSize[2,temp], cex = SampSizelab_cex, srt = 0)
