@@ -5446,7 +5446,7 @@ CalcMonthlyGonadStageProps <- function(MatL50, FishRepdat) {
   subdat = FishRepdat[FishRepdat$FishLen>=MatL50,]
 
   # calculate numbers of fish with each gonadal stage, caught in each month
-  Table1 = table(factor(subdat$MM, levels=1:12), subdat$GonadSt)
+  Table1 = table(factor(subdat$Mnth, levels=1:12), subdat$GonadSt)
 
   MinGonadStage = min(subdat$GonadSt)
   MaxGonadStage = max(subdat$GonadSt)
@@ -5461,7 +5461,7 @@ CalcMonthlyGonadStageProps <- function(MatL50, FishRepdat) {
     PropGonadSt[, icol] = Table1[, icol]/rowSums(Table1)
     x = which(is.nan(PropGonadSt[, icol]))
     if (length(x) > 0) {
-      PropGonadSt[x,i]=0
+      PropGonadSt[x,icol]=0
     }
   }
 
