@@ -58,8 +58,6 @@ MM=Res$MM
 ObsSpawnDat = data.frame(MM=MM,FishLen=FishLen,ObsMatStatus=ObsMatStatus)
 # params = c(lnL50,lnslope,logitPkSpawn,lnkappa,lnkappa2,lnslope1,lnslope2)
 params = NA
-CalcNLL_SpDurMod(params)
-params = NA
 lbnds = seq(300,900,100)
 ubnds = lbnds + 100
 par(mfrow=c(3,2), mar=c(4,2,2,2))

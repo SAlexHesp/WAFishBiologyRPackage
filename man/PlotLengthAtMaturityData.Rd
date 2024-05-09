@@ -84,12 +84,6 @@ LenClSampSize=res$LenClSampSize
 # separate sexes
 # PropMat = t(data.frame(FemPropMat=res$FemPropMat,MalPropMat=res$MalPropMat))
 # LenClSampSize = t(data.frame(FemLenClSampSize=res$FemLenClSampSize,MalLenClSampSize=res$MalLenClSampSize))
-xmax=MaxLen
-xint=50
-GraphTitle=NA
-xaxis_lab=NA
-yaxis_lab=NA
-SampSizelab_cex=NA
-PlotLengthAtMaturityData(nSexes, midpt, PropMat, LenClSampSize, xmax, xint,
-                         GraphTitle, SampSizelab_cex, xaxis_lab, yaxis_lab)
+PlotLengthAtMaturityData(nSexes=1, midpt, PropMat, LenClSampSize, xmax=NA, xint=NA,
+                         GraphTitle=NA, SampSizelab_cex=NA, xaxis_lab=NA, yaxis_lab=NA)
 }

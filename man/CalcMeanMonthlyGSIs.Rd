@@ -21,7 +21,7 @@ confidence limits (Low95 and Up95)
 This function calculates mean monthly gonaosomatic indices GSI values and associated 95 percent confidence limits
 }
 \examples{
-# Generate synthetic length composition data for a fished population at equilbrium
+# Generate synthetic length composition data for a fished population at equilibrium
 library(L3Assess)
 set.seed(123)
 SampleSize=5000 # sample size for retained catches (and same number for released fish, if an MLL is specified)

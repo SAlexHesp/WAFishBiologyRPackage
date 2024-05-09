@@ -12,16 +12,16 @@ PlotMixtureDistnResults(
   MinSize,
   MaxSize,
   SizeInt,
-  ymax = 100,
-  xmax = 50,
-  yint = 20,
-  xint = 10,
-  GraphTitle = NA,
-  xaxis_lab = NA,
-  yaxis_lab = NA,
-  set.plot.par = TRUE,
-  PlotHist = TRUE,
-  PlotCLs = FALSE
+  ymax,
+  xmax,
+  yint,
+  xint,
+  GraphTitle,
+  xaxis_lab,
+  yaxis_lab,
+  set.plot.par,
+  PlotHist,
+  PlotCLs
 )
 }
 \arguments{

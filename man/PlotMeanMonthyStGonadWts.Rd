@@ -46,7 +46,7 @@ This function plots mean monthly standardised gonad weights (for specified fish 
 95 percent confidence limits, used to assess time and duration of spawning
 }
 \examples{
-# Generate synthetic length composition data for a fished population at equilbrium
+# Generate synthetic length composition data for a fished population at equilibrium
 library(L3Assess)
 set.seed(123)
 SampleSize=5000 # sample size for retained catches (and same number for released fish, if an MLL is specified)
