@@ -616,8 +616,10 @@ GetSpawningDurationModelResults <- function(params, FishLen, DecDay, ObsMatStatu
 
   # get variance-covariance matrix, from fitted model
   hess.out = optimHess(params, CalcNLL_SpDurMod)
-  vcov.Params = solve(hess.out)
-  ses = sqrt(diag(vcov.Params))
+  vcov.params = solve(hess.out)
+  ses = sqrt(diag(vcov.params))
+  temp = diag(1/sqrt(diag(vcov.params))) # get parameter correlation matrix
+  cor.params = temp %*% vcov.params %*% temp
 
   # get parameter estimates and asymptotic error estimates
   EstL50 = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
@@ -636,7 +638,7 @@ GetSpawningDurationModelResults <- function(params, FishLen, DecDay, ObsMatStatu
   ParamEst.sim = NA
   if (nsims > 0) {
     # Use resampling approach to get estimates of uncertainty of derived outputs for model
-    sims = data.frame(MASS::mvrnorm(n = nsims, params, vcov.Params))
+    sims = data.frame(MASS::mvrnorm(n = nsims, params, vcov.params))
     names(sims) = c("ln_L50", "ln_slope","lgt_PkSpawn","ln_kappa","ln_kappa2",
                     "ln_slope1","ln_slope2")
 
@@ -759,7 +761,8 @@ GetSpawningDurationModelResults <- function(params, FishLen, DecDay, ObsMatStatu
   res = list(params=params,
              NLL=NLL,
              convergence=convergence,
-             vcov.Params=vcov.Params,
+             vcov.params=vcov.params,
+             cor.params=cor.params,
              ParamEst=ParamEst,
              ParamEst.sim=ParamEst.sim,
              MaxPropSpawnVsFishLen=MaxPropSpawnVsFishLen,
@@ -1363,6 +1366,8 @@ GetMixtureModelResults <- function(params, DistnType, Cohorts, MinSize, MaxSize,
   hess.out = optimHess(nlmb$par, CalcNLL_SizeMixtureDistn)
   vcov.params = solve(hess.out)
   ses = sqrt(diag(vcov.params)) # asymptotic standard errors of parameter estimates
+  temp = diag(1/sqrt(diag(vcov.params))) # get parameter correlation matrix
+  cor.params = temp %*% vcov.params %*% temp
 
   # back log-transform parameters
   if (length(params) == 2) { # 1 cohort
@@ -1521,14 +1526,8 @@ GetMixtureModelResults <- function(params, DistnType, Cohorts, MinSize, MaxSize,
   }
 
   colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
-
-  # store sample size
   SampleSize = sum(ObsFreq)
-
-  # store value of objective function
   nll = nlmb$objective
-
-  # store convergence value
   convergence = nlmb$convergence
 
   # get confidence limits for size frequencies
@@ -1573,6 +1572,7 @@ GetMixtureModelResults <- function(params, DistnType, Cohorts, MinSize, MaxSize,
                  convergence = convergence,
                  SampleSize = SampleSize,
                  vcov.params = vcov.params,
+                 cor.params = cor.params,
                  ses = ses,
                  Expfreq_mode1 = Expfreq_mode1,
                  Expfreq_mode2 = Expfreq_mode2,
@@ -2600,9 +2600,11 @@ GetvonBertalanffyGrowthResults <- function(params, nSexes, DataType, ObsAge, Obs
 
   # calculate uncertainty for parameter estimates by getting variance-covariance matrix,
   # from fitted model, to get standard errors
-  (hess.out = optimHess(nlmb$par, CalcNLL_GrowthCurve))
-  (vcov.params = solve(hess.out))
-  (ses = sqrt(diag(vcov.params))) # asymptotic standard errors of parameter estimates
+  hess.out = optimHess(nlmb$par, CalcNLL_GrowthCurve)
+  vcov.params = solve(hess.out)
+  ses = sqrt(diag(vcov.params)) # asymptotic standard errors of parameter estimates
+  temp = diag(1/sqrt(diag(vcov.params))) # get parameter correlation matrix
+  cor.params = temp %*% vcov.params %*% temp
 
   if (nSexes==1) {
     EstLinf = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
@@ -2642,7 +2644,8 @@ GetvonBertalanffyGrowthResults <- function(params, nSexes, DataType, ObsAge, Obs
                  SampleSize = nObs,
                  ParamEst = ParamEst,
                  params = nlmb$par,
-                 vcov.params = vcov.params)
+                 vcov.params = vcov.params,
+                 cor.params = cor.params)
 
   return(results)
 
@@ -3613,9 +3616,11 @@ GetSchnuteGrowthResults <- function(params, nSexes, DataType, t1, t2, ObsAge, Ob
 
   # calculate uncertainty for parameter estimates by getting variance-covariance matrix,
   # from fitted model, to get standard errors
-  (hess.out = optimHess(nlmb$par, CalcNLL_GrowthCurve))
-  (vcov.params = solve(hess.out))
-  (ses = sqrt(diag(vcov.params))) # asymptotic standard errors of parameter estimates
+  hess.out = optimHess(nlmb$par, CalcNLL_GrowthCurve)
+  vcov.params = solve(hess.out)
+  ses = sqrt(diag(vcov.params)) # asymptotic standard errors of parameter estimates
+  temp = diag(1/sqrt(diag(vcov.params))) # get parameter correlations
+  cor.params = temp %*% vcov.params %*% temp
 
   if (nSexes==1) {
     y1 = exp(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
@@ -3660,7 +3665,8 @@ GetSchnuteGrowthResults <- function(params, nSexes, DataType, t1, t2, ObsAge, Ob
                  SampleSize = SampleSize,
                  ParamEst = ParamEst,
                  params = nlmb$par,
-                 vcov.params = vcov.params)
+                 vcov.params = vcov.params,
+                 cor.params = cor.params)
 
   return(results)
 
@@ -3877,9 +3883,11 @@ GetSeasonalGrowthResults <- function(params, nSexes, DataType, ObsAge, ObsLen, O
 
   # calculate uncertianty for parameter estimates by getting variance-covariance matrix,
   # from fitted model, to get standard errors
-  (hess.out = optimHess(nlmb$par, CalcNLL_GrowthCurve))
-  (vcov.params = solve(hess.out))
-  (ses = sqrt(diag(vcov.params))) # asymptotic standard errors of parameter estimates
+  hess.out = optimHess(nlmb$par, CalcNLL_GrowthCurve)
+  vcov.params = solve(hess.out)
+  ses = sqrt(diag(vcov.params)) # asymptotic standard errors of parameter estimates
+  temp = diag(1/sqrt(diag(vcov.params))) # get parameter correlation matrix
+  cor.params = temp %*% vcov.params %*% temp
 
   if (nSexes==1) {
     EstLinf = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
@@ -3934,7 +3942,8 @@ GetSeasonalGrowthResults <- function(params, nSexes, DataType, ObsAge, ObsLen, O
                  SampleSize = SampleSize,
                  ParamEst = ParamEst,
                  params = nlmb$par,
-                 vcov.params = vcov.params)
+                 vcov.params = vcov.params,
+                 cor.params = cor.params)
 
   return(results)
 
@@ -4400,6 +4409,8 @@ GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen
   hess.out = optimHess(nlmb$par, CalcNLL_TaggingGrowthModel)
   vcov.params = solve(hess.out)
   ses = sqrt(diag(vcov.params)) # get asymptotic standard errors of parameter estimates
+  temp = diag(1/sqrt(diag(vcov.params))) # get parameter correlation matrix
+  cor.params = temp %*% vcov.params %*% temp
 
 
   # Calculate the terms that are used to produce the estimate of the derivative
@@ -4542,6 +4553,7 @@ GetTaggingGrowthModelResults <- function(params, nstep, Obs_delta_t, Obs_Initlen
                  ParamEst = ParamEst,
                  params = params,
                  vcov.params = vcov.params,
+                 cor.params = cor.params,
                  Obs_delta_Length=Obs_delta_Length,
                  Est_delta_Length=Est_delta_Length,
                  Est_Final_Length=Est_Final_Length,
@@ -6591,6 +6603,8 @@ GetLogisticMaturityCurveResults <- function(params, nSexes, LogisticModType, Cur
   params=nlmb$par
   vcov.params = solve(hess.out)
   ses = sqrt(diag(vcov.params)) # get asymptotic standard errors of parameter estimates
+  temp = diag(1/sqrt(diag(vcov.params))) # get parameter correlation matrix
+  cor.params = temp %*% vcov.params %*% temp
 
   # calculate 95 percent confidence limits
 
@@ -6715,20 +6729,17 @@ GetLogisticMaturityCurveResults <- function(params, nSexes, LogisticModType, Cur
   } # CurveType
 
   colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
-
-  # store value of objective function
   nll = nlmb$objective
-
-  # store convergence value
   convergence = nlmb$convergence
 
-  # store all results as a list object
   results = list(nll = nll,
                  convergence = convergence,
                  SampleSize = SampleSize,
                  ParamEst = ParamEst,
                  params = params,
-                 vcov.params = vcov.params)
+                 vcov.params = vcov.params,
+                 cor.params = cor.params)
+
   return(results)
 
 }
