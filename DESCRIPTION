@@ -7,7 +7,7 @@ Author: Alex Hesp
 Maintainer: Alex Hesp <Alex.Hesp@fish.wa.gov.au>
 Description: A range of routines for analysis of fish biological data
 License: GPL-2
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Encoding: UTF-8
 LazyData: true
 LinkingTo: 

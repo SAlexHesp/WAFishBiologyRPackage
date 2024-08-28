@@ -3,7 +3,7 @@
 NULL
 
 # WA Fish Biology methods package
-# Alex Hesp Last updated May 2024
+# Alex Hesp Last updated August 2024
 # Department of Primary Industries and Regional Development
 
 # **************************
@@ -7931,20 +7931,20 @@ PlotWeightLengthRel_NormalSpace <- function(FishLen, FishWt, xmin, ymin, xmax, y
   ylims=Get_yaxis_scale(FishWt)
   xlims=Get_xaxis_scale(FishLen)
 
-  if (is.na(xmin)) xmin = xlims$xmin
+  if (is.na(xmin)) xmin = 0
   if (is.na(xmax)) xmax = xlims$xmax
   if (is.na(xint)) xint = xlims$xint
-  if (is.na(ymin)) ymin = ylims$ymin
+  if (is.na(ymin)) ymin = 0
   if (is.na(ymax)) ymax = ylims$ymax
   if (is.na(yint)) yint = ylims$yint
   if (is.na(xaxis_lab)) xaxis_lab = "Length (mm)"
   if (is.na(yaxis_lab)) yaxis_lab = "Weight (kg)"
 
   # plot in normal space (with bias correction applied)
-  plot(FishLen, FishWt, pch=16, cex=0.5, bty='n', ylim=c(0,ymax), xlim=c(0,xmax), xaxt='n', yaxt='n',
+  plot(FishLen, FishWt, pch=16, cex=0.5, bty='n', ylim=c(ymin,ymax), xlim=c(xmin,xmax), xaxt='n', yaxt='n',
        ylab="", xlab="", main=GraphTitle, cex.main=1)
-  AddAxesAndTickLabelsToPlot(xmin=0, xmax, xint, ymin=0, ymax, yint, cexval=1.2,  cexaxisval=1, lwdval=1.75,
-                             lineval=0, lasval=1, xaxlabel = seq(0,xmax,xint), tcklen = 0.03)
+  AddAxesAndTickLabelsToPlot(xmin, xmax, xint, ymin, ymax, yint, cexval=1.2,  cexaxisval=1, lwdval=1.75,
+                             lineval=0, lasval=1, xaxlabel = seq(xmin,xmax,xint), tcklen = 0.03)
   mtext(yaxis_lab,las=3,side=2,line=3,cex=1.2,lwd=1.75)
   mtext(xaxis_lab,las=1,side=1,line=3,cex=1.2,lwd=1.75)
   lines(exp(res$plot_lnlen), exp(res$conf_int[,1]) * exp(0.5*res$Resid_var), col="black", lty="solid")
