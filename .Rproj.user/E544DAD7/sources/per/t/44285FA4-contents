@@ -2355,6 +2355,9 @@ CalcNLL_GrowthCurve <- function(params) {
     ExpLen = CalcLengthAtAge_SomersSeasonalGrowthCurve(params) # 5 or 10 params
   }
 
+  if (length(params) < 6) nSexes <- 1
+  if (length(params) >= 6) nSexes <- 2
+
   # calculate NLL for growth curve
   if (DataType==1) { # lengths at age for individual fish
     nObs = length(ObsAge)
@@ -2416,6 +2419,9 @@ CalcNLL_GrowthCurve <- function(params) {
 #' @return expected lengths at age (ExpLen)
 CalcLengthAtAge_vonBertalanffyGrowthCurve <- function(params) {
 
+  if (length(params) == 3) nSexes = 1
+  if (length(params) == 6) nSexes = 2
+
   # calculate expected length at age growth, for von Bertalanffy growth curve (ages of fish in sample)
   if (nSexes==1) { # single or combined sex
     Linf = exp(params[1])
@@ -2460,6 +2466,9 @@ CalcLengthAtAge_vonBertalanffyGrowthCurve <- function(params) {
 #' @return specified ages (plotages) and expected lengths at ages (plotlengths)
 CalcLengthAtAge_vonBertalanffyGrowthCurve2 <- function(params, nSexes, plotages) {
   # for plotting - calculate expected length at age growth, for von Bertalanffy growth curve (specified age range)
+
+  if (length(params) == 3) nSexes = 1
+  if (length(params) == 6) nSexes = 2
 
   if (nSexes==1) { # single or combined sex
     Linf = exp(params[1])
@@ -3370,6 +3379,9 @@ SchnuteGrowthfunction <- function (Age, t1, t2, y1, y2, a, b) {
 #' @export
 CalcLengthAtAge_SchnuteGrowthCurve <- function(params, t1, t2, ObsAge) {
 
+  if (length(params) == 4) nSexes = 1
+  if (length(params) == 8) nSexes = 2
+
   # calculate expected length at age growth, for Schnute growth curve (ages of fish in sample)
   if (nSexes==1) { # single or combined sex
     y1 = exp(params[1])
@@ -3455,6 +3467,9 @@ CalcLengthAtAge_SchnuteGrowthCurve2 <- function(params, nSexes, Ref_ages, plotag
   nObs = length(plotages)
   t1 = Ref_ages[1]
   t2 = Ref_ages[2]
+
+  if (length(params) == 4) nSexes = 1
+  if (length(params) == 8) nSexes = 2
 
   if (nSexes==1) { # single or combined sex
     y1 = exp(params[1])
@@ -3714,6 +3729,9 @@ GetSchnuteGrowthResults <- function(params, nSexes, DataType, t1, t2, ObsAge, Ob
 #' @export
 CalcLengthAtAge_SomersSeasonalGrowthCurve <- function(params) {
 
+  if (length(params) == 5) nSexes = 1
+  if (length(params) == 10) nSexes = 2
+
   if (nSexes==1) {
     Linf = exp(params[1])
     vbK = exp(params[2])
@@ -3967,6 +3985,9 @@ CalcLengthAtAge_SomersSeasonalGrowthCurve2 <- function(params, nSexes, plotages)
 
   # define set of ages over range of data for plotting
   nObs = length(plotages)
+
+  if (length(params) == 5) nSexes = 1
+  if (length(params) == 10) nSexes = 2
 
   if (nSexes == 1) {
     Linf = exp(params[1])
