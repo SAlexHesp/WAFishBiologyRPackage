@@ -25,5 +25,19 @@ and marking, and final capture and measurement.
 Function requires data for individual animals on size at initial capture, size at final capture,
 and time at liberty. Obs_Initlen, Obs_Finlen, Obs_delta_t (Numeric Vectors)
 (stored in memory in R).
-This function (with parameter inputs) can be passed into R optimisation routines (e.g. nlminb).
 }
+\keyword{(e.g.}
+\keyword{(with}
+\keyword{R}
+\keyword{This}
+\keyword{be}
+\keyword{can}
+\keyword{function}
+\keyword{inputs)}
+\keyword{internal}
+\keyword{into}
+\keyword{nlminb).}
+\keyword{optimisation}
+\keyword{parameter}
+\keyword{passed}
+\keyword{routines}

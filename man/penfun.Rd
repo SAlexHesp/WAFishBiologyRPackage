@@ -4,7 +4,7 @@
 \alias{penfun}
 \title{Smooth penalty function penalty value calculation}
 \usage{
-penfun(x, eps)
+penfun(x, eps, pen)
 }
 \arguments{
 \item{x}{value to be check for penalty constraint}

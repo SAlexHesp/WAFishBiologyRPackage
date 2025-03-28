@@ -1,0 +1,14 @@
+{
+    "args": [
+        "-IC:/Program Files/RStudio/resources/libclang/builtin-headers/5.0.2",
+        "-IC:/Program Files/RStudio/resources/libclang/builtin-headers/libc++/5.0.2",
+        "-IC:/Users/ash/AppData/Local/R/win-library/4.4/Rcpp/include",
+        "-std=gnu++17",
+        "-IC:/PROGRA~1/R/R-44~1.2/include",
+        "-DNDEBUG",
+        "-IC:/rtools44/x86_64-w64-mingw32.static.posix/include"
+    ],
+    "pch": "Rcpp",
+    "is_cpp": true,
+    "hash": "1724835158"
+}

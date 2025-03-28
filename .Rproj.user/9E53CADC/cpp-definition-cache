@@ -1,0 +1,49 @@
+[
+    {
+        "file": "C:/~/WAFishBiologyRPackage/src/FishBiologyAnalyses.cpp",
+        "file_last_write": 1710754334.0,
+        "definitions": [
+            {
+                "usr": "c:@F@derivs_x_wr_t_Rcpp#1I#1I#d#d#$@N@Rcpp@S@Vector>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "derivs_x_wr_t_Rcpp(const int, const int, double, double, Rcpp::NumericVector)",
+                "file": "C:/~/WAFishBiologyRPackage/src/FishBiologyAnalyses.cpp",
+                "line": 5,
+                "column": 8,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@RK4SYS_Rcpp#1I#1I#1d#d#d#$@N@Rcpp@S@Vector>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "RK4SYS_Rcpp(const int, const int, const double, double, double, Rcpp::NumericVector)",
+                "file": "C:/~/WAFishBiologyRPackage/src/FishBiologyAnalyses.cpp",
+                "line": 115,
+                "column": 8,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@LenAtAge_Rcpp#1I#$@N@Rcpp@S@Vector>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#1I#1I#1I#1d#1d#S0_#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "LenAtAge_Rcpp(const int, Rcpp::NumericVector, const int, const int, const int, const double, const double, Rcpp::NumericVector, Rcpp::NumericVector)",
+                "file": "C:/~/WAFishBiologyRPackage/src/FishBiologyAnalyses.cpp",
+                "line": 166,
+                "column": 8,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@TaggingGrowthModelNLLCalcs_Rcpp#$@N@Rcpp@S@Vector>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#1I#1I#1I#S0_#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "TaggingGrowthModelNLLCalcs_Rcpp(Rcpp::NumericVector, const int, const int, const int, Rcpp::NumericVector, Rcpp::NumericVector)",
+                "file": "C:/~/WAFishBiologyRPackage/src/FishBiologyAnalyses.cpp",
+                "line": 206,
+                "column": 15,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    }
+]

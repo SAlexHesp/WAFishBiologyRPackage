@@ -1986,6 +1986,11 @@ GetConfidenceLimitsForMixtureDistnCurve <- function(params, vcov.params, DistnTy
 PlotMixtureDistnResults <- function(params, DistnType, Cohorts, ObsFreq, MinSize, MaxSize, SizeInt, ymax, xmax, yint, xint,
                                     GraphTitle, xaxis_lab, yaxis_lab, set.plot.par, PlotHist, PlotCLs) {
 
+  LbndSizeCl <- seq(0, MaxSize-SizeInt, SizeInt)
+  MidPtSizeCl <- LbndSizeCl + (SizeInt/2)
+  SizeIndivs=rep(LbndSizeCl,ObsFreq)
+  if (xmax<max(SizeIndivs)) xmax = trunc(max(SizeIndivs)/xint)*xint+xint
+
   # get default axis limits and intervals
   xlims=Get_xaxis_scale(0:MaxSize)
   ylims=Get_yaxis_scale(ObsFreq)
@@ -2002,9 +2007,6 @@ PlotMixtureDistnResults <- function(params, DistnType, Cohorts, ObsFreq, MinSize
   if (set.plot.par == T) {
     par(mfrow=c(1,1), mar=c(5,4,2,2), oma=c(2,2,2,2))
   }
-  LbndSizeCl <- seq(0, MaxSize-SizeInt, SizeInt)
-  MidPtSizeCl <- LbndSizeCl + (SizeInt/2)
-  SizeIndivs=rep(LbndSizeCl,ObsFreq)
 
   # get parameter estimates
   Res=FitMixtureDistnModel(params, DistnType, Cohorts, MinSize, MaxSize, SizeInt, ObsFreq)
