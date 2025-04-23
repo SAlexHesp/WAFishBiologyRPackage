@@ -171,7 +171,59 @@ $$
 $$
 The model is fitted in R using, firstly, nlminb, and then optim (Nelda-Mead) function. As shown by Sulin (2012), use of these two optmisation routines can improve robustness of the model fitting process, demonstrated by jitter analysis. When fitting the model, the following parameters are estimated: $L_\infty$, $k$, $t_0$, $L_{50}^{h_1 \rightarrow h_2}$, $L_{95}^{h_1 \rightarrow h_2}$, and constant coefficient of variation for mean lengths at age, $CV$. Although the original study allowed for up to 3 habitats, as currently implemented in this package, there can be only two.
 
+### Year effect growth model
 
+This model is broadly based on the year-effects (von Bertalanffy) growth model described by Cottingham et al. (2016), used by those researchers for modelling black bream (Acanthopagrus butcheri) in the Swan River Estuary, WA. Temporal variation is modelled using annual growth parameters for the asymptotic length parameter and/or growth coefficient. The model is fitted to multiple years of length-at-age data. Unlike the model of Cottingham et al. (2016), which includes parameters describing the lengths at age of fish in each year class at the start of the sampling period, the current model estimates the lengths of fish at each age, for this period, based on the traditional von Bertalanffy growth model (which reduces the number of model parameters), similar to the growth analysis undertaken for West Australian dhufish (Glaucosoma hebraicum) in the assessment presented by Fairclough et al. (2021). The model is fitted in using RTMB (Kristensen, 2025).   
+
+The estimated mean length of a fish of sex $s$ at integer age $t$ in the first year, $y=1$, is calculated according to the standard von Bertalanffy growth curve, i.e.
+
+$$
+\hat{L}_{t,s,y=1} = L_\infty,_{s,y=1}(1-\exp(-k_{s,y=1}(t-t_0)))
+$$
+
+where $L_\infty,_{s,y=1}$ and $k_{s,y=1}$ are the sex- and year-specific asymptotic length and growth coefficient parameters, respectively, and $t_0$ is the hypothetical age at zero length, assumed to be common to both sexes. For subsequent years, the same equation is used to calculate the expected length at age zero. 
+
+For subsequent integer ages in years following the first year, $\hat{L}_{t,s,y}$ is calculated as 
+
+$$
+\hat{L}_{t,s,y}=\hat{L}_{t-1,s,y-1}+\hat{g}_{\Delta_{t-t-1},s,y}
+$$
+where $\hat{g}_{\Delta_{t-t-1},s,y}$ denotes the annual growth increment (i.e. growth of fish from integer age $t-1$ to integer age $t$), calculated as 
+
+$$
+\hat{g}_{\Delta_{t-t-1},s,y} = (L_\infty,_{s,y}-\hat{L}_{t-1,s,y-1})(1-\exp(-k_{s,y}))
+$$
+The expected length of a fish of sex $s$ in year $y$, on its date of capture at decimal age $a$, is calculated as
+
+$$
+\hat{L}_{a,s,y}=\hat{L}_{t,s,y-1}+\hat{g}_{\Delta_{a-t,s,y}}
+$$
+where $\hat{g}_{\Delta_{t-t-1},s,y}$ is calculated as
+
+$$
+\hat{g}_{\Delta_{a-t},s,y}=(L_\infty_{s,y}-\hat{L}_{t,s,y})(1-\exp(-k_{s,y}(a - t)))
+$$
+
+The model assumes that negative growth cannot occur. The possibility of negative growth (e.g. as may otherwise be calculated if $L_\infty$ has reduced from one year to the next) is prevented by adjusting $\delta_{t,s,y}$ as follows
+
+$$
+\hat{g}_{t,s,y}=\hat{g}_{t,s,y}^*(1/(1+\exp(\phi(0.0001-\hat{g}_{t,s,y}^*))))
+$$
+where $\hat{g}_{t,s,y}^*$ represents the estimated growth increment, prior to any adjustment. Above, the value of the slope parameter, $\phi$ was set to 
+
+$$
+\log_e(19)/\epsilon 
+$$
+with $\epsilon$ specified as 0.1. The resultant value (29.444) for the slope parameter is relatively steep, which ensures that only values of the annual growth increment that are negative or very close to negative are set to zero. This approach avoids any discontinuities in variables tracked by the model, as can be necessary for optimisation using automatic differentiation (as with RTMB). The model is fitted by minimising the negative log-likelihood ($\lambda$) associated with the fit to observed length-at-age data for fish caught over multiple years. Ignoring constants, this may be calculated as
+
+$$
+\lambda = -\bigg(\frac{n}{2}\bigg)\log_e\bigg(\frac{SSR}{n}\bigg)
+$$
+with the sum of squared residuals ($SSR$) is calculated as
+
+$$
+SSR=\sum_{j=1}^n(L_{t,s,y}-\hat{L}_{t,s,y})^2
+$$
 
 ### Available functions related to fish growth analysis using length-at-age data or length distribution data 
 
@@ -192,7 +244,13 @@ GetSeasonalGrowthResults()
 The available functions related to mixture distribution analyses are:  
 GetMixtureModelResults()  
 PlotMixtureDistnResults()  
- 
+
+The available functions related to fitting a growth model allowing for a size-related movement are:  
+GetOffMoveGrowthModResults()  
+
+The available functions related to fitting a growth model allowing for time-varying growth are:  
+SimTimeVaryLenAtAgeDat()  
+GetOffMoveGrowthModResults()  
 
 ### Alternative growth models for tag increment data
 
@@ -426,12 +484,17 @@ GetSpawningDurationModelResults()
 
 Chapman, D. G., and D. S. Robson. (1960). The analysis of a catch curve. Biometrics 16:354-368. 
 
+Cottingham, A., Hall, N. G. & Potter, I. C. (2016). Factors influencing growth of Acanthopagrus butcheri (Sparidae) in a
+eutrophic estuary have changed over time. Estuarine, Coastal and Shelf Science 168, 29-39.
+
 Cossington, S., Hesp, S. A., Hall, N. G. & Potter, I. C. (2011). Growth and reproductive biology of the foxfish Bodianus
 frenchii, a very long-lived and monandric protogynous hermaphroditic labrid. Journal of Fish Biology (2010) 77, 600–626.
 
 deLestang, S. (2018). Could warming oceans and increased lobster biomass rates be affecting growth rates in Australia’s largest lobster fishery? Bull Mar Sci. 94, 1055–1075.
 
 Evans-Powell, R., Hesp, S. A., Denham, A., Beckley, L. E. (2024). Implications of big, old, fat, fecund female fish (BOFFFFs) in sustaining a large demersal teleost species. Fisheries Research.
+
+Fairclough, D. V., Hesp, S. A., Denham, A., Fisher, E. A., Marks, R., Ryan, K. L., Lek, E., Allen, R., Crisafulli, B. M. (2021). 2021 assessment of the status of the West Coast Demersal Scalefish Resource. Fisheries Research Report No. 316 Department of Primary Industries and Regional Development, Western Australia. 158 pp.
 
 French, B., Potter, I. C., Hesp, S. A., Coulson, P. G. & Hall, N. G. (2014). Biology of the harlequin fish Othos dentex (Serranidae), with particular emphasis on sexual pattern and other reproductive characteristics. Journal of Fish Biology (2014). 84, 106-132.DOI 10.1007/s00227-003-1217-2.
 
@@ -440,6 +503,8 @@ Haddon, M. (2011). Modelling and Quantitative Methods in Fisheries. Chapman & Ha
 Hesp, S. A., Hall, N. G. & Potter, I. C. (2004). Size-related movements of Rhabdosargus sarba in three different environments and their influence on estimates of von Bertalanffy growth parameters. Marine Biology 144, 449–462.
 
 Helidoniotis F., Haddon M., Tuck G. ^ Tarbath D. (2011). The relative suitability of the von Bertalanffy, Gompertz and inverse logistic models for describing growth in blacklip abalone populations (Haliotis rubra) in Tasmania, Australia. Fisheries Research 112, 13-21.
+
+Kristensen K (2025). RTMB: 'R' Bindings for 'TMB'_. R package version 1.7, <https://CRAN.R-project.org/package=RTMB>.
 
 Marks, R., Hesp, S. A., Johnston, D., Denham, A. & Loneragan, N. (2020). Temporal changes in the growth of a crustacean species, Portunus armatus, in a temperate marine embayment: evidence of density dependence. ICES Journal of Marine Science 77: 773-790.
 
@@ -452,6 +517,8 @@ Smith, M. W., Then, A. Y., Wor, C., Ralph, G., Pollock, K. H. & Hoenig, J/. M. (
 Strain, L. W. S., Hesp, S. A., Fabris, F. and Hart, A. M. (2017). Demographic performance of Brownlip abalone: exploration of wild and cultured harvest potential. FRDC Project No. 2012/016. Fisheries Research Report No. 280, Department of Fisheries, Western Australia, 100pp.
 
 Sulin, E. H. (2012). Comparisons of the size and age compositions and growth of King George Whiting (Sillaginodes punctata) in different regions of south-western Australia. Masters Thesis. Murdoch University.
+
+Venables, W. N. & Ripley, B. D. (2002) Modern Applied Statistics with S. Fourth Edition. Springer, New York. ISBN 0-387-95457-0.
 
 von Bertalanffy, L. (1938). A quantitative theory of organic growth (inquiries on growth laws. II). Human Biology 10(2), 181-213.
 

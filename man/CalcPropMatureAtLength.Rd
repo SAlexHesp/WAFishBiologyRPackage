@@ -44,7 +44,7 @@ L50 = 220
 L95 = 270
 Pmax = 1.0
 MaturityParams = c(L50, L95, Pmax)
-SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
+res=SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
 ObsLen=res$ObsLen
 ObsMatCat=res$ObsMatCat
 CalcPropMatureAtLength(MaxLen, LenInc, ObsLen, ObsMatCat)

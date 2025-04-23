@@ -68,7 +68,7 @@ vbK = 0.4
 CVSizeAtAge = 0.08
 GrowthParams = c(Linf, vbK)
 RefnceAges = NA
-Res=SimLenAndAgeFreqData(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
+Res=SimLenAndAgeFreqData_EqMod(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
                          SelParams, RetenParams, SelectivityVec, DiscMort, GrowthCurveType, GrowthParams, RefnceAges, CVSizeAtAge)
 # plot(Res$ObsDecAgeRetCatch_Fem, Res$ObsRandLenRetCatch_Fem, ylim=c(0,MaxLen), xlim=c(0,MaxAge))
 # Now simulate length data from a Dirchlet multinomial distribution, with specified autocorrelation,
@@ -82,10 +82,10 @@ Mnth <- sort(rep(1:12,nSampEvents*nFishPerSampEvent))
 nSamples = length(Mnth)
 theta_val = 0.9 # level of autocorrelation of lengths within sampling events
 midpt = Res$midpt
-ExpPropAtLen = Res$ModelDiag$ExpRetCatchPropAtLen
+ExpPropAtLen = Res$ModelDiag$ExpRetCatchPropAtLen_Fem
 FishLen <- NA
 for (mm in 1:12) {
-  res=SimLenFreqDat_DirMultDistn(nSampEvents, nFishPerSampEvent, theta_val, midpt, ExpPropAtLen)
+  res=SimLenFreqDat_DirMultDistn_EqMod(nSampEvents, nFishPerSampEvent, theta_val, midpt, ExpPropAtLen)
   if (mm == 1) {
     FishLen <- rep(res$midpt, res$simLenFreq)
   } else {

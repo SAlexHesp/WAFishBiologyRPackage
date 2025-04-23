@@ -42,29 +42,32 @@ A95 = 6
 Pmax = 1.0
 MaturityParams = c(A50, A95, Pmax)
 SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
-# nSexes = 2
-# nSamples = c(300,300)
-# A50 = c(4,4.5)
-# A95 = c(6,6)
-# Pmax = c(1.0,1.0)
-# MaturityParams = c(A50, A95, Pmax)
-# SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
-# CurveType = 2  # 1 = symmetric, 2 = asymmetric
-# nSexes = 1
-# nSamples = 300
-# Q = 0.01
-# B = 0.05
-# V = 0.5
-# Pmax = 1.0
-# MaturityParams = c(Q,B,V,Pmax)
-# SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
-# CurveType = 2  # 1 = symmetric, 2 = asymmetric
-# nSexes = 2
-# nSamples = c(300,300)
-# Q = c(0.01,0.01)
-# B = c(0.05,0.05)
-# V = c(0.5,0.5)
-# Pmax = c(1.0,1.0)
-# MaturityParams = c(Q,B,V,Pmax)
-# SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
+nSexes = 2
+nSamples = c(300,300)
+A50 = c(4,4.5)
+A95 = c(6,6)
+Pmax = c(1.0,1.0)
+MaturityParams = c(A50, A95, Pmax)
+SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
+CurveType = 2  # 1 = symmetric, 2 = asymmetric
+nSexes = 1
+nSamples = 300
+Q = 0.5
+B = 0.5
+V = 0.05
+Pmax = 1.0
+MaturityParams = c(Q,B,V,Pmax)
+res=SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
+# plot(res$AgeClasses, res$PropMat)
+CurveType = 2  # 1 = symmetric, 2 = asymmetric
+nSexes = 2
+nSamples = c(300,300)
+Q = c(0.5,0.5)
+B = c(0.5,0.5)
+V = c(0.05,0.05)
+Pmax = c(1.0,1.0)
+MaturityParams = c(Q,B,V,Pmax)
+res=SimulateAgeAtMaturityData(nSamples, CurveType, nSexes, MinAge, MaxAge, MaturityParams)
+# plot(res$AgeClasses, res$FemPropMat)
+# points(res$AgeClasses, res$MalPropMat, col="blue")
 }

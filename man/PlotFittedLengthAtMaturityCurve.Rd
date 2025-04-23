@@ -111,6 +111,36 @@ params = c(InitL50, InitL95) # without Pmax parameter
 PlotFittedLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
                                 xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm",
                                 yaxis_lab="Prop. mature", SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=FALSE)
+# 3 parameter model asymmetric curve
+CurveType = 2 # 1 = symmetric logistic, 2 = asymmetric logistic
+Q = 20
+B = 200
+V = 2
+Pmax = 1.0
+MaturityParams = c(Q, B, V, Pmax)
+res = SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
+plot(res$midpt, res$PropMat)
+# fit model to synthetic data
+ObsAgeCl=NA
+ObsLen=res$ObsLen
+ObsMatCat=res$ObsMatCat
+LogisticModType = 1 # 1=length, 2=age
+InitQ = 25
+InitB = 250
+InitV = 1.5
+params = c(InitQ, InitB, InitV) # with Pmax parameter
+xmax=400
+xint=50
+GraphTitle=NA
+xaxis_lab="Total length, mm"
+yaxis_lab="Prop. mature"
+SampSizelab_cex=NA
+ShowSampSizes=TRUE
+ShowLegend=FALSE
+PlotCLs=FALSE
+PlotFittedLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
+                                xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm",
+                                yaxis_lab="Prop. mature", SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=FALSE)
 # plot model fitted to separate sexes (simultaneously)
 # generate synthetic data
 # set.seed(123)
