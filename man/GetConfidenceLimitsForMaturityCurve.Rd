@@ -6,6 +6,7 @@
 \usage{
 GetConfidenceLimitsForMaturityCurve(
   params,
+  ErrOpt,
   vcov.params,
   CurveType,
   nSexes,
@@ -16,6 +17,8 @@ GetConfidenceLimitsForMaturityCurve(
 }
 \arguments{
 \item{params}{c(L50,L95) or c(A50, A95) length or age-based logistic maturity parameters}
+
+\item{ErrOpt}{1=varcov approx, 2=boostrap}
 
 \item{vcov.params}{estimated variance-covariance matrix for maturity parameters}
 

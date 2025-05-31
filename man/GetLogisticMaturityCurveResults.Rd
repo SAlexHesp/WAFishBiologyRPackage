@@ -11,7 +11,8 @@ GetLogisticMaturityCurveResults(
   CurveType,
   ObsLen,
   ObsAgeCl,
-  ObsMatCat
+  ObsMatCat,
+  ErrOpt
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ GetLogisticMaturityCurveResults(
 \item{ObsAgeCl}{vector of observed age classes (set to NA for length model)}
 
 \item{ObsMatCat}{vector of observed maturity categories (0=immature, 1=mature)}
+
+\item{ErrOpt}{method for uncertainty calculation (1=varcov approx, 2=bootstrap)}
 }
 \value{
 negative log-likelihood (nll), nlminb convergence diagnostic (convergence), sample size (SampleSize)
@@ -68,18 +71,19 @@ ObsLen=res$ObsLen
 ObsMatCat=res$ObsMatCat
 LogisticModType = 1 # 1=length, 2=age
 CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
+ErrOpt = 1 # 1=varcov approx, 2=bootstrap
 # 2 parameter model symmetric curve
 InitL50 = 200
 InitL95 = 250
 params = c(InitL50, InitL95) # without Pmax parameter
-res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
+res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt) # get length-at-maturity results
 # 3 parameter model symmetric curve
 InitL50 = 200
 InitL95 = 250
 InitPmax = 0.9
 InitPmax_logit = log(InitPmax/(1-InitPmax)) # logit transform
 params = c(InitPmax_logit, InitL50, InitL95) # with Pmax parameter
-res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
+res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt) # get length-at-maturity results
 # 3 parameter model asymmetric curve
 CurveType = 2 # 1 = symmetric logistic, 2 = asymmetric logistic
 Q = 20
@@ -94,11 +98,12 @@ ObsAgeCl=NA
 ObsLen=res$ObsLen
 ObsMatCat=res$ObsMatCat
 LogisticModType = 1 # 1=length, 2=age
+ErrOpt = 1 # 1=varcov approx, 2=bootstrap
 InitQ = 25
 InitB = 250
 InitV = 1.5
 params = c(InitQ, InitB, InitV) # with Pmax parameter
-res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
+res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt) # get length-at-maturity results
 # separate sexes
 nSexes = 2
 nSamples = c(500,500)
@@ -121,18 +126,19 @@ FemObsMatCat=res$FemObsMatCat
 MalObsMatCat=res$MalObsMatCat
 ObsMatCat = as.matrix(t(data.frame(FemObsMatCat=FemObsMatCat,MalObsMatCat=MalObsMatCat)))
 LogisticModType = 1 # 1=length, 2=age
+ErrOpt = 1 # 1=varcov approx, 2=bootstrap
 # 2 parameter model symmetric curve
 InitL50 = c(200, 220)
 InitL95 = c(250, 270)
 params = c(InitL50, InitL95) # without Pmax parameter
-res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
+res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt) # get length-at-maturity results
 # 3 parameter model symmetric curve
 InitL50 = c(200, 220)
 InitL95 = c(250, 270)
 InitPmax = c(0.8, 0.8)
 InitPmax_logit = log(InitPmax/(1-InitPmax)) # logit transform
 params = c(InitPmax_logit, InitL50, InitL95) # with Pmax parameter
-res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get length-at-maturity results
+res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt) # get length-at-maturity results
 # age-at-maturity
 MinAge = 0
 MaxAge = 20
@@ -148,18 +154,19 @@ ObsLen=NA
 ObsAgeCl=res$ObsAgeCl
 ObsMatCat=res$ObsMatCat
 LogisticModType = 2 # 1=length, 2=age
+ErrOpt = 1 # 1=varcov approx, 2=bootstrap
 # 2 parameter model
 InitA50 = 3
 InitA95 = 5
 params = c(InitA50, InitA95) # without Pmax parameter
-res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
+res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt) # get age-at-maturity results
 # 3 parameter model
 InitA50 = 4.5
 InitA95 = 7
 InitPmax = 0.9
 InitPmax_logit = log(InitPmax/(1-InitPmax)) # logit transform
 params = c(InitPmax_logit, InitA50, InitA95) # with Pmax parameter
-res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
+res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt) # get age-at-maturity results
 # # 3 parameter age-based asymmetric curve
 # # generate synthetic length at maturity data
 set.seed(144)
@@ -178,11 +185,12 @@ ObsLen=NA
 ObsAgeCl=res$ObsAgeCl
 ObsMatCat=res$ObsMatCat
 LogisticModType = 2 # 1=length, 2=age
+ErrOpt = 1 # 1=varcov approx, 2=bootstrap
 InitQ = 2 # related to y(0) value
 InitB = 6 # the growth rate
 InitV = 3 # affects near which asymptote maximum growth occurs
 params = c(log(InitQ), InitB, log(InitV)) # without Pmax parameter
-Res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
+Res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt) # get age-at-maturity results
 # separate sexes
 nSexes = 2
 nSamples = c(300,300)
@@ -202,12 +210,12 @@ ObsMatCat = as.matrix(t(data.frame(FemObsMatCat=FemObsMatCat,MalObsMatCat=MalObs
 InitA50 = c(3,3)
 InitA95 = c(5,5)
 params = c(InitA50, InitA95) # without Pmax parameter
-res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
+res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt) # get age-at-maturity results
 # 3 parameter model
 InitA50 = c(4.5,4)
 InitA95 = c(7,7)
 InitPmax = c(0.9,0.9)
 InitPmax_logit = log(InitPmax/(1-InitPmax)) # logit transform
 params = c(InitPmax_logit, InitA50, InitA95) # with Pmax parameter
-res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
+res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt) # get age-at-maturity results
 }

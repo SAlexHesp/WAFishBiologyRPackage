@@ -78,6 +78,26 @@ S(t_0)=\frac{CK}{2\pi} \sin{2\pi}(t_0-t_s)
 $$
 In the above equations, $C$ modifies the amplitude of the growth oscillations and $t_s$ represents the time between time 0 and the start of the convex portion of the first sinusoidal growth oscillation, i.e. the inflection point (see Garcia-Berthou et al., 2012). If C = 0, then there is no seasonal oscillation and the model reduces to the typical von Bertalanffy growth model. If C = 1, then growth completely ceases during one part of the year.
 
+#### Growth curve allowing for diverent growth
+
+This model assumes that initially, growth is the same between the two groups (e.g. if fish start out as same sex, then growth diverges following sex change, or if all fish are spawned in one area, then growth diverges as some move to another area). The typical age at which growth diverges, $t_{div}$,  is estimated as a parameter. Growth is assumed to follow a von Bertalanffy growth pattern. For the example of protogynous hermaphroditism as described by Coulson et al. (2009), the length of a fish at age $t$ is  
+
+$$
+L^s_t = 
+\begin{cases} 
+L^f_{\infty}(1-\exp(-k^f(t-t^f_0))) & \text{if } s = f \text{ or } t <= t_{div} \\
+L^m_{\infty}(1-\exp(-k^m(t-t^m_0))) & \text{if } s = m \text{ or } t > t_{div} \\
+\end{cases}
+$$
+
+where $L^f_\infty$ and $L^m_\infty$ are the asymptotic lengths of females and males, $k^f$ and $k^m$ are the growth coefficients for the two sexes, and $t^f_0$ and $t^m_0$ are the hypothetical ages at zero length for the two sexes. In the above equation, $t^m_0$ is a derived parameter, calculated as
+
+$$
+  t^m_0 = t^f_0 - (1/k^f)\log_e[1-(L_{div}/L^f_{\infty})] +
+    (1/k^m)\log_e(1-[L_{div}/L^m_{\infty})]
+$$
+Above, $L_{div}$ is the length at which growth is estimated to begin diverging between the two groups, corresponding to the estimated length of females at age $t_{div}$.
+
 #### Objective function for fitting growth curves to length-at-age data
 
 The objective function minimised by nlminb is the negative log-likelihood, calculated as
@@ -201,7 +221,7 @@ $$
 where $\hat{g}_{\Delta_{t-t-1},s,y}$ is calculated as
 
 $$
-\hat{g}_{\Delta_{a-t},s,y}=(L_\infty_{s,y}-\hat{L}_{t,s,y})(1-\exp(-k_{s,y}(a - t)))
+\hat{g}_{\Delta_{a-t},s,y}=(L_{\infty,s,y}-\hat{L}_{t,s,y})(1-\exp(-k_{s,y}(a - t)))
 $$
 
 The model assumes that negative growth cannot occur. The possibility of negative growth (e.g. as may otherwise be calculated if $L_\infty$ has reduced from one year to the next) is prevented by adjusting $\delta_{t,s,y}$ as follows
@@ -370,12 +390,22 @@ The probability, $P$, of a fish, of length $L$ being mature, may be described us
 $$
 \rho = {P_{\max}/(1+\exp(-\log_e(19)(L-L_{50})/(L_{95}-L_{50})))}
 $$
-where P_{max} is the maximum proportion of fish that are mature, $L_{50}$ and $L_{95}$ are the lengths at which 50 and 95% of fish are mature, respectively. The same form of equation may be used to describe the probability of maturity of fish at age, replacing $L$ with fish age, and $L_{50}$ and $L_{95}$ with $A_{50}$ and $A_{95}$, i.e. the ages at which 50 and 95% of fish are mature, respectively. In cases where $P_{\max}$ can be assumed to be equal to 1, only two parameters (either $L_{50}$ and $L_{95}$, or $A_{50}$ and $A_{95}$) are input into the model. Alternatively, the following function, allowing for asymmetry, may be applied
+where P_{max} is the maximum proportion of fish that are mature, $L_{50}$ and $L_{95}$ are the lengths at which 50 and 95% of fish are mature, respectively. The same form of equation may be used to describe the probability of maturity of fish at age, replacing $L$ with fish age, and $L_{50}$ and $L_{95}$ with $A_{50}$ and $A_{95}$, i.e. the ages at which 50 and 95% of fish are mature, respectively. In cases where $P_{\max}$ can be assumed to be equal to 1, only two parameters (either $L_{50}$ and $L_{95}$, or $A_{50}$ and $A_{95}$) are input into the model. 
 
+For some WA species for which there was evidence that a logistic curve allowing for asymmetry would provide a better fit to available maturity data, the following logistic curve (derived from Richard's generalised logistic curve) has been used
 $$
 \rho = {P_{\max}/((1+Q\exp(-BL))^{1/V})}
 $$
-where $P_{max}$, $Q$, $B$ and $v$ are estimated parameters. Similar to above, where P_{max} can be assumed to equal one, only 3 parameters need to be estimated.
+where $P_{max}$, $Q$, $B$ and $v$ are estimated parameters. Thus, similar to above, if $P_{max}$ can be assumed to equal one, 3 parameters need to be estimated. Some subsequent explorations of this model, using simulated data, have shown that this form of model can be difficult to fit, associated with high parameter correlations. To reduce parameter correlations, in WAFishBiology, the following reparameterised version is used
+
+$$
+\rho = P_{max}(1 + \exp(-x))^{-V}
+$$
+where $x$ represented scaled length (or age) data, calculated as
+$$
+x = (L - B) / Q
+$$
+In the above model, the parameter $Q$ controls the 'spread' over which the maturity curve is changing, $B$ is the inflection point of the curve and $V$ controls the level of curve asymmetry. The standard symmetric logistic maturity curves are fitted using nlminb (as with most models in WAFishBiology), whereas asymmetric logistic maturity curves are fitted using the "Nelda-Mead" method, within Optim, as this latter optimisation method can be more robust when relatively high parameter correlations exist.  
 
 
 #### Objective function for fitting size or age at maturity (or sex change) curves
@@ -479,16 +509,18 @@ CalcDailySpawnProps_SpDurMod()
 GetSpawningDurationModelResults()  
 
 
-
 ## References:
 
 Chapman, D. G., and D. S. Robson. (1960). The analysis of a catch curve. Biometrics 16:354-368. 
 
-Cottingham, A., Hall, N. G. & Potter, I. C. (2016). Factors influencing growth of Acanthopagrus butcheri (Sparidae) in a
-eutrophic estuary have changed over time. Estuarine, Coastal and Shelf Science 168, 29-39.
+Cottingham, A., Hall, N. G. & Potter, I. C. (2016). Factors influencing growth of Acanthopagrus butcheri (Sparidae) in a eutrophic estuary have changed over time. Estuarine, Coastal and Shelf Science 168, 29-39.
 
 Cossington, S., Hesp, S. A., Hall, N. G. & Potter, I. C. (2011). Growth and reproductive biology of the foxfish Bodianus
 frenchii, a very long-lived and monandric protogynous hermaphroditic labrid. Journal of Fish Biology (2010) 77, 600–626.
+
+Coulson, P. G., Hesp, S. A., Hall, N. G. & Potter, I. C. (2009). The western blue groper (Achoerodus gouldii),
+a protogynous hermaphroditic labrid with exceptional longevity, late maturity, slow growth, and both late maturation
+and sex change. Fishery Bulletin 107:57–75.
 
 deLestang, S. (2018). Could warming oceans and increased lobster biomass rates be affecting growth rates in Australia’s largest lobster fishery? Bull Mar Sci. 94, 1055–1075.
 

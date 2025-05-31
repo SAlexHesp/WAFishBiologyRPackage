@@ -307,4 +307,40 @@ plotages=seq(0, MaxAge,0.1)
 PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd,
                       params, Ref_ages, plotages, ymax=200, xmax=NA, yint=50, xint=NA, GraphTitle=NA,
                       xaxis_lab=NA, yaxis_lab=NA, PlotCLs=F, FittedRes)
+# simulate data allowing for divergent growth
+set.seed(123)
+GrowthEqn = 4 # von Bertalanffy growth equation with divergent growth
+nSexes = 2 # single or combined sex
+nSamples = 1000
+MinAge = 0
+MaxAge = 20
+AgeStep = 1
+Linf = c(1000,500)
+vbK = c(0.2,0.2)
+tzero1 = 0
+tdiverge = 2
+Growth_params = c(Linf, vbK, tzero1, tdiverge)
+Ref_ages = NA
+Growth_cv = 0.1
+Res = SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
+x=which(Res$ObsDat$ObsSex==1)
+plot(Res$ObsAge[x], Res$ObsLen[x])
+y=which(Res$ObsDat$ObsSex==2)
+points(Res$ObsAge[y], Res$ObsLen[y],col="blue")
+# fit growth model allowing for divergent growth
+InitLinf = c(1050,500)
+InitvbK = c(0.13,0.13)
+Inittzero1 = 0
+Inittdiverge = 4
+params = c(log(InitLinf), log(InitvbK), Inittzero1, log(Inittdiverge))
+ObsAge = Res$ObsDat$ObsAge
+ObsLen = Res$ObsDat$ObsLen
+ObsSex = Res$ObsDat$ObsSex
+FittedRes=GetDivergeGrowthModelResults(params, ObsAge, ObsLen, ObsSex)
+FittedRes$ParamEst
+DataType=1
+plotages = seq(MinAge,MaxAge,0.1)
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsMeanLen,
+                      ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+                      GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 }

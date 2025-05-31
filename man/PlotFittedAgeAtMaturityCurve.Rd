@@ -22,7 +22,8 @@ PlotFittedAgeAtMaturityCurve(
   SampSizelab_cex,
   ShowSampSizes,
   ShowLegend,
-  PlotCLs
+  PlotCLs,
+  ErrOpt
 )
 }
 \arguments{
@@ -59,6 +60,8 @@ PlotFittedAgeAtMaturityCurve(
 \item{ShowSampSizes}{logical (set to TRUE to show sample size labels)}
 
 \item{PlotCLs}{logical (set to TRUE to show 95 percent confidence limits for curve)}
+
+\item{ErrOpt}{method for uncertainty calculation (1=varcov approx, 2=bootstrap)}
 }
 \description{
 This function fits a logistic maturity curve to maturity-at-age data. Various plotting
@@ -83,14 +86,15 @@ AgeClSampSize=res$AgeClSampSize
 ObsAgeCl=res$ObsAgeCl
 ObsMatCat=res$ObsMatCat
 LogisticModType = 2 # 1=length, 2=age
+ErrOpt = 1 # 1=varcov approx, 2=bootstrap
 plotages=res$plotages
 # 2 parameter model
 InitA50 = 3
 InitA95 = 5
 params = c(InitA50, InitA95) # without Pmax parameter
 PlotFittedAgeAtMaturityCurve(params, CurveType, nSexes, ObsAgeCl, ObsMatCat, AgeCl, PropMat, AgeClSampSize, plotages,
-                             xmax=20, xint=2, GraphTitle=NA, xaxis_lab=NA,
-                             yaxis_lab=NA, SampSizelab_cex = NA, ShowSampSizes=FALSE, ShowLegend=FALSE, PlotCLs=FALSE)
+                             xmax=20, xint=2, GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, SampSizelab_cex = NA,
+                             ShowSampSizes=FALSE, ShowLegend=FALSE, PlotCLs=FALSE, ErrOpt)
 # plot model fitted to separate sexes (simultaneously)
 # generate synthetic data
 MinAge = 0
@@ -115,6 +119,7 @@ InitA50 = c(3,3)
 InitA95 = c(5,5)
 params = c(InitA50, InitA95) # without Pmax parameter
 LogisticModType=2
+ErrOpt = 1 # 1=varcov approx, 2=bootstrap
 plotages=res$Femplotages # plotting routine assumes the same age range for females and males
 FemPropMat=res$FemPropMat
 MalPropMat=res$MalPropMat
@@ -123,8 +128,8 @@ FemAgeClSampSize=res$FemAgeClSampSize
 MalAgeClSampSize=res$MalAgeClSampSize
 AgeClSampSize = as.matrix(t(data.frame(FemAgeClSampSize=FemAgeClSampSize,MalAgeClSampSize=MalAgeClSampSize)))
 PlotFittedAgeAtMaturityCurve(params, CurveType, nSexes, ObsAgeCl, ObsMatCat, AgeCl, PropMat, AgeClSampSize, plotages,
-                             xmax=20, xint=2, GraphTitle=NA, xaxis_lab=NA,
-                             yaxis_lab=NA, SampSizelab_cex = NA, ShowSampSizes=FALSE, ShowLegend=FALSE, PlotCLs=FALSE)
+                             xmax=20, xint=2, GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, SampSizelab_cex = NA,
+                             ShowSampSizes=FALSE, ShowLegend=FALSE, PlotCLs=FALSE, ErrOpt)
 # generate synthetic age at maturity data, single sex, 3 parameter model
 set.seed(144)
 MinAge = 0
@@ -142,17 +147,18 @@ ObsLen=NA
 ObsAgeCl=res$ObsAgeCl
 ObsMatCat=res$ObsMatCat
 LogisticModType = 2 # 1=length, 2=age
+ErrOpt = 1 # 1=varcov approx, 2=bootstrap
 InitQ = 2 # related to y(0) value
 InitB = 6 # the growth rate
 InitV = 3 # affects near which asymptote maximum growth occurs
 params = c(log(InitQ), InitB, log(InitV)) # without Pmax parameter
-Res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) # get age-at-maturity results
+Res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt) # get age-at-maturity results
 Res$ParamEst
 AgeCl = res$AgeClasses
 PropMat = res$PropMat
 AgeClSampSize=res$AgeClSampSize
 plotages = seq(MinAge, MaxAge, 0.1)
 PlotFittedAgeAtMaturityCurve(params, CurveType, nSexes, ObsAgeCl, ObsMatCat, AgeCl, PropMat, AgeClSampSize, plotages,
-                             xmax=20, xint=2, GraphTitle=NA, xaxis_lab=NA,
-                             yaxis_lab=NA, SampSizelab_cex = 0.8, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=TRUE)
+                             xmax=20, xint=2, GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, SampSizelab_cex = 0.8,
+                             ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=TRUE, ErrOpt)
 }

@@ -22,7 +22,8 @@ PlotFittedLengthAtMaturityCurve(
   SampSizelab_cex,
   ShowSampSizes,
   ShowLegend,
-  PlotCLs
+  PlotCLs,
+  ErrOpt
 )
 }
 \arguments{
@@ -59,6 +60,8 @@ PlotFittedLengthAtMaturityCurve(
 \item{ShowSampSizes}{logical (set to TRUE to show sample size labels)}
 
 \item{PlotCLs}{logical (set to TRUE to show 95 percent confidence limits for curve)}
+
+\item{ErrOpt}{method for uncertainty calculation (1=varcov approx, 2=bootstrap)}
 }
 \value{
 fitted curve on scatter plot with maturity-at-length data
@@ -95,6 +98,7 @@ midpt=res$midpt
 PropMat=res$PropMat
 LenClSampSize=res$LenClSampSize
 LogisticModType = 1 # 1=length, 2=age
+ErrOpt = 1 # 1=varcov approx, 2=bootstrap
 res$ParamEst
 plotlengths=res$plotlengths
 plotlengthrange=c(min(plotlengths),max(plotlengths))
@@ -109,8 +113,8 @@ params = c(InitL50, InitL95) # without Pmax parameter
 # InitPmax_logit = log(InitPmax/(1-InitPmax)) # logit transform
 # params = c(InitPmax_logit, InitL50, InitL95) # with Pmax parameter
 PlotFittedLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
-                                xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm",
-                                yaxis_lab="Prop. mature", SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=FALSE)
+                                xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm", yaxis_lab="Prop. mature",
+                                SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=FALSE, ErrOpt)
 # 3 parameter model asymmetric curve
 CurveType = 2 # 1 = symmetric logistic, 2 = asymmetric logistic
 Q = 20
@@ -119,72 +123,64 @@ V = 2
 Pmax = 1.0
 MaturityParams = c(Q, B, V, Pmax)
 res = SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
-plot(res$midpt, res$PropMat)
 # fit model to synthetic data
 ObsAgeCl=NA
 ObsLen=res$ObsLen
 ObsMatCat=res$ObsMatCat
 LogisticModType = 1 # 1=length, 2=age
+ErrOpt = 1 # 1=varcov approx, 2=bootstrap
 InitQ = 25
 InitB = 250
 InitV = 1.5
 params = c(InitQ, InitB, InitV) # with Pmax parameter
-xmax=400
-xint=50
-GraphTitle=NA
-xaxis_lab="Total length, mm"
-yaxis_lab="Prop. mature"
-SampSizelab_cex=NA
-ShowSampSizes=TRUE
-ShowLegend=FALSE
-PlotCLs=FALSE
 PlotFittedLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
-                                xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm",
-                                yaxis_lab="Prop. mature", SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=FALSE)
+                                xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm", yaxis_lab="Prop. mature",
+                                SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=FALSE, ErrOpt)
 # plot model fitted to separate sexes (simultaneously)
 # generate synthetic data
-# set.seed(123)
-# MaxAge = 20
-# MinLen = 0
-# MaxLen = 400
-# LenInc = 20
-# nSexes = 2
-# nSamples = c(500,500)
-# CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
-# Linf = c(300,350)
-# vbK = c(0.2,0.2)
-# tzero = c(0,0)
-# CVSizeAtAge = c(0.1,0.1)
-# GrowthParams = c(Linf, vbK, tzero, CVSizeAtAge)
-# L50 = c(200,220)
-# L95 = c(240,250)
-# Pmax = c(1,1)
-# MaturityParams = c(L50, L95, Pmax)
-# res=SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
-# ObsAgeCl=NA
-# FemObsLen=res$FemObsLen
-# MalObsLen=res$MalObsLen
-# ObsLen = as.matrix(t(data.frame(FemObsLen=FemObsLen,MalObsLen=MalObsLen)))
-# FemObsMatCat=res$FemObsMatCat
-# MalObsMatCat=res$MalObsMatCat
-# ObsMatCat = as.matrix(t(data.frame(FemObsMatCat=FemObsMatCat,MalObsMatCat=MalObsMatCat)))
-# LogisticModType = 1 # 1=length, 2=age
-# # 2 parameter model
-# InitL50 = c(200, 220)
-# InitL95 = c(250, 270)
-# params = c(InitL50, InitL95) # without Pmax parameter
-# FemPropMat=res$FemPropMat
-# MalPropMat=res$MalPropMat
-# PropMat = as.matrix(t(data.frame(FemPropMat=FemPropMat,MalPropMat=MalPropMat)))
-# FemLenClSampSize=res$FemLenClSampSize
-# MalLenClSampSize=res$MalLenClSampSize
-# LenClSampSize = as.matrix(t(data.frame(FemLenClSampSize=FemLenClSampSize,MalLenClSampSize=MalLenClSampSize)))
-# Femplotlengths = res$Femplotlengths
-# Malplotlengths = res$Malplotlengths
-# plotlengthrange = as.matrix(t(data.frame(Females=c(min(Femplotlengths),max(Femplotlengths)),
-#                                          Males=c(min(Malplotlengths),max(Malplotlengths)))))
-# midpt=res$midpt
-# PlotFittedLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
-#                                 xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm",
-#                                 yaxis_lab="Prop. mature", SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=TRUE)
+set.seed(123)
+MaxAge = 20
+MinLen = 0
+MaxLen = 400
+LenInc = 20
+nSexes = 2
+nSamples = c(500,500)
+CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
+Linf = c(300,350)
+vbK = c(0.2,0.2)
+tzero = c(0,0)
+CVSizeAtAge = c(0.1,0.1)
+GrowthParams = c(Linf, vbK, tzero, CVSizeAtAge)
+L50 = c(200,220)
+L95 = c(240,250)
+Pmax = c(1,1)
+MaturityParams = c(L50, L95, Pmax)
+res=SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
+ObsAgeCl=NA
+FemObsLen=res$FemObsLen
+MalObsLen=res$MalObsLen
+ObsLen = as.matrix(t(data.frame(FemObsLen=FemObsLen,MalObsLen=MalObsLen)))
+FemObsMatCat=res$FemObsMatCat
+MalObsMatCat=res$MalObsMatCat
+ObsMatCat = as.matrix(t(data.frame(FemObsMatCat=FemObsMatCat,MalObsMatCat=MalObsMatCat)))
+LogisticModType = 1 # 1=length, 2=age
+ErrOpt = 1 # 1=varcov approx, 2=bootstrap
+# 2 parameter model
+InitL50 = c(200, 220)
+InitL95 = c(250, 270)
+params = c(InitL50, InitL95) # without Pmax parameter
+FemPropMat=res$FemPropMat
+MalPropMat=res$MalPropMat
+PropMat = as.matrix(t(data.frame(FemPropMat=FemPropMat,MalPropMat=MalPropMat)))
+FemLenClSampSize=res$FemLenClSampSize
+MalLenClSampSize=res$MalLenClSampSize
+LenClSampSize = as.matrix(t(data.frame(FemLenClSampSize=FemLenClSampSize,MalLenClSampSize=MalLenClSampSize)))
+Femplotlengths = res$Femplotlengths
+Malplotlengths = res$Malplotlengths
+plotlengthrange = as.matrix(t(data.frame(Females=c(min(Femplotlengths),max(Femplotlengths)),
+                                         Males=c(min(Malplotlengths),max(Malplotlengths)))))
+midpt=res$midpt
+PlotFittedLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
+                                xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm", yaxis_lab="Prop. mature",
+                                SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=TRUE, ErrOpt)
 }

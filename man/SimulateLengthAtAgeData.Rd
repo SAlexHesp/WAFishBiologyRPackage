@@ -17,7 +17,7 @@ SimulateLengthAtAgeData(
 )
 }
 \arguments{
-\item{GrowthEqn}{1=von Bertalanffy, 2=Schnute, 3=Somers seasonal curve}
+\item{GrowthEqn}{1=von Bertalanffy, 2=Schnute, 3=Somers seasonal curve, 4=von Bertalanffy with sex or area-divergent growth}
 
 \item{nSamples}{number of samples}
 
@@ -112,4 +112,23 @@ arrows(ObsAgeCl, ObsMeanLen_lw95CL, ObsAgeCl, ObsMeanLen_hi95CL,
 # points(ObsAgeCl, ObsMeanLen, col="blue")
 # arrows(ObsAgeCl, ObsMeanLen_lw95CL, ObsAgeCl, ObsMeanLen_hi95CL,
 #        code=3, angle=90,length=0.02, col='blue')
+# # von Bertalanffy growth equation with divergent growth
+# GrowthEqn = 4
+# nSexes = 2 # single or combined sex
+# nSamples = 500
+# MinAge = 1
+# MaxAge = 20
+# AgeStep = 1
+# Linf = c(300,500)
+# vbK = c(0.3,0.3)
+# tzero1 = 0
+# tdiverge = 3
+# Growth_params = c(Linf, vbK, tzero1, tdiverge)
+# Ref_ages = NA
+# Growth_cv = 0.08
+# Res = SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
+# x=which(Res$ObsDat$ObsSex==1)
+# plot(Res$ObsAge[x], Res$ObsLen[x])
+# y=which(Res$ObsDat$ObsSex==2)
+# points(Res$ObsAge[y], Res$ObsLen[y],col="blue")
 }

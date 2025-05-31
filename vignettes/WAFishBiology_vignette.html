@@ -366,6 +366,37 @@ oscillation, i.e. the inflection point (see Garcia-Berthou et al.,
 reduces to the typical von Bertalanffy growth model. If C = 1, then
 growth completely ceases during one part of the year.</p>
 </div>
+<div id="growth-curve-allowing-for-diverent-growth" class="section level4">
+<h4>Growth curve allowing for diverent growth</h4>
+<p>This model assumes that initially, growth is the same between the two
+groups (e.g. if fish start out as same sex, then growth diverges
+following sex change, or if all fish are spawned in one area, then
+growth diverges as some move to another area). The typical age at which
+growth diverges, <span class="math inline">\(t_{div}\)</span>, is
+estimated as a parameter. Growth is assumed to follow a von Bertalanffy
+growth pattern. For the example of protogynous hermaphroditism as
+described by Coulson et al. (2009), the length of a fish at age <span class="math inline">\(t\)</span> is</p>
+<p><span class="math display">\[
+L^s_t =
+\begin{cases}
+L^f_{\infty}(1-\exp(-k^f(t-t^f_0))) &amp; \text{if } s = f \text{ or } t
+&lt;= t_{div} \\
+L^m_{\infty}(1-\exp(-k^m(t-t^m_0))) &amp; \text{if } s = m \text{ or } t
+&gt; t_{div} \\
+\end{cases}
+\]</span></p>
+<p>where <span class="math inline">\(L^f_\infty\)</span> and <span class="math inline">\(L^m_\infty\)</span> are the asymptotic lengths of
+females and males, <span class="math inline">\(k^f\)</span> and <span class="math inline">\(k^m\)</span> are the growth coefficients for the
+two sexes, and <span class="math inline">\(t^f_0\)</span> and <span class="math inline">\(t^m_0\)</span> are the hypothetical ages at zero
+length for the two sexes. In the above equation, <span class="math inline">\(t^m_0\)</span> is a derived parameter, calculated
+as</p>
+<p><span class="math display">\[
+  t^m_0 = t^f_0 - (1/k^f)\log_e[1-(L_{div}/L^f_{\infty})] +
+    (1/k^m)\log_e(1-[L_{div}/L^m_{\infty})]
+\]</span> Above, <span class="math inline">\(L_{div}\)</span> is the
+length at which growth is estimated to begin diverging between the two
+groups, corresponding to the estimated length of females at age <span class="math inline">\(t_{div}\)</span>.</p>
+</div>
 <div id="objective-function-for-fitting-growth-curves-to-length-at-age-data" class="section level4">
 <h4>Objective function for fitting growth curves to length-at-age
 data</h4>
@@ -555,7 +586,7 @@ annual growth increment (i.e. growth of fish from integer age <span class="math
 \]</span> where <span class="math inline">\(\hat{g}_{\Delta_{t-t-1},s,y}\)</span> is
 calculated as</p>
 <p><span class="math display">\[
-\hat{g}_{\Delta_{a-t},s,y}=(L_\infty_{s,y}-\hat{L}_{t,s,y})(1-\exp(-k_{s,y}(a
+\hat{g}_{\Delta_{a-t},s,y}=(L_{\infty,s,y}-\hat{L}_{t,s,y})(1-\exp(-k_{s,y}(a
 - t)))
 \]</span></p>
 <p>The model assumes that negative growth cannot occur. The possibility
@@ -775,15 +806,33 @@ used to describe the probability of maturity of fish at age, replacing
 <span class="math inline">\(L\)</span> with fish age, and <span class="math inline">\(L_{50}\)</span> and <span class="math inline">\(L_{95}\)</span> with <span class="math inline">\(A_{50}\)</span> and <span class="math inline">\(A_{95}\)</span>, i.e. the ages at which 50 and 95%
 of fish are mature, respectively. In cases where <span class="math inline">\(P_{\max}\)</span> can be assumed to be equal to 1,
 only two parameters (either <span class="math inline">\(L_{50}\)</span>
-and <span class="math inline">\(L_{95}\)</span>, or <span class="math inline">\(A_{50}\)</span> and <span class="math inline">\(A_{95}\)</span>) are input into the model.
-Alternatively, the following function, allowing for asymmetry, may be
-applied</p>
-<p><span class="math display">\[
+and <span class="math inline">\(L_{95}\)</span>, or <span class="math inline">\(A_{50}\)</span> and <span class="math inline">\(A_{95}\)</span>) are input into the model.</p>
+<p>For some WA species for which there was evidence that a logistic
+curve allowing for asymmetry would provide a better fit to available
+maturity data, the following logistic curve (derived from Richard’s
+generalised logistic curve) has been used <span class="math display">\[
 \rho = {P_{\max}/((1+Q\exp(-BL))^{1/V})}
 \]</span> where <span class="math inline">\(P_{max}\)</span>, <span class="math inline">\(Q\)</span>, <span class="math inline">\(B\)</span>
 and <span class="math inline">\(v\)</span> are estimated parameters.
-Similar to above, where P_{max} can be assumed to equal one, only 3
-parameters need to be estimated.</p>
+Thus, similar to above, if <span class="math inline">\(P_{max}\)</span>
+can be assumed to equal one, 3 parameters need to be estimated. Some
+subsequent explorations of this model, using simulated data, have shown
+that this form of model can be difficult to fit, associated with high
+parameter correlations. To reduce parameter correlations, in
+WAFishBiology, the following reparameterised version is used</p>
+<p><span class="math display">\[
+\rho = P_{max}(1 + \exp(-x))^{-V}
+\]</span> where <span class="math inline">\(x\)</span> represented
+scaled length (or age) data, calculated as <span class="math display">\[
+x = (L - B) / Q
+\]</span> In the above model, the parameter <span class="math inline">\(Q\)</span> controls the ‘spread’ over which the
+maturity curve is changing, <span class="math inline">\(B\)</span> is
+the inflection point of the curve and <span class="math inline">\(V\)</span> controls the level of curve asymmetry.
+The standard symmetric logistic maturity curves are fitted using nlminb
+(as with most models in WAFishBiology), whereas asymmetric logistic
+maturity curves are fitted using the “Nelda-Mead” method, within Optim,
+as this latter optimisation method can be more robust when relatively
+high parameter correlations exist.</p>
 <div id="objective-function-for-fitting-size-or-age-at-maturity-or-sex-change-curves" class="section level4">
 <h4>Objective function for fitting size or age at maturity (or sex
 change) curves</h4>
@@ -965,6 +1014,11 @@ estuary have changed over time. Estuarine, Coastal and Shelf Science
 Growth and reproductive biology of the foxfish Bodianus frenchii, a very
 long-lived and monandric protogynous hermaphroditic labrid. Journal of
 Fish Biology (2010) 77, 600–626.</p>
+<p>Coulson, P. G., Hesp, S. A., Hall, N. G. &amp; Potter, I. C. (2009).
+The western blue groper (Achoerodus gouldii), a protogynous
+hermaphroditic labrid with exceptional longevity, late maturity, slow
+growth, and both late maturation and sex change. Fishery Bulletin
+107:57–75.</p>
 <p>deLestang, S. (2018). Could warming oceans and increased lobster
 biomass rates be affecting growth rates in Australia’s largest lobster
 fishery? Bull Mar Sci. 94, 1055–1075.</p>
