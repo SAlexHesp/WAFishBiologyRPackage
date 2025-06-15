@@ -10,11 +10,14 @@ GetConfidenceLimitsForGrowthCurve(
   Ref_ages,
   params,
   vcov.params,
+  ObsAge,
+  ObsLen,
+  ObsSex,
   plotages
 )
 }
 \arguments{
-\item{GrowthEqn}{1=von Bertalanffy, 2=Schnute, 3=Somers seasonal curve}
+\item{GrowthEqn}{1=von Bertalanffy, 2=Schnute, 3=Somers seasonal curve, 4=divergent growth model}
 
 \item{nSexes}{number of sexes}
 
@@ -22,7 +25,13 @@ GetConfidenceLimitsForGrowthCurve(
 
 \item{params}{estimated parameters}
 
-\item{vcov.params}{estimatd variance-covariance matrix}
+\item{vcov.params}{estimated variance-covariance matrix}
+
+\item{ObsAge}{observed individual fish age data (used for Growth eqn option 4)}
+
+\item{ObsLen}{observed individual fish length data (used for Growth eqn option 4)}
+
+\item{ObsSex}{observed individual fish sex (or area, inputted as sex) data (used for Growth eqn option 4)}
 
 \item{plotages}{ages specified to produce estimates of uncertainty for estimated lengths}
 }

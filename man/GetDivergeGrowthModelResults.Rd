@@ -26,18 +26,17 @@ parameter estimated and associated 95% confidence limits and associated variance
 calculated using the MASS package
 }
 \examples{
-# simulate data
 set.seed(123)
 GrowthEqn = 4 # von Bertalanffy growth equation with divergent growth
 nSexes = 2 # single or combined sex
-nSamples = 1000
+nSamples = 500
 MinAge = 0
 MaxAge = 20
 AgeStep = 1
 Linf = c(1000,500)
-vbK = c(0.2,0.2)
+vbK = c(0.15,0.15)
 tzero1 = 0
-tdiverge = 2
+tdiverge = 1
 Growth_params = c(Linf, vbK, tzero1, tdiverge)
 Ref_ages = NA
 Growth_cv = 0.1
@@ -48,7 +47,8 @@ y=which(Res$ObsDat$ObsSex==2)
 points(Res$ObsAge[y], Res$ObsLen[y],col="blue")
 # fit growth model
 InitLinf = c(1050,500)
-InitvbK = c(0.13,0.13)
+# InitvbK = c(0.13,0.13) # separate vbK option
+InitvbK = 0.13 # single vbK option
 Inittzero1 = 0
 Inittdiverge = 4
 params = c(log(InitLinf), log(InitvbK), Inittzero1, log(Inittdiverge))
@@ -56,5 +56,5 @@ ObsAge = Res$ObsDat$ObsAge
 ObsLen = Res$ObsDat$ObsLen
 ObsSex = Res$ObsDat$ObsSex
 FittedRes=GetDivergeGrowthModelResults(params, ObsAge, ObsLen, ObsSex)
-FittedRes$ParamEst
+FittedRes$Boot_ParamEst
 }

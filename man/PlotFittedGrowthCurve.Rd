@@ -10,6 +10,7 @@ PlotFittedGrowthCurve(
   GrowthEqn,
   ObsAge,
   ObsLen,
+  ObsSex,
   ObsMeanLen,
   ObsMeanLensd,
   params,
@@ -31,11 +32,11 @@ PlotFittedGrowthCurve(
 
 \item{nSexes}{number of sexes}
 
-\item{GrowthEqn}{1=von Bertalanffy, 2=Schnute, 3=Somers seasonal growth curve}
+\item{GrowthEqn}{1=von Bertalanffy, 2=Schnute, 3=Somers seasonal growth curve, 4=Divergent growth curve}
 
-\item{ObsAge}{observed ages}
+\item{ObsAge}{observed individual fish ages}
 
-\item{ObsLen}{observed lengths}
+\item{ObsLen}{observed individual fish sex (required for GrowthEqn=4), otherwise set to NA}
 
 \item{ObsMeanLen}{mean lengths for specified ages (i.e. as estimated from mixture analysis)}
 
@@ -88,12 +89,13 @@ DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age an
 params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
 ObsAge = Res$ObsAge
 ObsLen = Res$ObsLen
+
 FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
 plotages=seq(0, MaxAge,0.1)
 par(mfrow=c(1,1))
-PlotFittedGrowthCurve(DataType,  nSexes, GrowthEqn, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA,
-                      params, Ref_ages, plotages, ymax=600, xmax=NA, yint=100, xint=NA, GraphTitle=NA,
-                      xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen=NA,
+                      ObsMeanLensd=NA, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+                      GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
 ObsAge = Res$ObsAgeCl
@@ -101,9 +103,9 @@ ObsMeanLen = Res$ObsMeanLen
 ObsMeanLensd = Res$ObsMeanLensd
 FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
 plotages=seq(0, MaxAge,0.1)
-PlotFittedGrowthCurve(DataType,  nSexes, GrowthEqn, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd,
-                      params, Ref_ages, plotages, ymax=600, xmax=NA, yint=100, xint=NA, GraphTitle=NA,
-                      xaxis_lab=NA, yaxis_lab=NA, PlotCLs=F, FittedRes)
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
+                      ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+                      GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 nSexes = 2 # Separate sexes
 nSamples = c(300,200) # if different, order so NAs are last for smaller sample
 MinAge = 1
@@ -125,9 +127,9 @@ params = c(log(c(300,300)),log(c(0.3,0.3)),c(0,0)) # log(Linf), log(k), tzero
 FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
 plotages=seq(0, MaxAge,0.1)
 par(mfrow=c(1,2))
-PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA,
-                      params, Ref_ages, plotages, ymax=600, xmax=NA, yint=100, xint=NA, GraphTitle=NA,
-                      xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
+                      ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+                      GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 params = c(log(c(300,300)),log(c(0.3,0.3)),c(0,0)) # log(Linf), log(k), tzero
 ObsAge = Res$ObsAgeCl
@@ -139,9 +141,9 @@ MalObsMeanLensd = Res$MalObsMeanLensd
 ObsMeanLensd = as.matrix(t(data.frame(FemObsMeanLensd=FemObsMeanLensd,MalObsMeanLensd=MalObsMeanLensd)))
 FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
 plotages=seq(0, MaxAge,0.1)
-PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd,
-                      params, Ref_ages, plotages, ymax=600, xmax=NA, yint=100, xint=NA, GraphTitle=NA,
-                      xaxis_lab=NA, yaxis_lab=NA, PlotCLs=F, FittedRes)
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
+                      ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+                      GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 # Schnute growth equation
 # simulate data (ignoring mortality and selectivity effects)
 GrowthEqn = 2 # Schnute growth equation
@@ -162,14 +164,12 @@ DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age an
 params = c(log(150),log(420),0.05,2)
 t1=0.5
 t2=15
-ObsMeanLen=NA
-ObsMeanLensd=NA
 FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
 plotages=seq(0, MaxAge,0.1)
 par(mfrow=c(1,1))
-PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn=2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA,
-                      params, Ref_ages, plotages, ymax=600, xmax=NA, yint=100, xint=NA, GraphTitle=NA,
-                      xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen=NA,
+                      ObsMeanLensd=NA, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+                      GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 params = c(log(110),log(420),0.05,2)
 t1=0.5
@@ -179,9 +179,9 @@ ObsMeanLen=Res$ObsMeanLen
 ObsMeanLensd=Res$ObsMeanLensd
 FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
 plotages=seq(0, MaxAge,0.1)
-PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn=2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd,
-                      params, Ref_ages, plotages, ymax=600, xmax=NA, yint=100, xint=NA, GraphTitle=NA,
-                      xaxis_lab=NA, yaxis_lab=NA, PlotCLs=F, FittedRes)
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
+                      ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+                      GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 GrowthEqn = 2 # Schnute equation
 nSexes = 2 # separate sexes
 nSamples = c(500,500)
@@ -201,13 +201,11 @@ DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age an
 params = c(log(c(130,125)),log(c(400,450)),0.05,0.05,2,2)
 t1=0.5
 t2=15
-ObsMeanLen=NA
-ObsMeanLensd=NA
 FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
 par(mfrow=c(1,2))
-PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn=2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA,
-                      params, Ref_ages, plotages, ymax=600, xmax=NA, yint=100, xint=NA, GraphTitle=NA,
-                      xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen=NA,
+                      ObsMeanLensd=NA, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+                      GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 # Fit Schnute growth curve to mean length at age data
 DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 params = c(log(c(100,100)),log(c(400,450)),0.05,0.05,2,2)
@@ -219,9 +217,9 @@ FemObsMeanLensd = Res$FemObsMeanLensd
 MalObsMeanLensd = Res$MalObsMeanLensd
 ObsMeanLensd = as.matrix(t(data.frame(FemObsMeanLensd=FemObsMeanLensd,MalObsMeanLensd=MalObsMeanLensd)))
 FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
-PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn=2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd,
-                      params, Ref_ages, plotages, ymax=600, xmax=NA, yint=100, xint=NA, GraphTitle=NA,
-                      xaxis_lab=NA, yaxis_lab=NA, PlotCLs=F, FittedRes)
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
+                      ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+                      GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 # Seasonal growth curve
 # simulate data (ignoring mortality and selectivity effects)
 GrowthEqn=3 # Seasonal growth curve
@@ -244,14 +242,12 @@ DataType = 1
 nSexes=1
 ObsAge = Res$ObsAge
 ObsLen = Res$ObsLen
-ObsMeanLen=NA
-ObsMeanLensd=NA
 params = c(log(160),log(0.8),0,0.25,0.8) #Linf, vbK, tzero, tc, C
 # fit seasonal growth curve to mean length at age data
-FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
 par(mfrow=c(1,1))
 plotages=seq(0, MaxAge,0.1)
-PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA,
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen=NA, ObsMeanLensd=NA,
                       params, Ref_ages, plotages, ymax=200, xmax=NA, yint=50, xint=NA, GraphTitle=NA,
                       xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
@@ -261,9 +257,9 @@ ObsMeanLen=Res$ObsMeanLen
 ObsMeanLensd=Res$ObsMeanLensd
 FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
 plotages=seq(0, MaxAge,0.1)
-PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd,
-                      params, Ref_ages, plotages, ymax=200, xmax=NA, yint=50, xint=NA, GraphTitle=NA,
-                      xaxis_lab=NA, yaxis_lab=NA, PlotCLs=F, FittedRes)
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
+                      ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+                      GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 GrowthEqn=3 # Seasonal growth curve
 nSexes=2 # separate sexes
 nSamples = c(500,500)
@@ -284,15 +280,13 @@ DataType = 1
 nSexes=2
 ObsAge=as.matrix(Res$ObsAge)
 ObsLen=as.matrix(Res$ObsLen)
-ObsMeanLen=NA
-ObsMeanLensd=NA
 params = c(log(c(160,150)),log(c(0.8,0.8)),c(0,0),c(0.25,0.25),c(0.8,0.8)) #Linf, vbK, tzero, tc, C
 # fit seasonal growth curve to mean length at age data
-FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
 par(mfrow=c(1,2))
-PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA,
-                      params, Ref_ages, plotages, ymax=200, xmax=NA, yint=50, xint=NA, GraphTitle=NA,
-                      xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen=NA,
+                      ObsMeanLensd=NA, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+                      GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 params = c(log(c(160,150)),log(c(0.8,0.8)),c(0,0),c(0.25,0.25),c(0.8,0.8)) #Linf, vbK, tzero, tc, C
 ObsAge=Res$ObsAgeCl
@@ -304,21 +298,21 @@ MalObsMeanLensd = Res$MalObsMeanLensd
 ObsMeanLensd = as.matrix(t(data.frame(FemObsMeanLensd=FemObsMeanLensd,MalObsMeanLensd=MalObsMeanLensd)))
 FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
 plotages=seq(0, MaxAge,0.1)
-PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd,
-                      params, Ref_ages, plotages, ymax=200, xmax=NA, yint=50, xint=NA, GraphTitle=NA,
-                      xaxis_lab=NA, yaxis_lab=NA, PlotCLs=F, FittedRes)
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
+                      ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+                      GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 # simulate data allowing for divergent growth
 set.seed(123)
 GrowthEqn = 4 # von Bertalanffy growth equation with divergent growth
 nSexes = 2 # single or combined sex
-nSamples = 1000
+nSamples = 500
 MinAge = 0
 MaxAge = 20
 AgeStep = 1
 Linf = c(1000,500)
-vbK = c(0.2,0.2)
+vbK = c(0.15,0.15)
 tzero1 = 0
-tdiverge = 2
+tdiverge = 1
 Growth_params = c(Linf, vbK, tzero1, tdiverge)
 Ref_ages = NA
 Growth_cv = 0.1
@@ -327,9 +321,10 @@ x=which(Res$ObsDat$ObsSex==1)
 plot(Res$ObsAge[x], Res$ObsLen[x])
 y=which(Res$ObsDat$ObsSex==2)
 points(Res$ObsAge[y], Res$ObsLen[y],col="blue")
-# fit growth model allowing for divergent growth
+# fit growth model
 InitLinf = c(1050,500)
-InitvbK = c(0.13,0.13)
+# InitvbK = c(0.13,0.13) # separate vbK option
+InitvbK = 0.13 # single vbK option
 Inittzero1 = 0
 Inittdiverge = 4
 params = c(log(InitLinf), log(InitvbK), Inittzero1, log(Inittdiverge))
@@ -337,10 +332,10 @@ ObsAge = Res$ObsDat$ObsAge
 ObsLen = Res$ObsDat$ObsLen
 ObsSex = Res$ObsDat$ObsSex
 FittedRes=GetDivergeGrowthModelResults(params, ObsAge, ObsLen, ObsSex)
-FittedRes$ParamEst
+FittedRes$Boot_ParamEst
 DataType=1
 plotages = seq(MinAge,MaxAge,0.1)
-PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsMeanLen,
+PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex, ObsMeanLen,
                       ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 }
