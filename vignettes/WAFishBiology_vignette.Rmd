@@ -3,7 +3,7 @@ title: "WAFishBiology_vignette"
 output: 
   rmarkdown::html_vignette:
     toc: true
-    toc_depth: 3
+    toc_depth: 4
 vignette: >
   %\VignetteIndexEntry{WAFishBiology_vignette}
   %\VignetteEngine{knitr::rmarkdown}
@@ -22,52 +22,50 @@ Fig_Path = "C:/~/WAFishBiology/vignettes/"
 
 
 # Introduction 
-#### Last updated May 2023 (Alex Hesp - DPIRD)
+#### Last updated July 2025 (Alex Hesp - DPIRD)
 
-This package is intended as a toolbox of methods for describing various biological traits of fish and invertebrate species, including growth, size/age at maturity, weight-length relationships etc., which represent key information for many model-based fisheries assessments. The various R functions output a range of statistics and diagnostic plots. The various biological relationships and associated parameters are required inputs a range of assessment models, e.g. per recruit analysis and statistical catch at age (and length) models.
+This package is intended as a toolbox of methods for describing various biological traits of fish and invertebrate species, including growth, size/age at maturity, time and duration of spawning (and also their relation to fish body size), weight-length relationships etc., which represent key information for many model-based fisheries assessments. The various R functions output a range of statistics and diagnostic plots. The various biological relationships and associated parameters are required inputs a range of assessment models, e.g. per recruit analysis and statistical catch at age (and length) models.
 
-Please note that this is a 'trial version' with testing of the various routines continuing. Please report any identified issues to Alex Hesp asap $(\mathrm{Alex.Hesp@dpird.wa.gov.au})$.
+Please note that testing of the various routines, and adding of new routines, is continuing. Please report any identified issues to Alex Hesp $(\mathrm{Alex.Hesp@dpird.wa.gov.au})$.
 
-## Growth analysis
+## Growth analysis (with length-at-age or mean length-at-age data)
 
 Several functions are available that relate to fitting growth curves to length-at-age data or data derived from length mixture distribution analysis. The alternative growth models include the von Bertalanffy growth model (von Bertalanffy, 1938), the generalised growth model of Schnute (1981) and the seasonal growth curve of Somers (1988). The routines implemented allow for either a single curve to be fitted to the data, or two curves (i.e. females and males, or area 1 and area 2) to be fitted simultaneously. In the latter case, common variance is assumed for the two curves.
 
-### Alternative growth models applied to length and age data 
-
-#### von Bertalanffy growth model
-Fitting a single von Bertalanffy growth curve to data, $L_t$, the estimated mean length of fish at age $t$, is
+### von Bertalanffy growth model
+Fitting a single von Bertalanffy growth curve to data, $\hat{L}_t$, the estimated mean length of fish at age $t$, is
 
 $$
-L_t = L_\infty(1-\exp(-k(t-t_0)))
+\hat{L}_t = L_\infty(1-\exp(-k(t-t_0)))
 $$
 where $L_\infty$ is the asymptotic length, $k$ is the growth coefficient and $t_0$ is the hypothetical age at zero length.
 
-#### Schnute growth model
+### Schnute growth model
 
 Schnute's growth model includes four parameters, including $a$ (1/time), $b$ (dimensionless) and two sizes $L_1$ and $L_2$, corresponding to references ages $\tau_1$ and $\tau_2$, respectively. Depending on whether or not $a$ and/or $b$ are equal to zero, the Schnute growth functions takes one of the following four forms: 
 
 $a$ <> 0, $b$ <> 0
 $$
-L_t =\biggl[{L_1}^b+({L_2}^b-{L_1}^b)\frac{(1-\exp(-a(t-\tau_1)))}{(1-\exp(-a(\tau_2-\tau_1))}\biggr]^\frac{1}{b}
+\hat{L}_t =\biggl[{L_1}^b+({L_2}^b-{L_1}^b)\frac{(1-\exp(-a(t-\tau_1)))}{(1-\exp(-a(\tau_2-\tau_1))}\biggr]^\frac{1}{b}
 $$
 $a$ <> 0, $b$ = 0 
 $$
-L_t ={L_1}\biggl[\ln(L_2/L_1)\frac{(1-\exp(-a(t-\tau_1)))}{(1-\exp(-a(\tau_2-\tau_1))}\biggr]
+\hat{L}_t ={L_1}\biggl[\ln(L_2/L_1)\frac{(1-\exp(-a(t-\tau_1)))}{(1-\exp(-a(\tau_2-\tau_1))}\biggr]
 $$
 $a$ = 0, $b$ <> 0 
 $$
-L_t =\biggl[{L_1}^b+({L_2}^b-{L_1}^b)\frac{(t-\tau_1)}{(\tau_2-\tau_1)}\biggr]^\frac{1}{b}
+\hat{L}_t =\biggl[{L_1}^b+({L_2}^b-{L_1}^b)\frac{(t-\tau_1)}{(\tau_2-\tau_1)}\biggr]^\frac{1}{b}
 $$
 $a$ = 0, $b$ = 0
 $$
-L_t ={L_1}\biggl[\ln(L_2/L_1)\frac{(t-\tau_1)}{(\tau_2-\tau_1)}\biggr]^\frac{1}{b}
+\hat{L}_t ={L_1}\biggl[\ln(L_2/L_1)\frac{(t-\tau_1)}{(\tau_2-\tau_1)}\biggr]^\frac{1}{b}
 $$
 
-#### Somers (1988) seasonal growth curve
+### Somers (1988) seasonal growth curve
 
 Somers (1988) seasonal growth curve is
 $$
-L_t = L_\infty(1-\exp(-k(t-t_0)))-S(t)+S(t_0)
+\hat{L}_t = L_\infty(1-\exp(-k(t-t_0)))-S(t)+S(t_0)
 $$
 where
 $$
@@ -78,12 +76,12 @@ S(t_0)=\frac{CK}{2\pi} \sin{2\pi}(t_0-t_s)
 $$
 In the above equations, $C$ modifies the amplitude of the growth oscillations and $t_s$ represents the time between time 0 and the start of the convex portion of the first sinusoidal growth oscillation, i.e. the inflection point (see Garcia-Berthou et al., 2012). If C = 0, then there is no seasonal oscillation and the model reduces to the typical von Bertalanffy growth model. If C = 1, then growth completely ceases during one part of the year.
 
-#### Growth curve allowing for diverent growth
+### Growth model allowing for diverent growth
 
-This model assumes that initially, growth is the same between the two groups (e.g. if fish start out as same sex, then growth diverges following sex change, or if all fish are spawned in one area, then growth diverges as some move to another area). The typical age at which growth diverges, $t_{div}$,  is estimated as a parameter. Growth is assumed to follow a von Bertalanffy growth pattern. For the example of protogynous hermaphroditism as described by Coulson et al. (2009), the length of a fish at age $t$ is  
+This model assumes that initially, growth is the same between the two groups (e.g. if fish start out as same sex, then growth diverges following sex change, or if all fish are spawned in one area, then growth diverges as some move to another area). The typical age at which growth diverges, $t_{div}$,  is estimated as a parameter. Growth is assumed to follow a von Bertalanffy growth pattern. For the example of protogynous hermaphroditism as described by Coulson et al. (2009), the expected length of a fish at age $t$ is  
 
 $$
-L^s_t = 
+\hat{L}^s_t = 
 \begin{cases} 
 L^f_{\infty}(1-\exp(-k^f(t-t^f_0))) & \text{if } s = f \text{ or } t <= t_{div} \\
 L^m_{\infty}(1-\exp(-k^m(t-t^m_0))) & \text{if } s = m \text{ or } t > t_{div} \\
@@ -98,7 +96,8 @@ $$
 $$
 Above, $L_{div}$ is the length at which growth is estimated to begin diverging between the two groups, corresponding to the estimated length of females at age $t_{div}$.
 
-#### Objective function for fitting growth curves to length-at-age data
+
+### Objective function for fitting growth curves to length-at-age data
 
 The objective function minimised by nlminb is the negative log-likelihood, calculated as
 $$
@@ -106,7 +105,28 @@ $$
 $$
 see (e.g. Haddon, 2011). Non-linear regression (employing the optimisation routine nlminb) is used to fit the growth curve, given a set of age and length data, and a set of starting values for the von Bertalanffy growth parameters (Linf, vbK, and tzero):  
 
-#### Objective function for fitting growth curves to mean length at age data
+
+### Objective function for fitting sex-specific von Bertalanffy growth curves to length-at-age data, when sex was not recorded
+
+Based on the von Bertalanffy growth equation, the estimated mean length of a fish of sex $s$ at age $t$, is calculated as
+
+$$
+\hat{L}_t^s = L_{\infty}^s \left(1 - \exp\left(-k^s(t - t_0^s)\right)\right)
+$$
+
+where $L_{\infty}^s$, $k^s$ and $t_0^s$ are the sex-specific von Bertalanffy growth parameters. If sex is not known, assuming that i) the observed lengths at age are normally distributed around the estimated mean lengths at ages determined for each sex-specific curve and ii) that the standard deviation is constant for all ages, the joint probability of observing the $j^{\text{th}}$ fish, given its length at age, $L_t$ is calculated as
+
+$$
+P_j = \frac{1}{\sigma\sqrt{2\pi}} \exp\left[-\frac{(L_t^{\vphantom{m}\text{f}} - \hat{L}_t^{\vphantom{m}\text{f}})^2}{2\sigma^2}\right] + 
+      \frac{1}{\sigma\sqrt{2\pi}} \exp\left[-\frac{(L_t^{\vphantom{f}\text{m}} - \hat{L}_t^{\vphantom{f}\text{m}})^2}{2\sigma^2}\right]
+$$
+The overall negative log-likelihood for the model is thus
+
+$$
+\lambda=-\sum_j\log_e(P_j)
+$$
+
+### Objective function for fitting growth curves to mean length-at-age data
 
 The objective function minimised by nlminb is the negative log-likelihood, calculated as
 
@@ -116,19 +136,20 @@ $$
 where $X$ is the “observed” mean size-at-age calculated from the mixture analysis, $\sigma_M^2$ is the variance associated with the “observed” mean size-at-age from the mixture analysis, $\sigma_P^2$ is an
 additional process error variance estimated in the growth curve analysis, and $\mu$ is the estimated mean size-at-age, according to the growth curve.
 
-### Mixture analysis (using fish length data)
+
+### Mixture analysis (using length data)
 
 The model implemented allows normal or gamma mixture distributions to be fitted to length composition data with up to three modes (assumed to represent different fish cohorts). For a given length sample with a single mode, if it can be assumed that these data conform to a normal distribution, the expected relative proportion of fish in each size class is calculated as 
 
 $$
-\hat{P}_{S_i} = \int_{S_i^-}^{\mathrm{S_i^+}}\frac{1}{\sigma\sqrt{2{\pi}}}\exp\bigg[\frac{(l-\mu^2)}{2\sigma{^2}}\bigg]dl
+\hat{P}_{S_i} = \int_{S_i^-}^{\mathrm{S_i^+}}\frac{1}{\sigma\sqrt{2{\pi}}}\exp\bigg[-\frac{(l-\mu^2)}{2\sigma{^2}}\bigg]dl
 $$
 where $l$ is the length of the fish, $S_i^-$ and $S_i^+$ are the lower and upper bounds of size class $S_i$, respectively, and $\mu$ and $\sigma$ are the mean and standard deviation, respectively, of the normal distribution describing the size distribution (Marks et al., 2020). If the data are assumed to conform to a gamma distribution, $\hat{P}_{S_i}$ is calculated as
 
 $$
-\hat{P}_{S_i} = \int_{S_i^-}^{\mathrm{S_i^+}}\frac{1}{\beta^\alpha\Gamma(\alpha)}l^{\alpha-1}\exp(-l/\beta){dl}
+\hat{P}_{S_i} = \int_{S_i^-}^{{S_i^+}}\frac{1}{\beta^\alpha\Gamma(\alpha)}l^{\alpha-1}\exp(-l/\beta)\,{dl}
 $$
-where where $\alpha$ and $\beta$ are the ‘scale’ and ‘shape’ parameters, respectively, of the gamma distribution describing the size data 
+where $\alpha$ and $\beta$ are the shape and scale parameters, respectively, of the gamma distribution describing the size data 
 
 When two modes are present (assumed to represent 2 age cohorts), the size frequency data is assumed to represent a random sample from a multinomial distribution, with the overall size distribution being comprised of two normal distributions. Using $0^+$ and $1^+$ to represent the values of the smaller and larger cohort, respectively, $\hat{f}_{S_i}$, the overall expected frequency of fish in size class $S_i$ in the sample is calculated as
 
@@ -191,7 +212,7 @@ $$
 $$
 The model is fitted in R using, firstly, nlminb, and then optim (Nelda-Mead) function. As shown by Sulin (2012), use of these two optmisation routines can improve robustness of the model fitting process, demonstrated by jitter analysis. When fitting the model, the following parameters are estimated: $L_\infty$, $k$, $t_0$, $L_{50}^{h_1 \rightarrow h_2}$, $L_{95}^{h_1 \rightarrow h_2}$, and constant coefficient of variation for mean lengths at age, $CV$. Although the original study allowed for up to 3 habitats, as currently implemented in this package, there can be only two.
 
-### Year effect growth model
+### Year-effect growth model
 
 This model is broadly based on the year-effects (von Bertalanffy) growth model described by Cottingham et al. (2016), used by those researchers for modelling black bream (Acanthopagrus butcheri) in the Swan River Estuary, WA. Temporal variation is modelled using annual growth parameters for the asymptotic length parameter and/or growth coefficient. The model is fitted to multiple years of length-at-age data. Unlike the model of Cottingham et al. (2016), which includes parameters describing the lengths at age of fish in each year class at the start of the sampling period, the current model estimates the lengths of fish at each age, for this period, based on the traditional von Bertalanffy growth model (which reduces the number of model parameters), similar to the growth analysis undertaken for West Australian dhufish (Glaucosoma hebraicum) in the assessment presented by Fairclough et al. (2021). The model is fitted in using RTMB (Kristensen, 2025).   
 
@@ -272,11 +293,11 @@ The available functions related to fitting a growth model allowing for time-vary
 SimTimeVaryLenAtAgeDat()  
 GetOffMoveGrowthModResults()  
 
-### Alternative growth models for tag increment data
+## Growth analysis (with tag increment data)
 
 Several models are available for describing growth from tagging data as follows:
 
-#### von Bertalanffy growth model - tag increment data
+### von Bertalanffy growth model
 
 Applying the von Bertalanffy growth model, $dL_t/dt$, the instantaneous rate of change in 
 length of an individual, given its initial length at age $t$ years, $L_t$, is
@@ -287,7 +308,7 @@ $$
 where $L_\infty$ is the average maximum length of individuals in the population, $k$ is the growth 
 coefficient, and $\Delta_t$ is a minute number between capture and recapture (e.g. Haddon, 2011). 
 
-#### Gompertz growth model - tag increment data
+### Gompertz growth model
 
 Fitting the Gompertz growth model, $dL_t/dt$ is estimated as
 
@@ -296,7 +317,7 @@ dL_t/dt=L_{\infty}\bigg(\frac{L_t}{L_{\infty}}\bigg)\exp(-g\Delta_t)
 $$
 where $g$ is a growth constant (Heliodoniotis et al. 2011). 
 
-#### Gaussian function - tag increment data
+### Gaussian function
 
 Using the Gaussian function, $dL_t/dt$
 is estimated as 
@@ -306,7 +327,7 @@ dL_t/dt=A\exp\bigg(\frac{-(L_t-\mu)^2}{2\sigma^2_{GF}}\bigg)
 $$
 where $A$ is the maximum growth (mm $y^{-1}$), $\mu$ is the size at maximum growth (mm) and $\sigma_{GF}$ is the standard deviation of the distribution of maximum growth vs size (Rogers-Bennett et al. 2007). 
 
-#### Double logistic curve - tag increment data
+### Double logistic curve
 
 Using the double-logistic curve, $dL_t/dt$ is
 
@@ -316,7 +337,7 @@ dL_t/dt=a\Bigg(1/\bigg[1+\exp(-\log_e(19)(L_t-L_{{50}_1})(L_{{95}_1}-L_{{50}_1})
 $$
 where $a$ is the estimated maximum length increment attained by individuals at any initial length, $L_{{50}_1}$ is the initial length midway between the smallest and maximum growth increment on the ascending limb of the curve, $L_{{95}_1}$ is the initial length at which 95% of the difference between the smallest growth increment and maximum growth increment on the ascending limb of the curve is reached, $L_{{50}_2}$ is the initial length midway between the largest and smallest growth increment on the descending limb of the curve, and $L_{{95}_2}$ is the initial length at which 95% of the difference between the largest and smallest growth increment on the descending limb of the curve is reached. 
 
-#### Inverse logistic curve - tag increment data
+### Inverse logistic curve
 
 The “inverse logistic” curve (e.g. Haddon et al., 2008) is as described above for the double logistic model, but with only a descending limb, i.e.
 
@@ -324,14 +345,14 @@ $$
 dL_t/dt=a\Bigg(1/\bigg[1+\exp(-\log_e(19)(L_t-L_{{50}_1})(L_{{95}_1}-L_{{50}_1})\bigg]\Bigg)
 $$
     
-#### Exponential decay curve - tag increment data
+### Exponential decay curve
 
 $$
 dL_t/dt=a\exp(-L_t/\tau)
 $$
 where $a$ is the maximum length increment attained by individuals at any initial length and $\tau$ is the rate of change in growth with length. This model is similar to that described by de Lestang (2018), but with one less parameter, i.e. excluding a term describing the minimum length increment attained by individuals.
 
-#### Calculation of expected lengths for tag increment data
+### Calculation of expected lengths from tag increment data
 
 Applying the Gaussian function, for example, if the length of a fish at time $t=t_0$ is $L_{t=t_0}$, then its expected length $\hat{L}_{t=t_0+T}$ at time $t=t_0+T$ is
 
@@ -341,7 +362,7 @@ $$
 where $\hat{L}_{t=t_0+T}$ is the expected length increment between $t=t_0$ and $t=t_0+T$. For each 
 tagged individual, this “initial value problem” is solved using a 4th order Runge-Kutta algorithm to calculate an estimate of its expected length at its time of re-measurement given the values of the growth parameters $A$, $\mu$ and $\sigma^2_{GF}$. The parameters of the growth model  (as described in this example by the above Gaussian function) are estimated by minimising the negative  log-likelihood where it is assumed that, for individual $j$, the observed length increment $X_j$ represents a random variable drawn from the normal distribution about the estimated increment $\hat{X}_j$, given its initial length and the time between its tagging and re-measurement. Any of the above-described growth models for tag increment data can be applied.
 
-#### Objective function for models fitted to tag increment data
+### Objective function for models fitted to tag increment data
 
 The overall log-likelihood for the growth curve is calculated as 
  
