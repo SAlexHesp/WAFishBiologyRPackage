@@ -3115,27 +3115,28 @@ CalcNLL_GrowthCurve <- function(params) {
       stdev = sqrt(sumSqResid / nObs)
       NLL = (nObs/2.) * (log(2 * pi) + 2 * log(stdev) + 1)
       Objfunc = NLL
-    }
-    if (!is.vector(ObsAge)) { # separate sexes, but sex known
-      sumSqResid = 0
-      nObs = 0
-      for (i in 1:nSexes) {
-        tempSampSize = length(which(!is.na(ObsLen[i,])))
-        nObs = nObs + tempSampSize # age classes
-        SqResid = ((ObsLen[i,1:tempSampSize] - ExpLen[i,1:tempSampSize]) ^ 2)
-        sumSqResid = sumSqResid + sum(SqResid)
+    } else {
+      if (!is.vector(ObsAge)) { # separate sexes, but sex known
+        sumSqResid = 0
+        nObs = 0
+        for (i in 1:nSexes) {
+          tempSampSize = length(which(!is.na(ObsLen[i,])))
+          nObs = nObs + tempSampSize # age classes
+          SqResid = ((ObsLen[i,1:tempSampSize] - ExpLen[i,1:tempSampSize]) ^ 2)
+          sumSqResid = sumSqResid + sum(SqResid)
+        }
+        stdev = sqrt(sumSqResid / nObs)
+        NLL = (nObs/2.) * (log(2 * pi) + 2 * log(stdev) + 1)
+        Objfunc = NLL
+      } else { # separate sexes, with sex unknown
+        nObs = length(ObsLen)
+        if (length(params) == 6) stdev = rep(exp(params[6]),nObs)
+        if (length(params) == 7) stdev = rep(exp(params[7]),nObs)
+        ExpLen_1 = as.vector(ExpLen[1,])
+        ExpLen_2 = as.vector(ExpLen[2,])
+        LL = sum(log((dnorm(ObsLen, ExpLen_1,stdev, log=F) + dnorm(ObsLen, ExpLen_2,stdev, log=F))))
+        Objfunc = -LL
       }
-      stdev = sqrt(sumSqResid / nObs)
-      NLL = (nObs/2.) * (log(2 * pi) + 2 * log(stdev) + 1)
-      Objfunc = NLL
-    } else { # separate sexes, with sex unknown
-      nObs = length(ObsLen)
-      if (length(params) == 6) stdev = rep(exp(params[6]),nObs)
-      if (length(params) == 7) stdev = rep(exp(params[7]),nObs)
-      ExpLen_1 = as.vector(ExpLen[1,])
-      ExpLen_2 = as.vector(ExpLen[2,])
-      LL = sum(log((dnorm(ObsLen, ExpLen_1,stdev, log=F) + dnorm(ObsLen, ExpLen_2,stdev, log=F))))
-      Objfunc = -LL
     }
   } # data type
 
@@ -3241,10 +3242,11 @@ CalcLengthAtAge_vonBertalanffyGrowthCurve <- function(params) {
 #'
 #' @param params c(log(Linf),log(vbK),tzero)
 #' @param nSexes number of sexes
+#' @param ObsAge observed ages
 #' @param plotages specified ages for plotting
 #'
 #' @return specified ages (plotages) and expected lengths at ages (plotlengths)
-CalcLengthAtAge_vonBertalanffyGrowthCurve2 <- function(params, nSexes, plotages) {
+CalcLengthAtAge_vonBertalanffyGrowthCurve2 <- function(params, nSexes, ObsAge, plotages) {
   # for plotting - calculate expected length at age growth, for von Bertalanffy growth curve (specified age range)
 
   if (length(params) == 3) { # single or combined sex
@@ -3253,23 +3255,37 @@ CalcLengthAtAge_vonBertalanffyGrowthCurve2 <- function(params, nSexes, plotages)
     tzero = params[3]
     plotlengths = Linf * (1 - exp(-vbK * (plotages - tzero)))
   }
-  if (length(params) == 6 | length(params) == 7) { # separate sexes (whether in data, known or not)
-    plotlengths = data.frame(matrix(nrow=2, ncol=length(plotages)))
-    colnames(plotlengths) = 1:length(plotages)
-    plotlengths = as.matrix(plotlengths)
+  if (!is.vector(ObsAge)) {
     if (length(params) == 6) {
-      Linf = exp(params[1:2])
-      vbK = exp(params[3])
-      tzero = params[4:5]
-      plotlengths[1,] = Linf[1] * (1 - exp(-vbK * (plotages - tzero[1])))
-      plotlengths[2,] = Linf[2] * (1 - exp(-vbK * (plotages - tzero[2])))
-    }
-    if (length(params) == 7) {
+      plotlengths = data.frame(matrix(nrow=2, ncol=length(plotages)))
+      colnames(plotlengths) = 1:length(plotages)
+      plotlengths = as.matrix(plotlengths)
       Linf = exp(params[1:2])
       vbK = exp(params[3:4])
       tzero = params[5:6]
       plotlengths[1,] = Linf[1] * (1 - exp(-vbK[1] * (plotages - tzero[1])))
       plotlengths[2,] = Linf[2] * (1 - exp(-vbK[2] * (plotages - tzero[2])))
+    }
+  }
+  if (is.vector(ObsAge)) {
+    if (length(params) == 6 | length(params) == 7) { # separate sexes (whether in data, known or not)
+      plotlengths = data.frame(matrix(nrow=2, ncol=length(plotages)))
+      colnames(plotlengths) = 1:length(plotages)
+      plotlengths = as.matrix(plotlengths)
+      if (length(params) == 6) {
+        Linf = exp(params[1:2])
+        vbK = exp(params[3])
+        tzero = params[4:5]
+        plotlengths[1,] = Linf[1] * (1 - exp(-vbK * (plotages - tzero[1])))
+        plotlengths[2,] = Linf[2] * (1 - exp(-vbK * (plotages - tzero[2])))
+      }
+      if (length(params) == 7) {
+        Linf = exp(params[1:2])
+        vbK = exp(params[3:4])
+        tzero = params[5:6]
+        plotlengths[1,] = Linf[1] * (1 - exp(-vbK[1] * (plotages - tzero[1])))
+        plotlengths[2,] = Linf[2] * (1 - exp(-vbK[2] * (plotages - tzero[2])))
+      }
     }
   }
 
@@ -3675,7 +3691,10 @@ GetvonBertalanffyGrowthResults <- function(params, nSexes, DataType, ObsAge, Obs
       MalEstvbK = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
       FemEsttzero <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
       MalEsttzero <- c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
-    } else { # separate sexes, with sex unknown
+      ParamEst = t(data.frame(FemLinf=round(FemEstLinf,1), FemvbK=round(FemEstvbK,2), Femtzero=round(FemEsttzero,2),
+                              MalLinf=round(MalEstLinf,1), MalvbK=round(MalEstvbK,2), Maltzero=round(MalEsttzero,2)))
+    }
+    if (is.vector(ObsAge)) { # separate sexes, with sex unknown
       if (length(params)==6) { # common k
         FemEstLinf = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
         MalEstLinf = c(exp(nlmb$par[2]), exp(nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
@@ -3820,19 +3839,19 @@ GetConfidenceLimitsForGrowthCurve <- function(GrowthEqn, nSexes, Ref_ages, param
     sims = data.frame(MASS::mvrnorm(n = 1000, params, vcov.params))
     if (nSexes==1) { # single or combined sex
       GetEstLen <- function(params) {
-        res=CalcLengthAtAge_vonBertalanffyGrowthCurve2(params, nSexes, plotages)
+        res=CalcLengthAtAge_vonBertalanffyGrowthCurve2(params, nSexes, ObsAge, plotages)
         return(res$plotlengths)
       }
       names(sims) = c("Linf", "vbK","tzero")
       sims.curves = apply(X=sims[,], MARGIN=1, FUN=GetEstLen)
     } else { # separate sexes
       GetEstLenFem <- function(params) {
-        res=CalcLengthAtAge_vonBertalanffyGrowthCurve2(params, nSexes, plotages)
+        res=CalcLengthAtAge_vonBertalanffyGrowthCurve2(params, nSexes, ObsAge, plotages)
         FemEstLengths = res$plotlengths[1,]
         return(FemEstLengths)
       }
       GetEstLenMal <- function(params) {
-        res=CalcLengthAtAge_vonBertalanffyGrowthCurve2(params, nSexes, plotages)
+        res=CalcLengthAtAge_vonBertalanffyGrowthCurve2(params, nSexes, ObsAge, plotages)
         MalEstLengths = res$plotlengths[2,]
         return(MalEstLengths)
       }
@@ -4453,7 +4472,7 @@ PlotFittedGrowthCurve <- function(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, O
     Res=GetConfidenceLimitsForGrowthCurve(GrowthEqn, nSexes, Ref_ages, params, vcov.params, ObsAge, ObsLen, ObsSex, plotages)
   }
 
-  if (GrowthEqn == 1) res = CalcLengthAtAge_vonBertalanffyGrowthCurve2(params, nSexes, plotages) # von Bertalanffy
+  if (GrowthEqn == 1) res = CalcLengthAtAge_vonBertalanffyGrowthCurve2(params, nSexes, ObsAge, plotages) # von Bertalanffy
   if (GrowthEqn == 2) res = CalcLengthAtAge_SchnuteGrowthCurve2(params, nSexes, Ref_ages, plotages) # Schnute
   if (GrowthEqn == 3) res = CalcLengthAtAge_SomersSeasonalGrowthCurve2(params, nSexes, plotages) # Seasonal growth
   if (GrowthEqn == 4) res = CalcLengthAtAge_DivergentGrowthModel2(params, plotages) # Divergent growth

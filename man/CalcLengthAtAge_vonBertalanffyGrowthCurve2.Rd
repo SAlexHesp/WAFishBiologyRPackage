@@ -4,12 +4,14 @@
 \alias{CalcLengthAtAge_vonBertalanffyGrowthCurve2}
 \title{Calculate expected lengths at age from von Bertalanffy growth curve}
 \usage{
-CalcLengthAtAge_vonBertalanffyGrowthCurve2(params, nSexes, plotages)
+CalcLengthAtAge_vonBertalanffyGrowthCurve2(params, nSexes, ObsAge, plotages)
 }
 \arguments{
 \item{params}{c(log(Linf),log(vbK),tzero)}
 
 \item{nSexes}{number of sexes}
+
+\item{ObsAge}{observed ages}
 
 \item{plotages}{specified ages for plotting}
 }
