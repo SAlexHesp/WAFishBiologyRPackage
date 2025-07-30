@@ -11,7 +11,7 @@ FitvonBertalanffyGrowthModel(
   ObsAge,
   ObsLen,
   ObsMeanLen,
-  ObsMeanLensd
+  ObsMeanLense
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ FitvonBertalanffyGrowthModel(
 
 \item{ObsMeanLen}{mean lengths for specified ages (i.e. as estimated from mixture analysis)}
 
-\item{ObsMeanLensd}{sd for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)}
+\item{ObsMeanLense}{se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)}
 }
 \value{
 stored output from internal R nlminb optimisation function (nlmb)

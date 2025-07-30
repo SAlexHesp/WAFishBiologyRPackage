@@ -13,7 +13,7 @@ GetSchnuteGrowthResults(
   ObsAge,
   ObsLen,
   ObsMeanLen,
-  ObsMeanLensd
+  ObsMeanLense
 )
 }
 \arguments{
@@ -33,7 +33,7 @@ GetSchnuteGrowthResults(
 
 \item{ObsMeanLen}{mean lengths for specified ages (i.e. as estimated from mixture analysis)}
 
-\item{ObsMeanLensd}{sd for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)}
+\item{ObsMeanLense}{se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)}
 }
 \value{
 negative log-likelihood (nll), nlminb convergence diagnostic (convergence),
@@ -48,68 +48,105 @@ parameter estimated and associated 95 percent confidence limits and associated v
 calculated using the MASS package.
 }
 \examples{
-# Schnute growth equation
+# Schnute growth equation - single sex length-at-age data
 # simulate data (ignoring mortality and selectivity effects)
+set.seed(123)
 GrowthEqn = 2 # Schnute growth equation
 nSexes = 1 # single or combined sex
 nSamples = 500
 MinAge = 0
 MaxAge = 20
 AgeStep = 1
-ObsAge = runif(nSamples, MinAge, MaxAge)
 Ref_ages = c(0.5,15)
-Growth_params = c(100,400,0.02,3)
+Growth_params = c(50,400,0.2,0.5)
 Growth_cv = 0.1
 Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-# fit growth model
+# fit growth model and plot
 ObsAge=Res$ObsAge
 ObsLen=Res$ObsLen
+par(mfrow=c(1,1))
+plot(ObsAge,ObsLen)
 DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
-params = c(log(150),log(420),0.05,2)
+params = log(c(80,400,0.2,0.5))
 t1=0.5
 t2=15
-ObsMeanLen=NA
-ObsMeanLensd=NA
-FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
-# DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
-# params = c(log(110),log(420),0.05,2)
-# t1=0.5
-# t2=15
-# ObsAge=Res$ObsAgeCl
-# ObsMeanLen=Res$ObsMeanLen
-# ObsMeanLensd=Res$ObsMeanLensd
-# FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
-# GrowthEqn = 2 # Schnute equation
-# nSexes = 2 # separate sexes
-# nSamples = c(500,500)
-# MinAge = 0.2
-# MaxAge = 20
-# AgeStep = 1
-# ObsAge = runif(nSamples, MinAge, MaxAge)
-# Ref_ages = c(0.5,15)
-# Growth_params = c(100,120,400,450,0.05,0.05,2,2)
-# Growth_cv = c(0.1,0.1)
-# Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-# # Fit Schnute growth curve to length at age data
-# nSexes=2
-# ObsAge=as.matrix(Res$ObsAge)
-# ObsLen=as.matrix(Res$ObsLen)
-# DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
-# params = c(log(c(130,125)),log(c(400,450)),0.05,0.05,2,2)
-# t1=0.5
-# t2=15
-# ObsMeanLen=NA
-# ObsMeanLensd=NA
-# FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
-# # Fit Schnute growth curve to mean length at age data
-# DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
-# params = c(log(c(100,100)),log(c(400,450)),0.05,0.05,2,2)
-# ObsAge=Res$ObsAgeCl
-# FemObsMeanLen = Res$FemObsMeanLen
-# MalObsMeanLen = Res$MalObsMeanLen
-# ObsMeanLen = as.matrix(t(data.frame(FemObsMeanLen=FemObsMeanLen,MalObsMeanLen=MalObsMeanLen)))
-# FemObsMeanLensd = Res$FemObsMeanLensd
-# MalObsMeanLensd = Res$MalObsMeanLensd
-# ObsMeanLensd = as.matrix(t(data.frame(FemObsMeanLensd=FemObsMeanLensd,MalObsMeanLensd=MalObsMeanLensd)))
-# FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
+FittedRes$ParamEst
+# Schnute growth equation - single sex mean length at age data
+# simulate data (ignoring mortality and selectivity effects)
+DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
+nSamples = 2000
+MinAge = 0
+MaxAge = 3
+AgeStep = 0.1
+Ref_ages = c(0.1,2.5)
+Growth_params = c(20,200,1.0,0.5)
+Growth_cv = 0.1
+Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
+# fit growth model and plot
+ObsAge=Res$ObsAge
+ObsMeanLen=Res$ObsMeanLen
+ObsMeanLense=Res$ObsMeanLense
+plot(Res$ObsAgeCl,ObsMeanLen)
+params = log(c(25,180,0.9,0.5))
+t1=0.1
+t2=2.5
+ObsAge=Res$ObsAgeCl
+ObsMeanLen=Res$ObsMeanLen
+ObsMeanLense=Res$ObsMeanLense
+FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
+FittedRes$ParamEst
+# Schnute growth equation - 2 sexes, length-at-age data
+# simulate data (ignoring mortality and selectivity effects)
+set.seed(123)
+GrowthEqn = 2 # Schnute equation
+nSexes = 2 # separate sexes
+nSamples = c(500,500)
+MinAge = 1
+MaxAge = 25
+AgeStep = 1
+Ref_ages = c(1,15)
+Growth_params = c(100,120,500,550,0.2,0.2,0.3,0.4)
+Growth_cv = c(0.1,0.1)
+Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
+# Fit Schnute growth curve to length at age dat
+ObsAge=as.matrix(Res$ObsAge)
+ObsLen=as.matrix(Res$ObsLen)
+par(mfrow=c(1,1))
+plot(ObsAge[1,],ObsLen[1,])
+points(ObsAge[2,],ObsLen[2,],col="blue")
+DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
+params = log(c(90,110,420,430,0.3,0.3,0.6,0.6))
+t1=1
+t2=15
+FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
+FittedRes$ParamEst
+# Fit Schnute growth curve - 2 sexes mean length at age data
+# simulate data (ignoring mortality and selectivity effects)
+set.seed(123)
+nSamples = c(2000,2000)
+DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
+MinAge = 0.1
+MaxAge = 3
+AgeStep = 0.1
+ObsAge = runif(nSamples, MinAge, MaxAge)
+Growth_params = c(20,20,180,200,1.0,1.0,0.5,0.5)
+Ref_ages = c(0.1,2.5)
+Growth_cv = c(0.1,0.1)
+Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
+par(mfrow=c(1,1))
+plot(Res$ObsAgeCl, Res$FemObsMeanLen)
+points(Res$ObsAgeCl, Res$MalObsMeanLen,col="blue")
+t1=0.1
+t2=2.5
+params = log(c(20,30,190,210,0.9,1.1,0.5,0.5))
+ObsAge=Res$ObsAgeCl
+FemObsMeanLen = Res$FemObsMeanLen
+MalObsMeanLen = Res$MalObsMeanLen
+ObsMeanLen = as.matrix(t(data.frame(FemObsMeanLen=FemObsMeanLen,MalObsMeanLen=MalObsMeanLen)))
+FemObsMeanLense = Res$FemObsMeanLense
+MalObsMeanLense = Res$MalObsMeanLense
+ObsMeanLense = as.matrix(t(data.frame(FemObsMeanLense=FemObsMeanLense,MalObsMeanLense=MalObsMeanLense)))
+FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
+FittedRes$ParamEst
 }

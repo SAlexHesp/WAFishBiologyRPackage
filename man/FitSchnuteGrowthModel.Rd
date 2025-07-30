@@ -13,7 +13,7 @@ FitSchnuteGrowthModel(
   ObsAge,
   ObsLen,
   ObsMeanLen,
-  ObsMeanLensd
+  ObsMeanLense
 )
 }
 \arguments{
@@ -33,7 +33,7 @@ FitSchnuteGrowthModel(
 
 \item{ObsMeanLen}{mean lengths for specified ages (i.e. as estimated from mixture analysis)}
 
-\item{ObsMeanLensd}{sd for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)}
+\item{ObsMeanLense}{se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)}
 }
 \value{
 nlmb (stored output from internal R nlminb optimisation function)

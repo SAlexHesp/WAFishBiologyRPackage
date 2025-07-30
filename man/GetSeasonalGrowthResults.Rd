@@ -11,7 +11,7 @@ GetSeasonalGrowthResults(
   ObsAge,
   ObsLen,
   ObsMeanLen,
-  ObsMeanLensd
+  ObsMeanLense
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ GetSeasonalGrowthResults(
 
 \item{ObsMeanLen}{mean lengths for specified ages (i.e. as estimated from mixture analysis)}
 
-\item{ObsMeanLensd}{sd for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)}
+\item{ObsMeanLense}{se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)}
 }
 \value{
 negative log-likelihood (nll)
@@ -68,16 +68,16 @@ nSexes=1
 ObsAge = Res$ObsAge
 ObsLen = Res$ObsLen
 ObsMeanLen=NA
-ObsMeanLensd=NA
+ObsMeanLense=NA
 params = c(log(160),log(0.8),0,0.25,0.8) #Linf, vbK, tzero, tc, C
 # fit seasonal growth curve to mean length at age data
-FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
 # DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 # params = c(log(160),log(0.8),0,0.25,0.8) #Linf, vbK, tzero, tc, C
 # ObsAge=Res$ObsAgeCl
 # ObsMeanLen=Res$ObsMeanLen
-# ObsMeanLensd=Res$ObsMeanLensd
-# FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+# ObsMeanLense=Res$ObsMeanLense
+# FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
 # GrowthEqn=3 # Seasonal growth curve
 # nSexes=2 # separate sexes
 # nSamples = c(500,500)
@@ -99,18 +99,18 @@ FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, Obs
 # ObsAge=as.matrix(Res$ObsAge)
 # ObsLen=as.matrix(Res$ObsLen)
 # ObsMeanLen=NA
-# ObsMeanLensd=NA
+# ObsMeanLense=NA
 # params = c(log(c(160,150)),log(c(0.8,0.8)),c(0,0),c(0.25,0.25),c(0.8,0.8)) #Linf, vbK, tzero, tc, C
 # # fit seasonal growth curve to mean length at age data
-# FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+# FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
 # DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 # params = c(log(c(160,150)),log(c(0.8,0.8)),c(0,0),c(0.25,0.25),c(0.8,0.8)) #Linf, vbK, tzero, tc, C
 # ObsAge=Res$ObsAgeCl
 # FemObsMeanLen = Res$FemObsMeanLen
 # MalObsMeanLen = Res$MalObsMeanLen
 # ObsMeanLen = as.matrix(t(data.frame(FemObsMeanLen=FemObsMeanLen,MalObsMeanLen=MalObsMeanLen)))
-# FemObsMeanLensd = Res$FemObsMeanLensd
-# MalObsMeanLensd = Res$MalObsMeanLensd
-# ObsMeanLensd = as.matrix(t(data.frame(FemObsMeanLensd=FemObsMeanLensd,MalObsMeanLensd=MalObsMeanLensd)))
-# FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+# FemObsMeanLense = Res$FemObsMeanLense
+# MalObsMeanLense = Res$MalObsMeanLense
+# ObsMeanLense = as.matrix(t(data.frame(FemObsMeanLense=FemObsMeanLense,MalObsMeanLense=MalObsMeanLense)))
+# FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
 }

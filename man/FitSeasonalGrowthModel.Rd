@@ -11,11 +11,23 @@ FitSeasonalGrowthModel(
   ObsAge,
   ObsLen,
   ObsMeanLen,
-  ObsMeanLensd
+  ObsMeanLense
 )
 }
 \arguments{
-\item{Linf, }{vbK, tzero, tc, C, Mod_sd (Numbers).}
+\item{params}{Linf, vbK, tzero, tc, C}
+
+\item{nSexes}{number of sexes}
+
+\item{DataType}{1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis}
+
+\item{ObsAge}{observed ages}
+
+\item{ObsLen}{observed lengths}
+
+\item{ObsMeanLen}{mean lengths for specified ages (i.e. as estimated from mixture analysis)}
+
+\item{ObsMeanLense}{se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)}
 }
 \value{
 nlmb (stored output from internal R nlminb optimisation function)

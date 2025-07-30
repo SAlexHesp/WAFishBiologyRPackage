@@ -11,7 +11,7 @@ GetvonBertalanffyGrowthResults(
   ObsAge,
   ObsLen,
   ObsMeanLen,
-  ObsMeanLensd
+  ObsMeanLense
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ GetvonBertalanffyGrowthResults(
 
 \item{ObsMeanLen}{mean lengths for specified ages (i.e. as estimated from mixture analysis)}
 
-\item{ObsMeanLensd}{sd for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)}
+\item{ObsMeanLense}{se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)}
 }
 \value{
 negative log-likelihood (nll), nlminb convergence diagnostic (convergence)
@@ -63,13 +63,13 @@ DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age an
 params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
 ObsAge = Res$ObsAge
 ObsLen = Res$ObsLen
-FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
 DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
 ObsAge = Res$ObsAgeCl
 ObsMeanLen = Res$ObsMeanLen
-ObsMeanLensd = Res$ObsMeanLensd
-FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+ObsMeanLense = Res$ObsMeanLense
+FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
 nSexes = 2 # Separate sexes
 nSamples = c(300,200) # if different, order so NAs are last for smaller sample
 MinAge = 1
@@ -88,17 +88,17 @@ DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age an
 ObsAge = as.matrix(Res$ObsAge)
 ObsLen = as.matrix(Res$ObsLen)
 params = c(log(c(300,300)),log(c(0.3,0.3)),c(0,0)) # log(Linf), log(k), tzero
-FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
 DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 params = c(log(c(300,300)),log(c(0.3,0.3)),c(0,0)) # log(Linf), log(k), tzero
 ObsAge = Res$ObsAgeCl
 FemObsMeanLen = Res$FemObsMeanLen
 MalObsMeanLen = Res$MalObsMeanLen
 ObsMeanLen = as.matrix(t(data.frame(FemObsMeanLen=FemObsMeanLen,MalObsMeanLen=MalObsMeanLen)))
-FemObsMeanLensd = Res$FemObsMeanLensd
-MalObsMeanLensd = Res$MalObsMeanLensd
-ObsMeanLensd = as.matrix(t(data.frame(FemObsMeanLensd=FemObsMeanLensd,MalObsMeanLensd=MalObsMeanLensd)))
-FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+FemObsMeanLense = Res$FemObsMeanLense
+MalObsMeanLense = Res$MalObsMeanLense
+ObsMeanLense = as.matrix(t(data.frame(FemObsMeanLense=FemObsMeanLense,MalObsMeanLense=MalObsMeanLense)))
+FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
 # Simulate data for separate sexes, but fit model with 2 curves, where sex is not known
 # 2 sexes
 GrowthEqn = 1
@@ -129,6 +129,6 @@ DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age an
 nSexes = 2 # separate sexes, but sex unknown
 # note, model has 7, not 6 params, with estimated sd, to distinguish this from standard model
 params = c(log(c(250,800)),log(c(0.3,0.3)),c(0,0), log(20)) # log(Linf), log(k), tzero, common sd
-FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
 FittedRes$ParamEst
 }

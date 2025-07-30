@@ -2810,12 +2810,9 @@ SimulateLengthAtAgeData <- function(GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
       MeanLen = Linf * (1 - exp(-vbK * (ObsAge - tzero)))
     }
     if (GrowthEqn == 2) { # Schnute
-      t1=Ref_ages[1]
-      t2=Ref_ages[2]
-      y1=Growth_params[1]
-      y2=Growth_params[2]
-      a=Growth_params[3]
-      b=Growth_params[4]
+      t1=Ref_ages[1]; t2=Ref_ages[2]
+      y1=Growth_params[1]; y2=Growth_params[2]
+      a=Growth_params[3]; b=Growth_params[4]
       MeanLen <- rep(NA,length(ObsAge))
       for (i in 1:nSamples) {
         Age <- ObsAge[i]
@@ -2844,24 +2841,21 @@ SimulateLengthAtAgeData <- function(GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
     ObsAgeCl = MeanLenAtAge[,1]
     ObsMeanLen = MeanLenAtAge[,2]
     Dat2 = aggregate(ObsLen ~ AgeCl, data=ObsDat, sd)
-    ObsMeanLensd = Dat2[,2]
-    ObsMeanLen_lw95CL = ObsMeanLen - (1.96 * ObsMeanLensd)
-    ObsMeanLen_hi95CL = ObsMeanLen + (1.96 * ObsMeanLensd)
-    FemObsMeanLen = NA
-    FemObsMeanLensd = NA
-    FemObsMeanLen_lw95CL = NA
-    FemObsMeanLen_hi95CL = NA
-    MalObsMeanLen = NA
-    MalObsMeanLensd = NA
-    MalObsMeanLen_lw95CL = NA
-    MalObsMeanLen_hi95CL = NA
+    Dat3 = aggregate(ObsLen ~ AgeCl, data=ObsDat, length)
+    ObsMeanLensd = Dat2[,2]; ObsMeanLennObs = Dat3[,2]
+    ObsMeanLense = ObsMeanLensd / sqrt(ObsMeanLennObs-1)
+    ObsMeanLen_lw95CL = ObsMeanLen - (1.96 * ObsMeanLense); ObsMeanLen_hi95CL = ObsMeanLen + (1.96 * ObsMeanLense)
+    ObsMeanLen_lw95PL = ObsMeanLen - (1.96 * ObsMeanLensd); ObsMeanLen_hi95PL = ObsMeanLen + (1.96 * ObsMeanLensd)
+    FemObsMeanLen = NA; FemObsMeanLensd = NA; FemObsMeanLennObs = NA; FemObsMeanLense = NA
+    FemObsMeanLen_lw95CL = NA; FemObsMeanLen_hi95CL = NA; FemObsMeanLen_lw95PL = NA; FemObsMeanLen_hi95PL = NA
+    MalObsMeanLen = NA; MalObsMeanLensd = NA; MalObsMeanLennObs = NA; MalObsMeanLense = NA
+    MalObsMeanLen_lw95CL = NA; MalObsMeanLen_hi95CL = NA; MalObsMeanLen_lw95PL = NA; MalObsMeanLen_hi95PL = NA
   }
 
   if (nSexes==2 & GrowthEqn<4) { # 2 sexes (or areas of same sex)
     ObsAge = data.frame(matrix(nrow=2,ncol=max(nSamples)))
     colnames(ObsAge) = 1:max(nSamples)
-    MeanLen = ObsAge
-    ObsLen = ObsAge
+    MeanLen = ObsAge; ObsLen = ObsAge
 
     for (i in 1:nSexes) {
       tempObsAge = runif(nSamples[i], MinAge, MaxAge)
@@ -2873,18 +2867,13 @@ SimulateLengthAtAgeData <- function(GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
         tempMeanLen = Linf[i] * (1 - exp(-vbK[i] * (tempObsAge - tzero[i])))
       }
       if (GrowthEqn == 2) { # Schnute
-        t1=Ref_ages[1]
-        t2=Ref_ages[2]
+        t1=Ref_ages[1]; t2=Ref_ages[2]
         if (i==1) {
-          y1=Growth_params[1]
-          y2=Growth_params[3]
-          a=Growth_params[5]
-          b=Growth_params[7]
+          y1=Growth_params[1]; y2=Growth_params[3]
+          a=Growth_params[5]; b=Growth_params[7]
         } else {
-          y1=Growth_params[2]
-          y2=Growth_params[4]
-          a=Growth_params[6]
-          b=Growth_params[8]
+          y1=Growth_params[2]; y2=Growth_params[4]
+          a=Growth_params[6]; b=Growth_params[8]
         }
         tempMeanLen = rep(0,length(nSamples[i]))
         for (j in 1:nSamples[i]) {
@@ -2907,7 +2896,7 @@ SimulateLengthAtAgeData <- function(GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
       # get random lengths at age
       tempObsLen = rnorm(nSamples[i], tempMeanLen, Growth_cv[i] * tempMeanLen)
 
-      # observed mean length and sd data
+      # observed mean length, sd and se, 95 percent confidence limits and prediction limits
       ObsDat = data.frame(tempObsAge=tempObsAge,
                           tempObsLen=tempObsLen)
       ObsDat$tempAgeCl = trunc(tempObsAge/AgeStep)*AgeStep
@@ -2915,29 +2904,29 @@ SimulateLengthAtAgeData <- function(GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
       ObsAgeCl = MeanLenAtAge[,1]
       ObsMeanLen = MeanLenAtAge[,2]
       Dat2 = aggregate(tempObsLen ~ tempAgeCl, data=ObsDat, sd)
-      ObsMeanLensd = Dat2[,2]
-      ObsMeanLen_lw95CL = ObsMeanLen - (1.96 * ObsMeanLensd)
-      ObsMeanLen_hi95CL = ObsMeanLen + (1.96 * ObsMeanLensd)
+      Dat3 = aggregate(tempObsLen ~ tempAgeCl, data=ObsDat, length)
+      ObsMeanLensd = Dat2[,2]; ObsMeanLennObs = Dat3[,2]
+      ObsMeanLense = ObsMeanLensd / sqrt(ObsMeanLennObs-1)
+      ObsMeanLen_lw95CL = ObsMeanLen - (1.96 * ObsMeanLense); ObsMeanLen_hi95CL = ObsMeanLen + (1.96 * ObsMeanLense)
+      ObsMeanLen_lw95PL = ObsMeanLen - (1.96 * ObsMeanLensd); ObsMeanLen_hi95PL = ObsMeanLen + (1.96 * ObsMeanLensd)
 
       if (i==1) {
-        FemObsMeanLen = MeanLenAtAge[,2]
-        FemObsMeanLensd = ObsMeanLensd
-        FemObsMeanLen_lw95CL = ObsMeanLen_lw95CL
-        FemObsMeanLen_hi95CL = ObsMeanLen_hi95CL
+        FemObsMeanLen=MeanLenAtAge[,2]; FemObsMeanLensd=ObsMeanLensd
+        FemObsMeanLennObs=ObsMeanLennObs; FemObsMeanLense=ObsMeanLense
+        FemObsMeanLen_lw95CL=ObsMeanLen_lw95CL; FemObsMeanLen_hi95CL=ObsMeanLen_hi95CL
+        FemObsMeanLen_lw95PL=ObsMeanLen_lw95PL; FemObsMeanLen_hi95PL=ObsMeanLen_hi95PL
       } else {
-        MalObsMeanLen = MeanLenAtAge[,2]
-        MalObsMeanLensd = ObsMeanLensd
-        MalObsMeanLen_lw95CL = ObsMeanLen_lw95CL
-        MalObsMeanLen_hi95CL = ObsMeanLen_hi95CL
+        MalObsMeanLen = MeanLenAtAge[,2]; MalObsMeanLensd = ObsMeanLensd
+        MalObsMeanLennObs=ObsMeanLennObs; MalObsMeanLense=ObsMeanLense
+        MalObsMeanLen_lw95CL=ObsMeanLen_lw95CL; MalObsMeanLen_hi95CL=ObsMeanLen_hi95CL
+        MalObsMeanLen_lw95PL=ObsMeanLen_lw95PL; MalObsMeanLen_hi95PL=ObsMeanLen_hi95PL
       }
       ObsAge[i,1:nSamples[i]] = tempObsAge
       ObsLen[i,1:nSamples[i]] = tempObsLen
     } # sex
-    ObsMeanLen=NA
-    ObsMeanLensd=NA
-    ObsMeanLen_lw95CL=NA
-    ObsMeanLen_hi95CL=NA
-  }
+    ObsMeanLen=NA; ObsMeanLensd=NA; ObsMeanLennObs=NA; ObsMeanLense=NA
+    ObsMeanLen_lw95CL=NA; ObsMeanLen_hi95CL=NA; ObsMeanLen_lw95PL=NA; ObsMeanLen_hi95PL=NA
+  } # i
 
   if (GrowthEqn == 4) { # von Bertalanffy with divergent growth
 
@@ -2973,29 +2962,21 @@ SimulateLengthAtAgeData <- function(GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
         MeanLen[j] = Linf[2] * (1 - exp(-vbK[2] * (ObsAge[j] - tzero2)))
     }
 
-
     # get random lengths at age
     ObsLen = rnorm(nSamples, MeanLen, Growth_cv * MeanLen)
 
-    # observed mean length and sd data
+    # observed mean length, sd and se, 95 percent confidence limits and prediction limits
     ObsDat = data.frame(ObsAge=ObsAge, ObsLen=ObsLen, ObsSex=ObsSex)
     ObsDat$AgeCl = trunc(ObsAge/AgeStep)*AgeStep
     MeanLenAtAge = aggregate(ObsLen ~ AgeCl, data=ObsDat, mean)
     ObsAgeCl = MeanLenAtAge[,1]
     ObsMeanLen = MeanLenAtAge[,2]
-
-    ObsMeanLen=NA
-    ObsMeanLensd=NA
-    ObsMeanLen_lw95CL=NA
-    ObsMeanLen_hi95CL=NA
-    FemObsMeanLen = NA
-    FemObsMeanLensd = NA
-    FemObsMeanLen_lw95CL = NA
-    FemObsMeanLen_hi95CL = NA
-    MalObsMeanLen = NA
-    MalObsMeanLensd = NA
-    MalObsMeanLen_lw95CL = NA
-    MalObsMeanLen_hi95CL = NA
+    ObsMeanLen=NA; ObsMeanLensd=NA; ObsMeanLennObs=NA; ObsMeanLennObs=NA
+    ObsMeanLen_lw95CL=NA; ObsMeanLen_hi95CL=NA; ObsMeanLen_lw95PL=NA; ObsMeanLen_hi95PL=NA
+    FemObsMeanLen=NA; FemObsMeanLensd=NA; FemObsMeanLennObs=NA; FemObsMeanLense=NA
+    FemObsMeanLen_lw95CL=NA; FemObsMeanLen_hi95CL=NA; FemObsMeanLen_lw95PL=NA; FemObsMeanLen_hi95PL=NA
+    MalObsMeanLen=NA; MalObsMeanLensd=NA; MalObsMeanLensd=NA; MalObsMeanLennObs=NA
+    MalObsMeanLen_lw95CL=NA; MalObsMeanLen_hi95CL=NA; MalObsMeanLen_lw95PL=NA; MalObsMeanLen_hi95PL=NA
   }
 
   results = list(ObsDat=ObsDat,
@@ -3004,19 +2985,32 @@ SimulateLengthAtAgeData <- function(GrowthEqn, nSamples, nSexes, MinAge, MaxAge,
                  ObsAgeCl=ObsAgeCl,
                  ObsMeanLen=ObsMeanLen,
                  ObsMeanLensd=ObsMeanLensd,
+                 ObsMeanLennObs=ObsMeanLennObs,
+                 ObsMeanLense=ObsMeanLense,
                  ObsMeanLen_lw95CL=ObsMeanLen_lw95CL,
                  ObsMeanLen_hi95CL=ObsMeanLen_hi95CL,
-                 FemObsMeanLen = FemObsMeanLen,
-                 FemObsMeanLensd = FemObsMeanLensd,
-                 FemObsMeanLen_lw95CL = FemObsMeanLen_lw95CL,
-                 FemObsMeanLen_hi95CL = FemObsMeanLen_hi95CL,
-                 MalObsMeanLen = MalObsMeanLen,
-                 MalObsMeanLensd = MalObsMeanLensd,
-                 MalObsMeanLen_lw95CL = MalObsMeanLen_lw95CL,
-                 MalObsMeanLen_hi95CL = MalObsMeanLen_hi95CL)
+                 ObsMeanLen_lw95PL=ObsMeanLen_lw95PL,
+                 ObsMeanLen_hi95PL=ObsMeanLen_hi95PL,
+                 FemObsMeanLen=FemObsMeanLen,
+                 FemObsMeanLensd=FemObsMeanLensd,
+                 FemObsMeanLennObs=FemObsMeanLennObs,
+                 FemObsMeanLense=FemObsMeanLense,
+                 FemObsMeanLen_lw95CL=FemObsMeanLen_lw95CL,
+                 FemObsMeanLen_hi95CL=FemObsMeanLen_hi95CL,
+                 FemObsMeanLen_lw95PL=FemObsMeanLen_lw95PL,
+                 FemObsMeanLen_hi95PL=FemObsMeanLen_hi95PL,
+                 MalObsMeanLen=MalObsMeanLen,
+                 MalObsMeanLensd=MalObsMeanLensd,
+                 MalObsMeanLennObs=MalObsMeanLennObs,
+                 MalObsMeanLense=MalObsMeanLense,
+                 MalObsMeanLen_lw95CL=MalObsMeanLen_lw95CL,
+                 MalObsMeanLen_hi95CL=MalObsMeanLen_hi95CL,
+                 MalObsMeanLen_lw95PL=MalObsMeanLen_lw95PL,
+                 MalObsMeanLen_hi95PL=MalObsMeanLen_hi95PL)
 
   return(results)
 }
+
 
 #' Calculate negative log-likelihood associated with fit of growth model allowing for divergent growth between sexes or areas
 #'
@@ -3150,15 +3144,17 @@ CalcNLL_GrowthCurve <- function(params) {
     nObs = length(ObsAge) # age classes
     if (nSexes==1) { # combined or single sex
       for (j in 1:nObs) {
-        NLL = (0.5 * log(ObsMeanLensd[j]^2)) + (0.5*log(2*pi)) +
-          ((ObsMeanLen[j] - ExpLen[j])^2) / (2 * (ObsMeanLensd[j]^2))
+        # NLL = (0.5 * log(ObsMeanLensd[j]^2)) + (0.5*log(2*pi)) +
+        #   ((ObsMeanLen[j] - ExpLen[j])^2) / (2 * (ObsMeanLensd[j]^2))
+        NLL = 0.5 * log(2 * pi) + log(ObsMeanLense[j]) + ((ObsMeanLen[j] - ExpLen[j])^2) / (2 * ObsMeanLense[j]^2)
         Objfunc = Objfunc + NLL
       }
     } else { # separate sexes
       for (i in 1:nSexes) {
         for (j in 1:nObs) {
-          NLL = (0.5 * log(ObsMeanLensd[i,j]^2)) + (0.5*log(2*pi)) +
-            ((ObsMeanLen[i,j] - ExpLen[i,j])^2) / (2 * (ObsMeanLensd[i,j]^2))
+          # NLL = (0.5 * log(ObsMeanLensd[i,j]^2)) + (0.5*log(2*pi)) +
+          #   ((ObsMeanLen[i,j] - ExpLen[i,j])^2) / (2 * (ObsMeanLensd[i,j]^2))
+          NLL = 0.5 * log(2 * pi) + log(ObsMeanLense[i,j]) + ((ObsMeanLen[j] - ExpLen[j])^2) / (2 * ObsMeanLense[i,j]^2)
           Objfunc = Objfunc + NLL
         }
       }
@@ -3168,6 +3164,7 @@ CalcNLL_GrowthCurve <- function(params) {
   results = Objfunc
   return(results)
 }
+
 
 
 #' Calculate expected lengths at age from von Bertalanffy growth curve
@@ -3343,10 +3340,10 @@ FitDivergeGrowthModel <- function(params, ObsAge, ObsLen, ObsSex) {
 #' @param ObsAge observed ages
 #' @param ObsLen observed lengths
 #' @param ObsMeanLen mean lengths for specified ages (i.e. as estimated from mixture analysis)
-#' @param ObsMeanLensd sd for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)
+#' @param ObsMeanLense se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)
 #'
 #' @return stored output from internal R nlminb optimisation function (nlmb)
-FitvonBertalanffyGrowthModel <- function(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd) {
+FitvonBertalanffyGrowthModel <- function(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense) {
 
   nlmb <- nlminb(params, CalcNLL_GrowthCurve, gradient = NULL,
                  hessian = TRUE,  control=list(trace=1, eval.max=1000, iter.max=1000))
@@ -3522,7 +3519,7 @@ GetDivergeGrowthModelResults <- function(params, ObsAge, ObsLen, ObsSex) {
 #' @param ObsAge observed ages
 #' @param ObsLen observed lengths
 #' @param ObsMeanLen mean lengths for specified ages (i.e. as estimated from mixture analysis)
-#' @param ObsMeanLensd sd for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)
+#' @param ObsMeanLense se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)
 #'
 #' @return negative log-likelihood (nll), nlminb convergence diagnostic (convergence)
 #' sample size (SampleSize), growth parameter estimates with lower and upper 95%
@@ -3550,13 +3547,13 @@ GetDivergeGrowthModelResults <- function(params, ObsAge, ObsLen, ObsSex) {
 #' params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
 #' ObsAge = Res$ObsAge
 #' ObsLen = Res$ObsLen
-#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
 #' DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 #' params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
 #' ObsAge = Res$ObsAgeCl
 #' ObsMeanLen = Res$ObsMeanLen
-#' ObsMeanLensd = Res$ObsMeanLensd
-#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+#' ObsMeanLense = Res$ObsMeanLense
+#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
 #' nSexes = 2 # Separate sexes
 #' nSamples = c(300,200) # if different, order so NAs are last for smaller sample
 #' MinAge = 1
@@ -3575,17 +3572,17 @@ GetDivergeGrowthModelResults <- function(params, ObsAge, ObsLen, ObsSex) {
 #' ObsAge = as.matrix(Res$ObsAge)
 #' ObsLen = as.matrix(Res$ObsLen)
 #' params = c(log(c(300,300)),log(c(0.3,0.3)),c(0,0)) # log(Linf), log(k), tzero
-#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
 #' DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 #' params = c(log(c(300,300)),log(c(0.3,0.3)),c(0,0)) # log(Linf), log(k), tzero
 #' ObsAge = Res$ObsAgeCl
 #' FemObsMeanLen = Res$FemObsMeanLen
 #' MalObsMeanLen = Res$MalObsMeanLen
 #' ObsMeanLen = as.matrix(t(data.frame(FemObsMeanLen=FemObsMeanLen,MalObsMeanLen=MalObsMeanLen)))
-#' FemObsMeanLensd = Res$FemObsMeanLensd
-#' MalObsMeanLensd = Res$MalObsMeanLensd
-#' ObsMeanLensd = as.matrix(t(data.frame(FemObsMeanLensd=FemObsMeanLensd,MalObsMeanLensd=MalObsMeanLensd)))
-#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+#' FemObsMeanLense = Res$FemObsMeanLense
+#' MalObsMeanLense = Res$MalObsMeanLense
+#' ObsMeanLense = as.matrix(t(data.frame(FemObsMeanLense=FemObsMeanLense,MalObsMeanLense=MalObsMeanLense)))
+#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
 #' # Simulate data for separate sexes, but fit model with 2 curves, where sex is not known
 #' # 2 sexes
 #' GrowthEqn = 1
@@ -3616,13 +3613,13 @@ GetDivergeGrowthModelResults <- function(params, ObsAge, ObsLen, ObsSex) {
 #' nSexes = 2 # separate sexes, but sex unknown
 #' # note, model has 7, not 6 params, with estimated sd, to distinguish this from standard model
 #' params = c(log(c(250,800)),log(c(0.3,0.3)),c(0,0), log(20)) # log(Linf), log(k), tzero, common sd
-#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
 #' FittedRes$ParamEst
 #' @export
-GetvonBertalanffyGrowthResults <- function(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd) {
+GetvonBertalanffyGrowthResults <- function(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense) {
 
   # fit growth model
-  nlmb = FitvonBertalanffyGrowthModel(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+  nlmb = FitvonBertalanffyGrowthModel(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
 
   # get estimates
   nlmb$objective # value of nll
@@ -4010,21 +4007,21 @@ GetConfidenceLimitsForGrowthCurve <- function(GrowthEqn, nSexes, Ref_ages, param
 #' ObsAge = Res$ObsAge
 #' ObsLen = Res$ObsLen
 #'
-#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
 #' plotages=seq(0, MaxAge,0.1)
 #' par(mfrow=c(1,1))
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen=NA,
-#'                       ObsMeanLensd=NA, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense=NA, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 #' DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 #' params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
 #' ObsAge = Res$ObsAgeCl
 #' ObsMeanLen = Res$ObsMeanLen
-#' ObsMeanLensd = Res$ObsMeanLensd
-#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+#' ObsMeanLense = Res$ObsMeanLense
+#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
 #' plotages=seq(0, MaxAge,0.1)
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
-#'                       ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 #' nSexes = 2 # Separate sexes
 #' nSamples = c(300,200) # if different, order so NAs are last for smaller sample
@@ -4044,11 +4041,11 @@ GetConfidenceLimitsForGrowthCurve <- function(GrowthEqn, nSexes, Ref_ages, param
 #' ObsAge = as.matrix(Res$ObsAge)
 #' ObsLen = as.matrix(Res$ObsLen)
 #' params = c(log(c(300,300)),log(c(0.3,0.3)),c(0,0)) # log(Linf), log(k), tzero
-#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
 #' plotages=seq(0, MaxAge,0.1)
 #' par(mfrow=c(1,2))
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
-#'                       ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 #' DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 #' params = c(log(c(300,300)),log(c(0.3,0.3)),c(0,0)) # log(Linf), log(k), tzero
@@ -4056,89 +4053,137 @@ GetConfidenceLimitsForGrowthCurve <- function(GrowthEqn, nSexes, Ref_ages, param
 #' FemObsMeanLen = Res$FemObsMeanLen
 #' MalObsMeanLen = Res$MalObsMeanLen
 #' ObsMeanLen = as.matrix(t(data.frame(FemObsMeanLen=FemObsMeanLen,MalObsMeanLen=MalObsMeanLen)))
-#' FemObsMeanLensd = Res$FemObsMeanLensd
-#' MalObsMeanLensd = Res$MalObsMeanLensd
-#' ObsMeanLensd = as.matrix(t(data.frame(FemObsMeanLensd=FemObsMeanLensd,MalObsMeanLensd=MalObsMeanLensd)))
-#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+#' FemObsMeanLense = Res$FemObsMeanLense
+#' MalObsMeanLense = Res$MalObsMeanLense
+#' ObsMeanLense = as.matrix(t(data.frame(FemObsMeanLense=FemObsMeanLense,MalObsMeanLense=MalObsMeanLense)))
+#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
 #' plotages=seq(0, MaxAge,0.1)
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
-#'                       ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
-#' # Schnute growth equation
+#' # Schnute growth equation - single sex length-at-age data
 #' # simulate data (ignoring mortality and selectivity effects)
+#' set.seed(123)
 #' GrowthEqn = 2 # Schnute growth equation
 #' nSexes = 1 # single or combined sex
 #' nSamples = 500
 #' MinAge = 0
 #' MaxAge = 20
 #' AgeStep = 1
-#' ObsAge = runif(nSamples, MinAge, MaxAge)
 #' Ref_ages = c(0.5,15)
-#' Growth_params = c(100,400,0.02,3)
+#' Growth_params = c(50,400,0.2,0.5)
 #' Growth_cv = 0.1
 #' Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
 #' # fit growth model and plot
 #' ObsAge=Res$ObsAge
 #' ObsLen=Res$ObsLen
+#' par(mfrow=c(1,1))
+#' plot(ObsAge,ObsLen)
 #' DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
-#' params = c(log(150),log(420),0.05,2)
+#' params = log(c(80,400,0.2,0.5))
 #' t1=0.5
 #' t2=15
-#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
+#' FittedRes$ParamEst
+#' FittedRes$cor.params
 #' plotages=seq(0, MaxAge,0.1)
 #' par(mfrow=c(1,1))
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen=NA,
-#'                       ObsMeanLensd=NA, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense=NA, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
+#' # Schnute growth equation - single sex mean length at age data
+#' # simulate data (ignoring mortality and selectivity effects)
 #' DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
-#' params = c(log(110),log(420),0.05,2)
-#' t1=0.5
-#' t2=15
+#' nSamples = 2000
+#' MinAge = 0
+#' MaxAge = 3
+#' AgeStep = 0.1
+#' Ref_ages = c(0.1,2.5)
+#' Growth_params = c(20,200,1.0,0.5)
+#' Growth_cv = 0.1
+#' Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
+#' # fit growth model and plot
+#' ObsAge=Res$ObsAge
+#' ObsMeanLen=Res$ObsMeanLen
+#' ObsMeanLense=Res$ObsMeanLense
+#' plot(Res$ObsAgeCl,ObsMeanLen)
+#' params = log(c(25,180,0.9,0.5))
+#' t1=0.1
+#' t2=2.5
 #' ObsAge=Res$ObsAgeCl
 #' ObsMeanLen=Res$ObsMeanLen
-#' ObsMeanLensd=Res$ObsMeanLensd
-#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+#' ObsMeanLense=Res$ObsMeanLense
+#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
+#' FittedRes$ParamEst
+#' FittedRes$cor.params
 #' plotages=seq(0, MaxAge,0.1)
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
-#'                       ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
+#' # Schnute growth equation - 2 sexes, length-at-age data
+#' # simulate data (ignoring mortality and selectivity effects)
+#' set.seed(123)
 #' GrowthEqn = 2 # Schnute equation
 #' nSexes = 2 # separate sexes
 #' nSamples = c(500,500)
-#' MinAge = 0.2
-#' MaxAge = 20
+#' MinAge = 1
+#' MaxAge = 25
 #' AgeStep = 1
-#' ObsAge = runif(nSamples, MinAge, MaxAge)
-#' Ref_ages = c(0.5,15)
-#' Growth_params = c(100,120,400,450,0.05,0.05,2,2)
+#' Ref_ages = c(1,15)
+#' Growth_params = c(100,120,500,550,0.2,0.2,0.3,0.4)
 #' Growth_cv = c(0.1,0.1)
 #' Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-#' # Fit Schnute growth curve to length at age data
-#' nSexes=2
+#' # Fit Schnute growth curve to length at age dat
 #' ObsAge=as.matrix(Res$ObsAge)
 #' ObsLen=as.matrix(Res$ObsLen)
+#' par(mfrow=c(1,1))
+#' plot(ObsAge[1,],ObsLen[1,])
+#' points(ObsAge[2,],ObsLen[2,],col="blue")
 #' DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
-#' params = c(log(c(130,125)),log(c(400,450)),0.05,0.05,2,2)
-#' t1=0.5
+#' params = log(c(90,110,420,430,0.3,0.3,0.6,0.6))
+#' t1=1
 #' t2=15
-#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
+#' FittedRes$ParamEst
+#' FittedRes$cor.params
 #' par(mfrow=c(1,2))
+#' plotages=seq(0, MaxAge,1)
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen=NA,
-#'                       ObsMeanLensd=NA, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense=NA, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
-#' # Fit Schnute growth curve to mean length at age data
+#' # Fit Schnute growth curve - 2 sexes mean length at age data
+#' # simulate data (ignoring mortality and selectivity effects)
+#' set.seed(123)
+#' nSamples = c(2000,2000)
 #' DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
-#' params = c(log(c(100,100)),log(c(400,450)),0.05,0.05,2,2)
+#' MinAge = 0.1
+#' MaxAge = 3
+#' AgeStep = 0.1
+#' ObsAge = runif(nSamples, MinAge, MaxAge)
+#' Growth_params = c(20,20,180,200,1.0,1.0,0.5,0.5)
+#' Ref_ages = c(0.1,2.5)
+#' Growth_cv = c(0.1,0.1)
+#' Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
+#' par(mfrow=c(1,1))
+#' plot(Res$ObsAgeCl, Res$FemObsMeanLen)
+#' points(Res$ObsAgeCl, Res$MalObsMeanLen,col="blue")
+#' t1=0.1
+#' t2=2.5
+#' params = log(c(20,30,190,210,0.9,1.1,0.5,0.5))
 #' ObsAge=Res$ObsAgeCl
 #' FemObsMeanLen = Res$FemObsMeanLen
 #' MalObsMeanLen = Res$MalObsMeanLen
 #' ObsMeanLen = as.matrix(t(data.frame(FemObsMeanLen=FemObsMeanLen,MalObsMeanLen=MalObsMeanLen)))
-#' FemObsMeanLensd = Res$FemObsMeanLensd
-#' MalObsMeanLensd = Res$MalObsMeanLensd
-#' ObsMeanLensd = as.matrix(t(data.frame(FemObsMeanLensd=FemObsMeanLensd,MalObsMeanLensd=MalObsMeanLensd)))
-#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+#' FemObsMeanLense = Res$FemObsMeanLense
+#' MalObsMeanLense = Res$MalObsMeanLense
+#' ObsMeanLense = as.matrix(t(data.frame(FemObsMeanLense=FemObsMeanLense,MalObsMeanLense=MalObsMeanLense)))
+#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
+#' FittedRes$ParamEst
+#' FittedRes$cor.params
+#' par(mfrow=c(1,2))
+#' plotages=seq(0, MaxAge,0.1)
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
-#'                       ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 #' # Seasonal growth curve
 #' # simulate data (ignoring mortality and selectivity effects)
@@ -4164,21 +4209,21 @@ GetConfidenceLimitsForGrowthCurve <- function(GrowthEqn, nSexes, Ref_ages, param
 #' ObsLen = Res$ObsLen
 #' params = c(log(160),log(0.8),0,0.25,0.8) #Linf, vbK, tzero, tc, C
 #' # fit seasonal growth curve to mean length at age data
-#' FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+#' FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
 #' par(mfrow=c(1,1))
 #' plotages=seq(0, MaxAge,0.1)
-#' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen=NA, ObsMeanLensd=NA,
+#' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen=NA, ObsMeanLense=NA,
 #'                       params, Ref_ages, plotages, ymax=200, xmax=NA, yint=50, xint=NA, GraphTitle=NA,
 #'                       xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 #' DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 #' params = c(log(160),log(0.8),0,0.25,0.8) #Linf, vbK, tzero, tc, C
 #' ObsAge=Res$ObsAgeCl
 #' ObsMeanLen=Res$ObsMeanLen
-#' ObsMeanLensd=Res$ObsMeanLensd
-#' FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+#' ObsMeanLense=Res$ObsMeanLense
+#' FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
 #' plotages=seq(0, MaxAge,0.1)
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
-#'                       ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 #' GrowthEqn=3 # Seasonal growth curve
 #' nSexes=2 # separate sexes
@@ -4202,10 +4247,10 @@ GetConfidenceLimitsForGrowthCurve <- function(GrowthEqn, nSexes, Ref_ages, param
 #' ObsLen=as.matrix(Res$ObsLen)
 #' params = c(log(c(160,150)),log(c(0.8,0.8)),c(0,0),c(0.25,0.25),c(0.8,0.8)) #Linf, vbK, tzero, tc, C
 #' # fit seasonal growth curve to mean length at age data
-#' FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+#' FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
 #' par(mfrow=c(1,2))
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen=NA,
-#'                       ObsMeanLensd=NA, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense=NA, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 #' DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 #' params = c(log(c(160,150)),log(c(0.8,0.8)),c(0,0),c(0.25,0.25),c(0.8,0.8)) #Linf, vbK, tzero, tc, C
@@ -4213,13 +4258,13 @@ GetConfidenceLimitsForGrowthCurve <- function(GrowthEqn, nSexes, Ref_ages, param
 #' FemObsMeanLen = Res$FemObsMeanLen
 #' MalObsMeanLen = Res$MalObsMeanLen
 #' ObsMeanLen = as.matrix(t(data.frame(FemObsMeanLen=FemObsMeanLen,MalObsMeanLen=MalObsMeanLen)))
-#' FemObsMeanLensd = Res$FemObsMeanLensd
-#' MalObsMeanLensd = Res$MalObsMeanLensd
-#' ObsMeanLensd = as.matrix(t(data.frame(FemObsMeanLensd=FemObsMeanLensd,MalObsMeanLensd=MalObsMeanLensd)))
-#' FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+#' FemObsMeanLense = Res$FemObsMeanLense
+#' MalObsMeanLense = Res$MalObsMeanLense
+#' ObsMeanLense = as.matrix(t(data.frame(FemObsMeanLense=FemObsMeanLense,MalObsMeanLense=MalObsMeanLense)))
+#' FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
 #' plotages=seq(0, MaxAge,0.1)
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
-#'                       ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 #' # simulate data allowing for divergent growth
 #' set.seed(123)
@@ -4256,7 +4301,7 @@ GetConfidenceLimitsForGrowthCurve <- function(GrowthEqn, nSexes, Ref_ages, param
 #' DataType=1
 #' plotages = seq(MinAge,MaxAge,0.1)
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex, ObsMeanLen,
-#'                       ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 #' # Simulate data for separate sexes, fit separate von Bertalanffy growth curves, where sex is not specified in data
 #' # 2 sexes
@@ -4288,15 +4333,15 @@ GetConfidenceLimitsForGrowthCurve <- function(GrowthEqn, nSexes, Ref_ages, param
 #' nSexes = 2 # separate sexes, but sex unknown
 #' # note, model has 7, not 6 params, with estimated sd, to distinguish this from standard model
 #' params = c(log(c(250,800)),log(c(0.3,0.3)),c(0,0), log(20)) # log(Linf), log(k), tzero, common sd
-#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
+#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
 #' plotages=seq(0, MaxAge,0.1)
 #' par(mfrow=c(1,1),mar=c(4,3,2,2))
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
-#'                       ObsMeanLensd, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 #' @export
 PlotFittedGrowthCurve <- function(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex, ObsMeanLen,
-                                  ObsMeanLensd, params, Ref_ages, plotages, ymax, xmax, yint, xint,
+                                  ObsMeanLense, params, Ref_ages, plotages, ymax, xmax, yint, xint,
                                   GraphTitle, xaxis_lab, yaxis_lab, PlotCLs, FittedRes) {
 
 
@@ -4338,21 +4383,21 @@ PlotFittedGrowthCurve <- function(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, O
     if (is.list(FittedRes)) {     # if model already fitted, can input results rather than refit
       Res =  FittedRes
     } else {
-      Res=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+      Res=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
     }
   }
   if (GrowthEqn == 2) { # Schnute
     if (is.list(FittedRes)) {
       Res =  FittedRes
     } else {
-      Res=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+      Res=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
     }
   }
   if (GrowthEqn == 3) { # seasonal growth
     if (is.list(FittedRes)) {
       Res =  FittedRes
     } else {
-      Res=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+      Res=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
     }
   }
   if (GrowthEqn == 4) { # divergent growth
@@ -4421,10 +4466,9 @@ PlotFittedGrowthCurve <- function(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, O
       }
     }
     if (DataType == 2) {
-      ObsLenlw = ObsMeanLen - (1.96 * ObsMeanLensd)
-      ObsLenup = ObsMeanLen + (1.96 * ObsMeanLensd)
-      arrows(ObsAge, ObsLenlw, ObsAge, ObsLenup,
-             code=3, angle=90,length=0.02, col='black')
+      ObsLenlw = ObsMeanLen - (1.96 * ObsMeanLense)
+      ObsLenup = ObsMeanLen + (1.96 * ObsMeanLense)
+      arrows(ObsAge, ObsLenlw, ObsAge, ObsLenup, code=3, angle=90,length=0.02, col='black')
     }
   } else { # separate sexes
     # females
@@ -4448,8 +4492,8 @@ PlotFittedGrowthCurve <- function(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, O
       points(AgesToPlot, FishLen[1,], cex=0.4, pch=16)
     }
     if (DataType == 2) {
-      ObsLenlw = ObsMeanLen[1,] - (1.96 * ObsMeanLensd[1,])
-      ObsLenup = ObsMeanLen[1,] + (1.96 * ObsMeanLensd[1,])
+      ObsLenlw = ObsMeanLen[1,] - (1.96 * ObsMeanLense[1,])
+      ObsLenup = ObsMeanLen[1,] + (1.96 * ObsMeanLense[1,])
       arrows(ObsAge, ObsLenlw, ObsAge, ObsLenup,
              code=3, angle=90,length=0.02, col='black')
     }
@@ -4474,8 +4518,8 @@ PlotFittedGrowthCurve <- function(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, O
       points(AgesToPlot, FishLen[2,], cex=0.4, pch=16)
     }
     if (DataType == 2) {
-      ObsLenlw = ObsMeanLen[2,] - (1.96 * ObsMeanLensd[2,])
-      ObsLenup = ObsMeanLen[2,] + (1.96 * ObsMeanLensd[2,])
+      ObsLenlw = ObsMeanLen[2,] - (1.96 * ObsMeanLense[2,])
+      ObsLenup = ObsMeanLen[2,] + (1.96 * ObsMeanLense[2,])
       arrows(ObsAge, ObsLenlw, ObsAge, ObsLenup,
              code=3, angle=90,length=0.02, col='black')
     }
@@ -4600,8 +4644,8 @@ CalcLengthAtAge_SchnuteGrowthCurve <- function(params, t1, t2, ObsAge) {
   if (nSexes==1) { # single or combined sex
     y1 = exp(params[1])
     y2 = exp(params[2])
-    a = params[3]
-    b = params[4]
+    a = exp(params[3])
+    b = exp(params[4])
     nObs <- length(ObsAge)
     ExpLen = rep(NA,nObs)
     for (i in 1:nObs) {
@@ -4611,8 +4655,8 @@ CalcLengthAtAge_SchnuteGrowthCurve <- function(params, t1, t2, ObsAge) {
   } else { # separate sexes
     y1 = exp(params[1:2])
     y2 = exp(params[3:4])
-    a = params[5:6]
-    b = params[7:8]
+    a = exp(params[5:6])
+    b = exp(params[7:8])
 
     if (DataType==1) { # lengths at age
       ExpLen = data.frame(matrix(nrow=2, ncol=length(ObsAge[1,])))
@@ -4670,8 +4714,8 @@ CalcLengthAtAge_SchnuteGrowthCurve2 <- function(params, nSexes, Ref_ages, plotag
   if (nSexes==1) { # single or combined sex
     y1 = exp(params[1])
     y2 = exp(params[2])
-    a = params[3]
-    b = params[4]
+    a = exp(params[3])
+    b = exp(params[4])
     plotlengths = rep(NA,nObs)
     for (i in 1:nObs) {
       Age <- plotages[i]
@@ -4680,8 +4724,8 @@ CalcLengthAtAge_SchnuteGrowthCurve2 <- function(params, nSexes, Ref_ages, plotag
   } else { # separate sexes
     y1 = exp(params[1:2])
     y2 = exp(params[3:4])
-    a = params[5:6]
-    b = params[7:8]
+    a = exp(params[5:6])
+    b = exp(params[7:8])
     plotlengths = data.frame(matrix(nrow=2, ncol=length(plotages)))
     colnames(plotlengths) = 1:length(plotages)
     plotlengths = as.matrix(plotlengths)
@@ -4713,10 +4757,10 @@ CalcLengthAtAge_SchnuteGrowthCurve2 <- function(params, nSexes, Ref_ages, plotag
 #' @param ObsAge observed ages
 #' @param ObsLen observed lengths
 #' @param ObsMeanLen mean lengths for specified ages (i.e. as estimated from mixture analysis)
-#' @param ObsMeanLensd sd for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)
+#' @param ObsMeanLense se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)
 #'
 #' @return nlmb (stored output from internal R nlminb optimisation function)
-FitSchnuteGrowthModel <- function(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd) {
+FitSchnuteGrowthModel <- function(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense) {
 
   nlmb <- nlminb(params, CalcNLL_GrowthCurve, gradient = NULL,
                  hessian = TRUE,  control=list(trace=1, eval.max=1000, iter.max=1000))
@@ -4741,83 +4785,120 @@ FitSchnuteGrowthModel <- function(params, nSexes, DataType, t1, t2, ObsAge, ObsL
 #' @param ObsAge observed ages
 #' @param ObsLen observed lengths
 #' @param ObsMeanLen mean lengths for specified ages (i.e. as estimated from mixture analysis)
-#' @param ObsMeanLensd sd for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)
+#' @param ObsMeanLense se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)
 #'
 #' @return negative log-likelihood (nll), nlminb convergence diagnostic (convergence),
 #' sample size (SampleSize), growth parameter estimates with lower and upper 95 percent confidence limits
 #' (ParamEst), point estimates for growth parameters (params), variance-covariance matrix (vcov.params)
 #'
 #' @examples
-#' # Schnute growth equation
+#' # Schnute growth equation - single sex length-at-age data
 #' # simulate data (ignoring mortality and selectivity effects)
+#' set.seed(123)
 #' GrowthEqn = 2 # Schnute growth equation
 #' nSexes = 1 # single or combined sex
 #' nSamples = 500
 #' MinAge = 0
 #' MaxAge = 20
 #' AgeStep = 1
-#' ObsAge = runif(nSamples, MinAge, MaxAge)
 #' Ref_ages = c(0.5,15)
-#' Growth_params = c(100,400,0.02,3)
+#' Growth_params = c(50,400,0.2,0.5)
 #' Growth_cv = 0.1
 #' Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-#' # fit growth model
+#' # fit growth model and plot
 #' ObsAge=Res$ObsAge
 #' ObsLen=Res$ObsLen
+#' par(mfrow=c(1,1))
+#' plot(ObsAge,ObsLen)
 #' DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
-#' params = c(log(150),log(420),0.05,2)
+#' params = log(c(80,400,0.2,0.5))
 #' t1=0.5
 #' t2=15
-#' ObsMeanLen=NA
-#' ObsMeanLensd=NA
-#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
-#' # DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
-#' # params = c(log(110),log(420),0.05,2)
-#' # t1=0.5
-#' # t2=15
-#' # ObsAge=Res$ObsAgeCl
-#' # ObsMeanLen=Res$ObsMeanLen
-#' # ObsMeanLensd=Res$ObsMeanLensd
-#' # FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
-#' # GrowthEqn = 2 # Schnute equation
-#' # nSexes = 2 # separate sexes
-#' # nSamples = c(500,500)
-#' # MinAge = 0.2
-#' # MaxAge = 20
-#' # AgeStep = 1
-#' # ObsAge = runif(nSamples, MinAge, MaxAge)
-#' # Ref_ages = c(0.5,15)
-#' # Growth_params = c(100,120,400,450,0.05,0.05,2,2)
-#' # Growth_cv = c(0.1,0.1)
-#' # Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
-#' # # Fit Schnute growth curve to length at age data
-#' # nSexes=2
-#' # ObsAge=as.matrix(Res$ObsAge)
-#' # ObsLen=as.matrix(Res$ObsLen)
-#' # DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
-#' # params = c(log(c(130,125)),log(c(400,450)),0.05,0.05,2,2)
-#' # t1=0.5
-#' # t2=15
-#' # ObsMeanLen=NA
-#' # ObsMeanLensd=NA
-#' # FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLensd=NA)
-#' # # Fit Schnute growth curve to mean length at age data
-#' # DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
-#' # params = c(log(c(100,100)),log(c(400,450)),0.05,0.05,2,2)
-#' # ObsAge=Res$ObsAgeCl
-#' # FemObsMeanLen = Res$FemObsMeanLen
-#' # MalObsMeanLen = Res$MalObsMeanLen
-#' # ObsMeanLen = as.matrix(t(data.frame(FemObsMeanLen=FemObsMeanLen,MalObsMeanLen=MalObsMeanLen)))
-#' # FemObsMeanLensd = Res$FemObsMeanLensd
-#' # MalObsMeanLensd = Res$MalObsMeanLensd
-#' # ObsMeanLensd = as.matrix(t(data.frame(FemObsMeanLensd=FemObsMeanLensd,MalObsMeanLensd=MalObsMeanLensd)))
-#' # FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
+#' FittedRes$ParamEst
+#' # Schnute growth equation - single sex mean length at age data
+#' # simulate data (ignoring mortality and selectivity effects)
+#' DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
+#' nSamples = 2000
+#' MinAge = 0
+#' MaxAge = 3
+#' AgeStep = 0.1
+#' Ref_ages = c(0.1,2.5)
+#' Growth_params = c(20,200,1.0,0.5)
+#' Growth_cv = 0.1
+#' Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
+#' # fit growth model and plot
+#' ObsAge=Res$ObsAge
+#' ObsMeanLen=Res$ObsMeanLen
+#' ObsMeanLense=Res$ObsMeanLense
+#' plot(Res$ObsAgeCl,ObsMeanLen)
+#' params = log(c(25,180,0.9,0.5))
+#' t1=0.1
+#' t2=2.5
+#' ObsAge=Res$ObsAgeCl
+#' ObsMeanLen=Res$ObsMeanLen
+#' ObsMeanLense=Res$ObsMeanLense
+#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
+#' FittedRes$ParamEst
+#' # Schnute growth equation - 2 sexes, length-at-age data
+#' # simulate data (ignoring mortality and selectivity effects)
+#' set.seed(123)
+#' GrowthEqn = 2 # Schnute equation
+#' nSexes = 2 # separate sexes
+#' nSamples = c(500,500)
+#' MinAge = 1
+#' MaxAge = 25
+#' AgeStep = 1
+#' Ref_ages = c(1,15)
+#' Growth_params = c(100,120,500,550,0.2,0.2,0.3,0.4)
+#' Growth_cv = c(0.1,0.1)
+#' Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
+#' # Fit Schnute growth curve to length at age dat
+#' ObsAge=as.matrix(Res$ObsAge)
+#' ObsLen=as.matrix(Res$ObsLen)
+#' par(mfrow=c(1,1))
+#' plot(ObsAge[1,],ObsLen[1,])
+#' points(ObsAge[2,],ObsLen[2,],col="blue")
+#' DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
+#' params = log(c(90,110,420,430,0.3,0.3,0.6,0.6))
+#' t1=1
+#' t2=15
+#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
+#' FittedRes$ParamEst
+#' # Fit Schnute growth curve - 2 sexes mean length at age data
+#' # simulate data (ignoring mortality and selectivity effects)
+#' set.seed(123)
+#' nSamples = c(2000,2000)
+#' DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
+#' MinAge = 0.1
+#' MaxAge = 3
+#' AgeStep = 0.1
+#' ObsAge = runif(nSamples, MinAge, MaxAge)
+#' Growth_params = c(20,20,180,200,1.0,1.0,0.5,0.5)
+#' Ref_ages = c(0.1,2.5)
+#' Growth_cv = c(0.1,0.1)
+#' Res=SimulateLengthAtAgeData(GrowthEqn, nSamples, nSexes, MinAge, MaxAge, AgeStep, Ref_ages, Growth_params, Growth_cv)
+#' par(mfrow=c(1,1))
+#' plot(Res$ObsAgeCl, Res$FemObsMeanLen)
+#' points(Res$ObsAgeCl, Res$MalObsMeanLen,col="blue")
+#' t1=0.1
+#' t2=2.5
+#' params = log(c(20,30,190,210,0.9,1.1,0.5,0.5))
+#' ObsAge=Res$ObsAgeCl
+#' FemObsMeanLen = Res$FemObsMeanLen
+#' MalObsMeanLen = Res$MalObsMeanLen
+#' ObsMeanLen = as.matrix(t(data.frame(FemObsMeanLen=FemObsMeanLen,MalObsMeanLen=MalObsMeanLen)))
+#' FemObsMeanLense = Res$FemObsMeanLense
+#' MalObsMeanLense = Res$MalObsMeanLense
+#' ObsMeanLense = as.matrix(t(data.frame(FemObsMeanLense=FemObsMeanLense,MalObsMeanLense=MalObsMeanLense)))
+#' FittedRes=GetSchnuteGrowthResults(params, nSexes, DataType, t1, t2, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
+#' FittedRes$ParamEst
 #' @export
-GetSchnuteGrowthResults <- function(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd) {
+GetSchnuteGrowthResults <- function(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense) {
 
   # fit growth model
   GrowthEqn = 2
-  nlmb = FitSchnuteGrowthModel(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+  nlmb = FitSchnuteGrowthModel(params, nSexes, DataType, t1, t2, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
 
   # get estimates
   nlmb$objective # value of nll
@@ -4835,21 +4916,21 @@ GetSchnuteGrowthResults <- function(params, nSexes, DataType, t1, t2, ObsAge, Ob
   if (nSexes==1) {
     y1 = exp(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
     y2 = exp(c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
-    a <- c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
-    b <- c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
+    a <- exp(c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
+    b <- exp(c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
     ParamEst = t(data.frame(y1=round(y1,1), y2=round(y2,1), a=round(a,3), b=round(b,3)))
     colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
     SampleSize = length(ObsAge)
 
   } else {
-    Femy1 = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
-    Maly1 = c(exp(nlmb$par[2]), exp(nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
-    Femy2 = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
-    Maly2 = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
-    Fema <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
-    Mala <- c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
-    Femb <- c(nlmb$par[7], nlmb$par[7] + c(-1.96, 1.96) * ses[7])
-    Malb <- c(nlmb$par[8], nlmb$par[8] + c(-1.96, 1.96) * ses[8])
+    Femy1 = exp(c(nlmb$par[1], nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+    Maly1 = exp(c(nlmb$par[2], nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
+    Femy2 = exp(c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
+    Maly2 = exp(c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
+    Fema <- exp(c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5]))
+    Mala <- exp(c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6]))
+    Femb <- exp(c(nlmb$par[7], nlmb$par[7] + c(-1.96, 1.96) * ses[7]))
+    Malb <- exp(c(nlmb$par[8], nlmb$par[8] + c(-1.96, 1.96) * ses[8]))
     ParamEst = t(data.frame(Fem_y1=round(Femy1,1), Fem_y2=round(Femy2,2), Fem_a=round(Fema,2), Fem_b=round(Femb,2),
                             Mal_y1=round(Maly1,1), Mal_y2=round(Maly2,2), Mal_a=round(Mala,2), Mal_b=round(Malb,2)))
     colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
@@ -4979,10 +5060,16 @@ CalcLengthAtAge_SomersSeasonalGrowthCurve <- function(params) {
 #'
 #' @keywords internal
 #'
-#' @param Linf, vbK, tzero, tc, C, Mod_sd (Numbers).
+#' @param params Linf, vbK, tzero, tc, C
+#' @param nSexes number of sexes
+#' @param DataType 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
+#' @param ObsAge observed ages
+#' @param ObsLen observed lengths
+#' @param ObsMeanLen mean lengths for specified ages (i.e. as estimated from mixture analysis)
+#' @param ObsMeanLense se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)
 #'
 #' @return nlmb (stored output from internal R nlminb optimisation function)
-FitSeasonalGrowthModel <- function(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd) {
+FitSeasonalGrowthModel <- function(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense) {
 
   nlmb <- nlminb(params, CalcNLL_GrowthCurve, gradient = NULL,
                  hessian = TRUE,  control=list(trace=1, eval.max=1000, iter.max=1000))
@@ -5005,7 +5092,7 @@ FitSeasonalGrowthModel <- function(params, nSexes, DataType, ObsAge, ObsLen, Obs
 #' @param ObsAge observed ages
 #' @param ObsLen observed lengths
 #' @param ObsMeanLen mean lengths for specified ages (i.e. as estimated from mixture analysis)
-#' @param ObsMeanLensd sd for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)
+#' @param ObsMeanLense se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)
 #'
 #' @return negative log-likelihood (nll)
 #' nlminb convergence diagnostic (convergence)
@@ -5037,16 +5124,16 @@ FitSeasonalGrowthModel <- function(params, nSexes, DataType, ObsAge, ObsLen, Obs
 #' ObsAge = Res$ObsAge
 #' ObsLen = Res$ObsLen
 #' ObsMeanLen=NA
-#' ObsMeanLensd=NA
+#' ObsMeanLense=NA
 #' params = c(log(160),log(0.8),0,0.25,0.8) #Linf, vbK, tzero, tc, C
 #' # fit seasonal growth curve to mean length at age data
-#' FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+#' FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
 #' # DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 #' # params = c(log(160),log(0.8),0,0.25,0.8) #Linf, vbK, tzero, tc, C
 #' # ObsAge=Res$ObsAgeCl
 #' # ObsMeanLen=Res$ObsMeanLen
-#' # ObsMeanLensd=Res$ObsMeanLensd
-#' # FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+#' # ObsMeanLense=Res$ObsMeanLense
+#' # FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
 #' # GrowthEqn=3 # Seasonal growth curve
 #' # nSexes=2 # separate sexes
 #' # nSamples = c(500,500)
@@ -5068,26 +5155,26 @@ FitSeasonalGrowthModel <- function(params, nSexes, DataType, ObsAge, ObsLen, Obs
 #' # ObsAge=as.matrix(Res$ObsAge)
 #' # ObsLen=as.matrix(Res$ObsLen)
 #' # ObsMeanLen=NA
-#' # ObsMeanLensd=NA
+#' # ObsMeanLense=NA
 #' # params = c(log(c(160,150)),log(c(0.8,0.8)),c(0,0),c(0.25,0.25),c(0.8,0.8)) #Linf, vbK, tzero, tc, C
 #' # # fit seasonal growth curve to mean length at age data
-#' # FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+#' # FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
 #' # DataType=2  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 #' # params = c(log(c(160,150)),log(c(0.8,0.8)),c(0,0),c(0.25,0.25),c(0.8,0.8)) #Linf, vbK, tzero, tc, C
 #' # ObsAge=Res$ObsAgeCl
 #' # FemObsMeanLen = Res$FemObsMeanLen
 #' # MalObsMeanLen = Res$MalObsMeanLen
 #' # ObsMeanLen = as.matrix(t(data.frame(FemObsMeanLen=FemObsMeanLen,MalObsMeanLen=MalObsMeanLen)))
-#' # FemObsMeanLensd = Res$FemObsMeanLensd
-#' # MalObsMeanLensd = Res$MalObsMeanLensd
-#' # ObsMeanLensd = as.matrix(t(data.frame(FemObsMeanLensd=FemObsMeanLensd,MalObsMeanLensd=MalObsMeanLensd)))
-#' # FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLensd)
+#' # FemObsMeanLense = Res$FemObsMeanLense
+#' # MalObsMeanLense = Res$MalObsMeanLense
+#' # ObsMeanLense = as.matrix(t(data.frame(FemObsMeanLense=FemObsMeanLense,MalObsMeanLense=MalObsMeanLense)))
+#' # FittedRes=GetSeasonalGrowthResults(params, nSexes, DataType, ObsAge, ObsLen=NA, ObsMeanLen, ObsMeanLense)
 #' @export
-GetSeasonalGrowthResults <- function(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd) {
+GetSeasonalGrowthResults <- function(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense) {
 
   # fit growth model
   GrowthEqn = 3
-  nlmb = FitSeasonalGrowthModel(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLensd)
+  nlmb = FitSeasonalGrowthModel(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen, ObsMeanLense)
 
   # get estimates
   nlmb$objective # value of nll
