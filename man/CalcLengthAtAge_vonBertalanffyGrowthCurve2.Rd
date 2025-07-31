@@ -4,10 +4,20 @@
 \alias{CalcLengthAtAge_vonBertalanffyGrowthCurve2}
 \title{Calculate expected lengths at age from von Bertalanffy growth curve}
 \usage{
-CalcLengthAtAge_vonBertalanffyGrowthCurve2(params, nSexes, ObsAge, plotages)
+CalcLengthAtAge_vonBertalanffyGrowthCurve2(
+  params,
+  DataType,
+  nSexes,
+  ObsAge,
+  plotages
+)
 }
 \arguments{
 \item{params}{c(log(Linf),log(vbK),tzero)}
+
+\item{DataType}{# 1=lengths at age data for individual fish (single sex, or sexes recorded),
+2=mean length at age and sd data from mixture analysis, 3=lengths at age data for individual fish
+(two sex, sexes not recorded)}
 
 \item{nSexes}{number of sexes}
 

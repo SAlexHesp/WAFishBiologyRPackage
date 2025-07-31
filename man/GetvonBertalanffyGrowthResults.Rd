@@ -19,7 +19,9 @@ GetvonBertalanffyGrowthResults(
 
 \item{nSexes}{1=single or combined sexes, 2=separate sexes}
 
-\item{DataType}{1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis}
+\item{DataType}{# 1=lengths at age data for individual fish (single sex, or sexes recorded),
+2=mean length at age and sd data from mixture analysis, 3=lengths at age data for individual fish
+(two sex, sexes not recorded)}
 
 \item{ObsAge}{observed ages}
 
@@ -125,10 +127,12 @@ for (i in 1:nSexes) {
 }
 ObsAge=c(as.vector(unlist(Res$ObsAge[1,])),as.vector(unlist(Res$ObsAge[2,])))
 ObsLen=c(as.vector(unlist(Res$ObsLen[1,])),as.vector(unlist(Res$ObsLen[2,])))
-DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
+DataType=3  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 nSexes = 2 # separate sexes, but sex unknown
 # note, model has 7, not 6 params, with estimated sd, to distinguish this from standard model
-params = c(log(c(250,800)),log(c(0.3,0.3)),c(0,0), log(20)) # log(Linf), log(k), tzero, common sd
+# params = c(log(c(250,800)),log(c(0.3,0.3)),c(0,0), log(20)) # log(Linf), log(k), tzero, common sd
+# params = c(log(c(250,800)),log(0.3),c(0,0), log(20)) # log(Linf), log(k), tzero, common sd
+params = c(log(c(250,800)),log(0.3),0, log(20)) # log(Linf), log(k), tzero, common sd
 FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
 FittedRes$ParamEst
 }

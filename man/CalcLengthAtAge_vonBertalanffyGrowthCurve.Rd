@@ -7,8 +7,10 @@
 CalcLengthAtAge_vonBertalanffyGrowthCurve(params)
 }
 \arguments{
-\item{params}{c(log(Linf),log(vbK),tzero) single or combined sex, or c(log(c(Linf,Linf)),log(c(vbK,vbK)),c(tzero,tzero))
-or c(log(c(Linf,Linf)),log(vbK),c(tzero,tzero))}
+\item{params}{c(log(Linf),log(vbK),tzero) single or combined sex,
+or c(log(c(Linf,Linf)),log(c(vbK,vbK)),c(tzero,tzero))
+or c(log(c(Linf,Linf)),log(vbK),c(tzero,tzero))
+or c(log(c(Linf,Linf)),log(vbK),tzero)}
 }
 \value{
 expected lengths at age (ExpLen)

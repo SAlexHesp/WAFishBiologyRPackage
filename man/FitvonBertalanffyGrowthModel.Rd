@@ -19,7 +19,9 @@ FitvonBertalanffyGrowthModel(
 
 \item{nSexes}{1=single or combined sex, 2=separate sexes}
 
-\item{DataType}{1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis}
+\item{DataType}{# 1=lengths at age data for individual fish (single sex, or sexes recorded),
+2=mean length at age and sd data from mixture analysis, 3=lengths at age data for individual fish
+(two sex, sexes not recorded)}
 
 \item{ObsAge}{observed ages}
 

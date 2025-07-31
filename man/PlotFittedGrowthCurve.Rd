@@ -28,7 +28,9 @@ PlotFittedGrowthCurve(
 )
 }
 \arguments{
-\item{DataType}{1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis}
+\item{DataType}{# 1=lengths at age data for individual fish (single sex, or sexes recorded),
+2=mean length at age and sd data from mixture analysis, 3=lengths at age data for individual fish
+(two sex, sexes not recorded)}
 
 \item{nSexes}{number of sexes}
 
@@ -107,7 +109,7 @@ PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, Ob
                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
 nSexes = 2 # Separate sexes
-nSamples = c(300,200) # if different, order so NAs are last for smaller sample
+nSamples = c(500,500) # if different, order so NAs are last for smaller sample
 MinAge = 1
 MaxAge = 20
 AgeStep = 1

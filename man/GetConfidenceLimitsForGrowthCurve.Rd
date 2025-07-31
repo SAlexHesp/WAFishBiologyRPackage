@@ -7,6 +7,7 @@
 GetConfidenceLimitsForGrowthCurve(
   GrowthEqn,
   nSexes,
+  DataType,
   Ref_ages,
   params,
   vcov.params,
@@ -20,6 +21,10 @@ GetConfidenceLimitsForGrowthCurve(
 \item{GrowthEqn}{1=von Bertalanffy, 2=Schnute, 3=Somers seasonal curve, 4=divergent growth model}
 
 \item{nSexes}{number of sexes}
+
+\item{DataType}{1=lengths at age data for individual fish (single sex, or sexes recorded),
+2=mean length at age and sd data from mixture analysis, 3=lengths at age data for individual fish
+(two sex, sexes not recorded)}
 
 \item{Ref_ages}{Schnute growth curve reference ages (t1 and t2)}
 
