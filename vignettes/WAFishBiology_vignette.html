@@ -256,8 +256,11 @@ curve</a></li>
 for diverent growth</a></li>
 <li><a href="#objective-function-for-fitting-growth-curves-to-length-at-age-data" id="toc-objective-function-for-fitting-growth-curves-to-length-at-age-data">Objective
 function for fitting growth curves to length-at-age data</a></li>
-<li><a href="#objective-function-for-fitting-sex-specific-von-bertalanffy-growth-curves-to-length-at-age-data-when-sex-was-not-recorded" id="toc-objective-function-for-fitting-sex-specific-von-bertalanffy-growth-curves-to-length-at-age-data-when-sex-was-not-recorded">Objective
-function for fitting sex-specific von Bertalanffy growth curves to
+<li><a href="#objective-function-for-fitting-a-von-bertalanffy-growth-curve-to-length-at-age-data-when-tzero-is-constrained-by-a-prior" id="toc-objective-function-for-fitting-a-von-bertalanffy-growth-curve-to-length-at-age-data-when-tzero-is-constrained-by-a-prior">Objective
+function for fitting a von Bertalanffy growth curve to length-at-age
+data, when tzero is constrained by a prior</a></li>
+<li><a href="#objective-function-for-fitting-a-sex-specific-von-bertalanffy-growth-curves-to-length-at-age-data-when-sex-was-not-recorded" id="toc-objective-function-for-fitting-a-sex-specific-von-bertalanffy-growth-curves-to-length-at-age-data-when-sex-was-not-recorded">Objective
+function for fitting a sex-specific von Bertalanffy growth curves to
 length-at-age data, when sex was not recorded</a></li>
 <li><a href="#objective-function-for-fitting-growth-curves-to-mean-length-at-age-data" id="toc-objective-function-for-fitting-growth-curves-to-mean-length-at-age-data">Objective
 function for fitting growth curves to mean length-at-age data</a></li>
@@ -436,13 +439,33 @@ data</h3>
 <p>The objective function minimised by nlminb is the negative
 log-likelihood, calculated as <span class="math display">\[
 \lambda=\frac{n}{2}\bigg[\ln(2\pi)+2\ln(\hat{\sigma})+1\bigg]
-\]</span> see (e.g. Haddon, 2011). Non-linear regression (employing the
-optimisation routine nlminb) is used to fit the growth curve, given a
-set of age and length data, and a set of starting values for the von
-Bertalanffy growth parameters (Linf, vbK, and tzero):</p>
+\]</span> where <span class="math inline">\(n\)</span> is the number of
+fish and <span class="math inline">\(\hat{\sigma}\)</span> is the
+standard deviation, calculated from the residuals between the observed
+and expected lengths at age. See Haddon (2011) for further details.
+Non-linear regression (employing the optimisation routine nlminb) is
+used to fit the growth curve, given a set of age and length data, and a
+set of starting values for the von Bertalanffy growth parameters (Linf,
+vbK, and tzero):</p>
 </div>
-<div id="objective-function-for-fitting-sex-specific-von-bertalanffy-growth-curves-to-length-at-age-data-when-sex-was-not-recorded" class="section level3">
-<h3>Objective function for fitting sex-specific von Bertalanffy growth
+<div id="objective-function-for-fitting-a-von-bertalanffy-growth-curve-to-length-at-age-data-when-tzero-is-constrained-by-a-prior" class="section level3">
+<h3>Objective function for fitting a von Bertalanffy growth curve to
+length-at-age data, when tzero is constrained by a prior</h3>
+<p>When small fish are absent, one approach to improve the estimates of
+the growth parameters is to constrain tzero using an informative penalty
+prior. Assuming a normal distribution for the prior, the above-described
+negative log-likelihood is modified to include the normal penalty,
+i.e.</p>
+<p><span class="math display">\[
+\lambda=\frac{n}{2}\bigg[\ln(2\pi)+2\ln(\hat{\sigma})+1\bigg] +
+\frac{1}{2}\ln(2\pi\sigma^2_p)+\frac{(t_0-\hat{t}_0)^2}{2\sigma^2_p}
+\]</span> where <span class="math inline">\(t_0\)</span> is the value
+for the hypothetical age at zero length parameter being estimated, <span class="math inline">\(\hat{t}_0\)</span> is the mean for the the prior
+for this parameter (as inputted by the user) and <span class="math inline">\(\sigma_p\)</span> is the standard deviation for
+the prior (also inputted by the user).</p>
+</div>
+<div id="objective-function-for-fitting-a-sex-specific-von-bertalanffy-growth-curves-to-length-at-age-data-when-sex-was-not-recorded" class="section level3">
+<h3>Objective function for fitting a sex-specific von Bertalanffy growth
 curves to length-at-age data, when sex was not recorded</h3>
 <p>Based on the von Bertalanffy growth equation, the estimated mean
 length of a fish of sex <span class="math inline">\(s\)</span> at age
@@ -691,8 +714,11 @@ SchnuteGrowthfunction()</p>
 <p>The available functions for fitting growth curves to length-at-age
 data are:<br />
 GetvonBertalanffyGrowthResults()<br />
+GetvonBertalanffyGrowthResults_prior_param()
+GetDivergeGrowthModelResults()<br />
 GetSchnuteGrowthResults()<br />
-GetSeasonalGrowthResults()</p>
+GetSeasonalGrowthResults()<br />
+GetConfidenceLimitsForGrowthCurve()</p>
 <p>The available functions related to mixture distribution analyses
 are:<br />
 GetMixtureModelResults()<br />
@@ -921,6 +947,7 @@ data, and fitting curves to these data are:<br />
 CalcPropMatureAtLength()<br />
 CalcPropMatureAtAge()<br />
 GetLogisticMaturityCurveResults()<br />
+GetConfidenceLimitsForMaturityCurve()<br />
 PlotAgeAtMaturityData()<br />
 PlotFittedAgeAtMaturityCurve()<br />
 PlotLengthAtMaturityData()<br />

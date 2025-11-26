@@ -103,10 +103,19 @@ The objective function minimised by nlminb is the negative log-likelihood, calcu
 $$
 \lambda=\frac{n}{2}\bigg[\ln(2\pi)+2\ln(\hat{\sigma})+1\bigg]
 $$
-see (e.g. Haddon, 2011). Non-linear regression (employing the optimisation routine nlminb) is used to fit the growth curve, given a set of age and length data, and a set of starting values for the von Bertalanffy growth parameters (Linf, vbK, and tzero):  
+where $n$ is the number of fish and $\hat{\sigma}$ is the standard deviation, calculated from the residuals between the observed and expected lengths at age. See Haddon (2011) for further details. Non-linear regression (employing the optimisation routine nlminb) is used to fit the growth curve, given a set of age and length data, and a set of starting values for the von Bertalanffy growth parameters (Linf, vbK, and tzero):  
+
+### Objective function for fitting a von Bertalanffy growth curve to length-at-age data, when tzero is constrained by a prior
+
+When small fish are absent, one approach to improve the estimates of the growth parameters is to constrain tzero using an informative penalty prior. Assuming a normal distribution for the prior, the above-described negative log-likelihood is modified to include the normal penalty, i.e.
+
+$$
+\lambda=\frac{n}{2}\bigg[\ln(2\pi)+2\ln(\hat{\sigma})+1\bigg] + \frac{1}{2}\ln(2\pi\sigma^2_p)+\frac{(t_0-\hat{t}_0)^2}{2\sigma^2_p}
+$$
+where $t_0$ is the value for the hypothetical age at zero length parameter being estimated, $\hat{t}_0$ is the mean for the the prior for this parameter (as inputted by the user) and $\sigma_p$ is the standard deviation for the prior (also inputted by the user). 
 
 
-### Objective function for fitting sex-specific von Bertalanffy growth curves to length-at-age data, when sex was not recorded
+### Objective function for fitting a sex-specific von Bertalanffy growth curves to length-at-age data, when sex was not recorded
 
 Based on the von Bertalanffy growth equation, the estimated mean length of a fish of sex $s$ at age $t$, is calculated as
 
@@ -279,8 +288,11 @@ SchnuteGrowthfunction()
 
 The available functions for fitting growth curves to length-at-age data are:    
 GetvonBertalanffyGrowthResults()  
+GetvonBertalanffyGrowthResults_prior_param() 
+GetDivergeGrowthModelResults()  
 GetSchnuteGrowthResults()  
 GetSeasonalGrowthResults()  
+GetConfidenceLimitsForGrowthCurve()  
 
 The available functions related to mixture distribution analyses are:  
 GetMixtureModelResults()  
@@ -446,6 +458,7 @@ The available functions for visualising size and age at maturity data, and fitti
 CalcPropMatureAtLength()  
 CalcPropMatureAtAge()  
 GetLogisticMaturityCurveResults()  
+GetConfidenceLimitsForMaturityCurve()  
 PlotAgeAtMaturityData()  
 PlotFittedAgeAtMaturityCurve()  
 PlotLengthAtMaturityData()  

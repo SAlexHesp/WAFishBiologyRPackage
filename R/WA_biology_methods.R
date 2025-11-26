@@ -3169,6 +3169,57 @@ CalcNLL_GrowthCurve <- function(params) {
 }
 
 
+#' Calculate negative log-likelihood associated with fit of a growth curve
+#'
+#' Calculates the negative log-likelihood associated with a sample of fish length-at-age data
+#' and associated growth curve parameter values, using the von Bertalanffy growth model and
+#' imposing a normal prior on tzero.
+#'
+#' @keywords internal
+#'
+#' @param params c(log(Linf),log(vbK),tzero) single or combined sex, or c(log(c(Linf,Linf)),log(c(vbK,vbK)),c(tzero,tzero))
+#'
+#' @return Negative log-likelihood associated with growth curve fit to length-at-age data
+CalcNLL_GrowthCurve_prior_param <- function (params) {
+
+  ExpLen = CalcLengthAtAge_vonBertalanffyGrowthCurve(params)
+
+  if (length(params) == 3) tzero = params[3]
+  if (length(params) == 6) tzero = params[5:6]
+
+  if (DataType == 1) {
+    if (length(params) == 3) { # single sex
+      nObs = length(ObsAge)
+      SqResid = ((ObsLen - ExpLen)^2)
+      sumSqResid = sum(SqResid)
+      stdev = sqrt(sumSqResid/nObs)
+      NLL = 0
+      NLL = (nObs/2) * (log(2 * pi) + 2 * log(stdev) + 1)
+      NLL = NLL - dnorm(tzero,tzero_mean,tzero_sd,log=T) # this is the penalty function
+      Objfunc = NLL
+    }
+    else { # two sexes
+      sumSqResid = 0
+      nObs = 0
+      for (i in 1:nSexes) {
+        tempSampSize = length(which(!is.na(ObsLen[i, ])))
+        nObs = nObs + tempSampSize
+        SqResid = ((ObsLen[i, 1:tempSampSize] - ExpLen[i, 1:tempSampSize])^2)
+        sumSqResid = sumSqResid + sum(SqResid)
+      }
+      stdev = sqrt(sumSqResid/nObs)
+      NLL = 0
+      NLL = (nObs/2) * (log(2 * pi) + 2 * log(stdev) + 1)
+      NLL = NLL - dnorm(tzero[1],tzero_mean,tzero_sd,log=T) - - dnorm(tzero[2],tzero_mean,tzero_sd,log=T) # this is the penalty function
+      Objfunc = NLL
+    }
+  }
+
+  results = Objfunc
+  return(results)
+}
+
+
 #' Calculate expected lengths at age from von Bertalanffy growth curve
 #'
 #' Calculates expected lengths at age from von Bertalanffy growth curve
@@ -3432,6 +3483,36 @@ FitvonBertalanffyGrowthModel <- function(params, nSexes, DataType, ObsAge, ObsLe
   results=nlmb
   return(results)
 }
+
+
+#' Fit a von Bertalanffy growth curve to a sample of fish length-at-age data, with prior imposed for tzero.
+#'
+#' This function fits a von Bertalanffy growth curve to a sample of fish length-at-age data
+#' by minimising the negative log-likelihood associated with the parameters and data, using nlminb,
+#' including a normal penalty prior for tzero.
+#'
+#' @keywords internal
+#'
+#' @param params c(log(Linf),log(vbK),tzero) single or combined sex, or c(log(c(Linf,Linf)),log(c(vbK,vbK)),c(tzero,tzero))
+#' @param nSexes 1=single or combined sex, 2=separate sexes
+#' @param DataType # 1=lengths at age data for individual fish (single sex, or sexes recorded),
+#' 2=mean length at age and sd data from mixture analysis, 3=lengths at age data for individual fish
+#' (two sex, sexes not recorded)
+#' @param ObsAge observed ages
+#' @param ObsLen observed lengths
+#' @param tzero_mean mean value for tzero (user specified)
+#' @param tzero_sd standard deviation for tzero (user specified)
+#'
+#' @return stored output from internal R nlminb optimisation function (nlmb)
+FitvonBertalanffyGrowthModel_prior_param <- function (params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd) {
+
+  nlmb <- nlminb(params, CalcNLL_GrowthCurve_prior_param, gradient = NULL,
+                 hessian = TRUE, control = list(trace = 1, eval.max = 1000,
+                                                iter.max = 1000))
+  results = nlmb
+  return(results)
+}
+
 
 #' Get statistical outputs from a fitted von Bertalanffy growth curve.
 #'
@@ -3794,6 +3875,191 @@ GetvonBertalanffyGrowthResults <- function(params, nSexes, DataType, ObsAge, Obs
 
   return(results)
 
+}
+
+#' Get statistical outputs from a fitted von Bertalanffy growth curve, with imposed normal prior for tzero.
+#'
+#' This function fits a von Bertalanffy growth curve to a sample of fish length-at-age data
+#' by minimising the negative log-likelihood associated with the parameters and data,
+#' using nlminb. A normal prior is imposed for estimating tzero.
+#' It provides various statistical outputs in include convergence statistics,
+#' parameter estimated and associated 95% confidence limits and associated variance-covariance matrix,
+#' calculated using the MASS package
+#'
+#' @param params c(log(Linf),log(vbK),tzero) single or combined sex, or c(log(c(Linf,Linf)),log(c(vbK,vbK)),c(tzero,tzero))
+#' @param nSexes 1=single or combined sexes, 2=separate sexes
+#' @param DataType # 1=lengths at age data for individual fish (single sex, or sexes recorded),
+#' 2=mean length at age and sd data from mixture analysis, 3=lengths at age data for individual fish
+#' (two sex, sexes not recorded)
+#' @param ObsAge observed ages
+#' @param ObsLen observed lengths
+#' @param ObsMeanLen mean lengths for specified ages (i.e. as estimated from mixture analysis)
+#' @param ObsMeanLense se for mean estimated mean lengths for specified ages (i.e. as estimated from mixture analysis)
+#'
+#' @return negative log-likelihood (nll), nlminb convergence diagnostic (convergence)
+#' sample size (SampleSize), growth parameter estimates with lower and upper 95%
+#' confidence limits (ParamEst), point estimates for growth parameters (params)
+#' and variance-covariance matrix (vcov.params)
+#' @examples
+#' # ***************************
+#' # simulate length-at-age data
+#' # ***************************
+#' library(WAFishBiology)
+#' library(L3Assess)
+#' set.seed(123)
+#' SampleSize=500 # sample size for retained catches (and same number for released fish, if an MLL is specified)
+#' MaxAge = 80
+#' TimeStep = 1 # model timestep (e.g. 1 = annual, 1/12 = monthly)
+#' NatMort = 0.05
+#' FishMort = 1.5*NatMort
+#' MaxLen = 1000
+#' LenInc = 20
+#' MLL=NA # (minimum legal length) # retention set to 1 for all lengths if MLL set to NA and retention parameters not specified
+#' SelectivityType=2 # 1=selectivity inputted as vector, 2=asymptotic logistic selectivity curve
+#' SelectivityAtLen = NA # selectivity vector
+#' SelParams = c(450, 10) # L50, L95-L50 for gear selectivity
+#' RetenParams = c(NA, NA) # L50, L95-L50 for retention
+#' DiscMort = 0 # proportion of fish that die due to natural mortality
+#' # single sex, von Bertalanffy
+#' GrowthCurveType = 1 # 1 = von Bertalanffy, 2 = Schnute
+#' Linf = 600
+#' vbK = 0.2
+#' CVSizeAtAge = 0.06
+#' GrowthParams = c(Linf, vbK)
+#' RefnceAges = NA
+#' SimRes=SimLenAndAgeFreqData_EqMod(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
+#'                                   SelParams, RetenParams, SelectivityAtLen, DiscMort, GrowthCurveType, GrowthParams, RefnceAges, CVSizeAtAge)
+#' # plot data
+#' PlotOpt=1 # 0=all plots, 1=retained lengths at age and growth curves, 2=retained plus discard lengths at age
+#' # and growth curves, 3=retained plus discard length frequency, 4=retained plus discard age frequency,
+#' # 5=sex specific retained lengths at age and growth curves, 6=retained plus discard lengths at age and growth curves,
+#' # 7=female length frequency, 8=male length frequency, 9=female age frequency, 10=male age frequency,
+#' # 11=selectivity/retention, 12=F-at-age reten + disc, 13=F-at-age reten, 14=F-at-age disc
+#' PlotSimLenAndAgeFreqData_EqMod(MaxAge, MaxLen, SimRes, PlotOpt)
+#' # ************************
+#' # fit traditional vb model
+#' # ************************
+#' ObsAge = as.vector(SimRes$ObsDecAgeRetCatch)
+#' ObsLen = as.vector(SimRes$ObsRandLenRetCatch)
+#' plot(ObsAge,ObsLen, xlim=c(0,80), ylim=c(0,1000))
+#' DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
+#' nSexes=1
+#' params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
+#' FittedRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
+#' FittedRes$ParamEst
+#' plotages=seq(0, MaxAge,0.1)
+#' GrowthEqn = 1
+#' par(mfrow=c(2,2))
+#' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
+#'                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
+#' # **********************************************
+#' # fit traditional vb model with tzero constraint
+#' # **********************************************
+#' DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
+#' nSexes=1
+#' params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
+#' tzero_mean=-1.5 # specify prior mean
+#' tzero_sd=1.0 # specify prior sd
+#' FittedRes=GetvonBertalanffyGrowthResults_prior_param(params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd)
+#' FittedRes$ParamEst
+#' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
+#'                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
+#'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
+#' # posterior
+#' Esttzero_mean = unlist(FittedRes$par[3])
+#' vcov.params = FittedRes$vcov.params
+#' ses = sqrt(diag(vcov.params))
+#' Esttzero_sd = unlist(ses[3])
+#' # plot to compare prior vs posterior - scaled density plot
+#' prior_data <- rnorm(1000,tzero_mean,tzero_sd)
+#' posterior_data <- rnorm(1000,Esttzero_mean,Esttzero_sd)
+#' hist(prior_data, breaks = seq(-10,3,0.2), freq = FALSE,
+#'      col = NA, border = NA, xlim = c(-5,1), ylim=c(0,1),
+#'      xlab = "Value", ylab = "Density", main="tzero", cex.main=0.8)
+#' lines(density(prior_data),     col = "blue", lwd = 2)
+#' lines(density(posterior_data), col = "red",  lwd = 2)
+#' legend("topright", legend = c("Prior", "Posterior"),
+#'        lwd=2, col=c("blue","red"),
+#'        border = NA, bty='n')
+#' @export
+GetvonBertalanffyGrowthResults_prior_param <- function (params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd) {
+
+  nlmb = FitvonBertalanffyGrowthModel_prior_param(params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd)
+  nlmb$objective
+  nlmb$convergence
+  nlmb$par
+  hess.out = optimHess(nlmb$par, CalcNLL_GrowthCurve_prior_param)
+  vcov.params = solve(hess.out)
+  ses = sqrt(diag(vcov.params))
+  temp = diag(1/sqrt(diag(vcov.params)))
+  cor.params = temp %*% vcov.params %*% temp
+  if (nSexes == 1) {
+    EstLinf = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+    EstvbK = c(exp(nlmb$par[2]), exp(nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
+    Esttzero <- c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) *
+                    ses[3])
+    ParamEst = t(data.frame(Linf = round(EstLinf, 1), vbK = round(EstvbK,
+                                                                  2), tzero = round(Esttzero, 2)))
+    colnames(ParamEst) = c("Estimate", "lw_95%CL", "up_95%CL")
+    nObs = length(ObsAge)
+  }
+  if (nSexes == 2) {
+    if (!is.vector(ObsAge)) {
+      FemEstLinf = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+      MalEstLinf = c(exp(nlmb$par[2]), exp(nlmb$par[2] +  c(-1.96, 1.96) * ses[2]))
+      FemEstvbK = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
+      MalEstvbK = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
+      FemEsttzero <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
+      MalEsttzero <- c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
+      ParamEst = t(data.frame(FemLinf = round(FemEstLinf, 1), FemvbK = round(FemEstvbK, 2),
+                              Femtzero = round(FemEsttzero, 2), MalLinf = round(MalEstLinf, 1),
+                              MalvbK = round(MalEstvbK, 2), Maltzero = round(MalEsttzero, 2)))
+    }
+    if (is.vector(ObsAge)) {
+      FemEstLinf = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
+      MalEstLinf = c(exp(nlmb$par[2]), exp(nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
+      if (length(params) == 5) {
+        EstvbK = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
+        Esttzero <- c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
+        Estsd <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
+        ParamEst = t(data.frame(FemLinf = round(FemEstLinf,1), MalLinf = round(MalEstLinf, 1),
+                                vbK = round(EstvbK,2), tzero = round(Esttzero, 2), sd = round(Estsd,2)))
+      }
+      if (length(params) == 6) {
+        EstvbK = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
+        FemEsttzero <- c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
+        MalEsttzero <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
+        Estsd <- c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
+        ParamEst = t(data.frame(FemLinf = round(FemEstLinf,1), MalLinf = round(MalEstLinf, 1),
+                                vbK = round(EstvbK,2), Femtzero = round(FemEsttzero, 2),
+                                Maltzero = round(MalEsttzero,2), sd = round(Estsd, 2)))
+      }
+      if (length(params) == 7) {
+        FemEstvbK = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
+        MalEstvbK = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
+        FemEsttzero <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
+        MalEsttzero <- c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
+        Estsd <- c(nlmb$par[7], nlmb$par[7] + c(-1.96, 1.96) * ses[7])
+        ParamEst = t(data.frame(FemLinf = round(FemEstLinf,1), MalLinf = round(MalEstLinf, 1),
+                                FemvbK = round(FemEstvbK,2), MalvbK = round(MalEstvbK, 2),
+                                Femtzero = round(FemEsttzero,2), Maltzero = round(MalEsttzero, 2), sd = round(Estsd,2)))
+      }
+    }
+    colnames(ParamEst) = c("Estimate", "lw_95%CL", "up_95%CL")
+    if (!is.vector(ObsAge)) {
+      nObs = length(which(!is.na(ObsAge[1, ]))) + length(which(!is.na(ObsAge[2, ])))
+    }
+    else {
+      nObs = length(ObsAge) * 2
+    }
+  }
+  nll = nlmb$objective
+  convergence = nlmb$convergence
+  results = list(nll = nll, convergence = convergence, SampleSize = nObs,
+                 ParamEst = ParamEst, params = nlmb$par, vcov.params = vcov.params,
+                 cor.params = cor.params)
+  return(results)
 }
 
 
@@ -8133,7 +8399,6 @@ GetLogisticMaturityCurveResults <- function(params, nSexes, LogisticModType, Cur
 #' @return negative log-likelihood (nll), nlminb convergence diagnostic (convergence), sample size (SampleSize)
 #' maturity parameter estimates with lower and upper 95 percent confidence limits (ParamEst), point estimates
 #' for growth parameters (params), variance-covariance matrix (vcov.params)
-
 GetLogisticMaturityCurveResultsErrOpt2 <- function(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) {
 
   # get maturity curve fit to initial (non-resampled) maturity data and store results
@@ -8150,7 +8415,7 @@ GetLogisticMaturityCurveResultsErrOpt2 <- function(params, nSexes, LogisticModTy
   # now resample (with replacement), and store parameter estimates for each resampling trial
 
   # Set number of bootstrap iterations
-  nTrials <- 10
+  nTrials <- 200
   ResampParams <- matrix(NA, nrow = nTrials, ncol = length(params))
 
   for (i in 1:nTrials) {
@@ -8219,8 +8484,6 @@ GetLogisticMaturityCurveResultsErrOpt2 <- function(params, nSexes, LogisticModTy
 }
 
 
-
-
 #' Fit logistic maturity curve and get parameter estimates and uncertainty
 #'
 #' This function fits a logistic maturity curve to a sample of maturity-at-length data
@@ -8239,7 +8502,6 @@ GetLogisticMaturityCurveResultsErrOpt2 <- function(params, nSexes, LogisticModTy
 #' @return negative log-likelihood (nll), nlminb convergence diagnostic (convergence), sample size (SampleSize)
 #' maturity parameter estimates with lower and upper 95 percent confidence limits (ParamEst), point estimates
 #' for growth parameters (params), variance-covariance matrix (vcov.params)
-
 GetLogisticMaturityCurveResultsErrOpt1 <- function(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat) {
 
   # fit maturity curve and get variance-covariance matrix, from fitted model, to get standard errors
