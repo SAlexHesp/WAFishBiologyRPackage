@@ -242,8 +242,8 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <ul>
 <li><a href="#introduction" id="toc-introduction">Introduction</a>
 <ul>
-<li><a href="#last-updated-july-2025-alex-hesp---dpird" id="toc-last-updated-july-2025-alex-hesp---dpird">Last updated July 2025
-(Alex Hesp - DPIRD)</a></li>
+<li><a href="#last-updated-november-2025-alex-hesp---dpird" id="toc-last-updated-november-2025-alex-hesp---dpird">Last updated
+November 2025 (Alex Hesp - DPIRD)</a></li>
 <li><a href="#growth-analysis-with-length-at-age-or-mean-length-at-age-data" id="toc-growth-analysis-with-length-at-age-or-mean-length-at-age-data">Growth
 analysis (with length-at-age or mean length-at-age data)</a>
 <ul>
@@ -328,8 +328,8 @@ functions related to spawning duration model</a></li>
 
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<div id="last-updated-july-2025-alex-hesp---dpird" class="section level4">
-<h4>Last updated July 2025 (Alex Hesp - DPIRD)</h4>
+<div id="last-updated-november-2025-alex-hesp---dpird" class="section level4">
+<h4>Last updated November 2025 (Alex Hesp - DPIRD)</h4>
 <p>This package is intended as a toolbox of methods for describing
 various biological traits of fish and invertebrate species, including
 growth, size/age at maturity, time and duration of spawning (and also
@@ -569,17 +569,17 @@ cohorts are present).</p>
 <div id="growth-model-allowing-for-size-related-movements-of-fish" class="section level3">
 <h3>Growth model allowing for size-related movements of fish</h3>
 <p>This is an implementation of the growth model described by Hesp et
-al. (2004), to account for potential impacts, on reliability of growth
-parameter estimation, of size-related movements of fish between
-habitats. Many fish species exhibit an ontogenetic size-related movement
-of fish from a juvenile nursery habitat(s), to the adult habitat. Where
-fish are sampled in both habitats, this often involves the use of
-different sampling gears, and differences in relative sampling
-intensities between the different habitats may result in an overall
-length and age sample that, collectively, is not representative of the
-overall population being sampled. This, in term, has the potential to
-result in biased parameter estimates, as shown for Rhabdosargus sarba
-(Hesp et al., 2004).</p>
+al. (2004) (see also Sulin, 2012) to account for potential impacts, on
+reliability of growth parameter estimation, of size-related movements of
+fish between habitats. Many fish species exhibit an ontogenetic
+size-related movement of fish from a juvenile nursery habitat(s), to the
+adult habitat. Where fish are sampled in both habitats, this often
+involves the use of different sampling gears, and differences in
+relative sampling intensities between the different habitats may result
+in an overall length and age sample that, collectively, is not
+representative of the overall population being sampled. This, in term,
+has the potential to result in biased parameter estimates, as shown for
+Rhabdosargus sarba (Hesp et al., 2004).</p>
 <p>It is assumed that lengths at age of fish in the population are
 normally distributed around an overall von Bertalanffy growth curve
 describing growth for the population, i.e. <span class="math inline">\(L_t\sim(L_t,\sigma^2)\)</span></p>
@@ -616,14 +616,16 @@ used to evaluate the integrals, with the likelihood assocaited with the
 observed lengths at age being caluclated as</p>
 <p><span class="math display">\[
 \lambda=\prod_{j=1}^{n}\mathrm{f(L_t,h)}
-\]</span> The model is fitted in R using, firstly, nlminb, and then
-optim (Nelda-Mead) function. As shown by Sulin (2012), use of these two
-optmisation routines can improve robustness of the model fitting
-process, demonstrated by jitter analysis. When fitting the model, the
-following parameters are estimated: <span class="math inline">\(L_\infty\)</span>, <span class="math inline">\(k\)</span>, <span class="math inline">\(t_0\)</span>, <span class="math inline">\(L_{50}^{h_1 \rightarrow h_2}\)</span>, <span class="math inline">\(L_{95}^{h_1 \rightarrow h_2}\)</span>, and
-constant coefficient of variation for mean lengths at age, <span class="math inline">\(CV\)</span>. Although the original study allowed
-for up to 3 habitats, as currently implemented in this package, there
-can be only two.</p>
+\]</span> The model is fitted using RTMB. As this method involves
+relatively complex numerical integration, the routine for fitting the
+model can also specify jitter analysis (number of jitters specified by
+the user) to test the robustness of the analysis for retrieving the same
+parameter estimates and overall model NLL values when different starting
+values are specified for the estimated model parameters. When fitting
+the model, the following parameters are estimated: <span class="math inline">\(L_\infty\)</span>, <span class="math inline">\(k\)</span>, <span class="math inline">\(t_0\)</span>, <span class="math inline">\(L_{50}^{h_1 \rightarrow h_2}\)</span>, <span class="math inline">\(L_{95}^{h_1 \rightarrow h_2}\)</span>, and
+constant coefficient of variation for mean lengths at age, <span class="math inline">\(CV\)</span>. Although the original study by Hesp
+et al. (2004) allowed for up to 3 habitats, as currently implemented in
+this package, there can be a maximum of two.</p>
 </div>
 <div id="year-effect-growth-model" class="section level3">
 <h3>Year-effect growth model</h3>

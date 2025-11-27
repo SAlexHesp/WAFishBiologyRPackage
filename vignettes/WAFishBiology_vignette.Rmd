@@ -22,7 +22,7 @@ Fig_Path = "C:/~/WAFishBiology/vignettes/"
 
 
 # Introduction 
-#### Last updated July 2025 (Alex Hesp - DPIRD)
+#### Last updated November 2025 (Alex Hesp - DPIRD)
 
 This package is intended as a toolbox of methods for describing various biological traits of fish and invertebrate species, including growth, size/age at maturity, time and duration of spawning (and also their relation to fish body size), weight-length relationships etc., which represent key information for many model-based fisheries assessments. The various R functions output a range of statistics and diagnostic plots. The various biological relationships and associated parameters are required inputs a range of assessment models, e.g. per recruit analysis and statistical catch at age (and length) models.
 
@@ -186,7 +186,7 @@ where $f_{S_i}$ is the observed frequency of fish in size class $S_i$. Estimates
 
 ### Growth model allowing for size-related movements of fish
 
-This is an implementation of the growth model described by Hesp et al. (2004), to account for potential impacts, on reliability of growth parameter estimation, of size-related movements of fish between habitats. Many fish species exhibit an ontogenetic size-related movement of fish from a juvenile nursery habitat(s), to the adult habitat. Where fish are sampled in both habitats, this often involves the use of different sampling gears, and differences in relative sampling intensities between the different habitats may result in an overall length and age sample that, collectively, is not representative of the overall population being sampled. This, in term, has the potential to result in biased parameter estimates, as shown for Rhabdosargus sarba (Hesp et al., 2004).
+This is an implementation of the growth model described by Hesp et al. (2004) (see also Sulin, 2012) to account for potential impacts, on reliability of growth parameter estimation, of size-related movements of fish between habitats. Many fish species exhibit an ontogenetic size-related movement of fish from a juvenile nursery habitat(s), to the adult habitat. Where fish are sampled in both habitats, this often involves the use of different sampling gears, and differences in relative sampling intensities between the different habitats may result in an overall length and age sample that, collectively, is not representative of the overall population being sampled. This, in term, has the potential to result in biased parameter estimates, as shown for Rhabdosargus sarba (Hesp et al., 2004).
 
 It is assumed that lengths at age of fish in the population are normally distributed around an overall von Bertalanffy growth curve describing growth for the population, i.e. $L_t\sim(L_t,\sigma^2)$
 
@@ -219,7 +219,7 @@ An adaptive numerical quadrature function (integrate in R) is used to evaluate t
 $$
 \lambda=\prod_{j=1}^{n}\mathrm{f(L_t,h)}
 $$
-The model is fitted in R using, firstly, nlminb, and then optim (Nelda-Mead) function. As shown by Sulin (2012), use of these two optmisation routines can improve robustness of the model fitting process, demonstrated by jitter analysis. When fitting the model, the following parameters are estimated: $L_\infty$, $k$, $t_0$, $L_{50}^{h_1 \rightarrow h_2}$, $L_{95}^{h_1 \rightarrow h_2}$, and constant coefficient of variation for mean lengths at age, $CV$. Although the original study allowed for up to 3 habitats, as currently implemented in this package, there can be only two.
+The model is fitted using RTMB. As this method involves relatively complex numerical integration, the routine for fitting the model can also specify jitter analysis (number of jitters specified by the user) to test the robustness of the analysis for retrieving the same parameter estimates and overall model NLL values when different starting values are specified for the estimated model parameters. When fitting the model, the following parameters are estimated: $L_\infty$, $k$, $t_0$, $L_{50}^{h_1 \rightarrow h_2}$, $L_{95}^{h_1 \rightarrow h_2}$, and constant coefficient of variation for mean lengths at age, $CV$. Although the original study by Hesp et al. (2004) allowed for up to 3 habitats, as currently implemented in this package, there can be a maximum of two.
 
 ### Year-effect growth model
 

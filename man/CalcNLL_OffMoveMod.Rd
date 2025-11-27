@@ -2,19 +2,18 @@
 % Please edit documentation in R/WA_biology_methods.R
 \name{CalcNLL_OffMoveMod}
 \alias{CalcNLL_OffMoveMod}
-\title{Calculate negative log-likelihood associated with length-at-age data, given
-parameters for size-related movement growth model}
+\title{Calculate negative log-likelihood associated with offshore-movement growth model}
 \usage{
 CalcNLL_OffMoveMod(params)
 }
 \arguments{
-\item{params}{}
+\item{params}{parameters to be estimated}
 }
 \value{
-NLL
+NLL, REPORT and ADREPORT variables
 }
 \description{
-This function negative log-likelihood associated with length-at-age data, given
-parameters for size-related movement growth model (as described by Hesp et al., 2004)
+Calculate negative log-likelihood associated with offshore-movement growth model,
+for use in RTMB.
 }
 \keyword{internal}

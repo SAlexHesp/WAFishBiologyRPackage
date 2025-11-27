@@ -2,82 +2,41 @@
 % Please edit documentation in R/WA_biology_methods.R
 \name{GetOffMoveGrowthModResults}
 \alias{GetOffMoveGrowthModResults}
-\title{Fits growth model allowing for size-related movements of fish between 2 habitats}
+\title{Fits growth model allowing for size-related movements of fish between 2 habitats using RTMB}
 \usage{
-GetOffMoveGrowthModResults(
-  params,
-  SampleSize,
-  ObsAges,
-  ObsLengths,
-  Habitat,
-  lnL50MoveUp,
-  lnL50MoveLw,
-  lnSlopeMoveUp,
-  lnSlopeMoveLw,
-  lnLinfUp,
-  lnLinfLw,
-  lnvbKUp,
-  lnvbKLw,
-  tzeroLw,
-  tzeroUp,
-  CVLw,
-  CVUp
-)
+GetOffMoveGrowthModResults(dat, params)
 }
 \arguments{
-\item{params}{input param values}
+\item{dat}{list of all data inputs including following, eps (used in posfun_OffMoveMod penalty), lnL50MoveUp, lnL50MoveLw, lnSlopeMoveUp, lnSlopeMoveLw,
+lnLinfUp, lnLinfLw, lnvbKUp, lnvbKLw, tzeroLw, tzeroUp, CVLw, CVUp (parameter bounds), DoJitter (boolean flag for jitter analysis), nJitters,
+moveL50sd_jitter, moveSlopesd_jitter, Linfsd_jitter, vbKsd_jitter, tzerosd_jitter, CVsd_jitter, SampleSize, Habitat, ObsAges, ObsLengths,
+nodes, weights}
 
-\item{SampleSize}{observed sample size for length/age/habitat data}
-
-\item{ObsAges}{observed ages}
-
-\item{ObsLengths}{observed lengths}
-
-\item{Habitat}{observed habitat 0-first habitat, 1=final habitat}
-
-\item{lnL50MoveUp}{upper bound movement parameter}
-
-\item{lnL50MoveLw}{lower bound movement parameter}
-
-\item{lnSlopeMoveUp}{upper bound movement parameter}
-
-\item{lnSlopeMoveLw}{lower bound movement parameter}
-
-\item{lnLinfUp}{upper bound growth parameter}
-
-\item{lnLinfLw}{lower bound growth parameter}
-
-\item{lnvbKUp}{upper bound growth parameter}
-
-\item{lnvbKLw}{lower bound growth parameter}
-
-\item{tzeroLw}{lower bound growth parameter}
-
-\item{tzeroUp}{upper bound growth parameter}
-
-\item{CVLw}{upper bound growth variation parameter}
-
-\item{CVUp}{lower bound growth variation parameter}
+\item{params}{lnmoveL50, lnmoveSlope, lnLinf, lnvbK, tzero, CV}
 }
 \value{
-nll, convergence, SampleSize, ParamEst, params, vcov.params, cor.params, IndivFishRes
+par, convergence, NLL, sdr, param_est, params_sd, EstParams, JitterRes (SummaryRes), RTMBReport
 }
 \description{
-This function growth model allowing for size-related movements of fish between 2 habitats,
-(see Hesp et al., 2004)
+This function is for a von Bertalanffy growth model allowing for size-related movements of fish between 2 habitats,
+(see Hesp et al., 2004). In addition to movement parameters, the model can correct for bias in parameter estimates
+associated with non-representative sampling across the two habitats (i.e. one under sampled relative to the other),
+assuming that sampling is representative within each habitat.
 }
 \examples{
+library(RTMB)
 library(L3Assess)
-library(WAFishBiology)
+# *****************************************
 # simulate some standard length-at-age data
+# *****************************************
 set.seed(123)
 SampleSize=1000 # sample size for retained catches (and same number for released fish, if an MLL is specified)
 MaxAge = 20
 TimeStep = 1/12 # model timestep (e.g. 1 = annual, 1/12 = monthly)
 NatMort = 4.22/12
 FishMort = 0.1
-MaxLen = 800
-LenInc = 10
+MaxLen = 600
+LenInc = 2
 MLL=NA # (minimum legal length) # retention set to 1 for all lengths if MLL set to NA and retention parameters not specified
 SelectivityType=2 # 1=selectivity inputted as vector, 2=asymptotic logistic selectivity curve
 SelectivityAtLen = NA # selectivity vector
@@ -92,12 +51,13 @@ GrowthParams = c(Linf, vbK)
 RefnceAges = NA
 Res=SimLenAndAgeFreqData_EqMod(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
                                SelParams, RetenParams, SelectivityAtLen, DiscMort, GrowthCurveType, GrowthParams, RefnceAges, CVSizeAtAge)
-
 ObsAges = Res$ObsDecAgeRetCatch
 ObsLengths = Res$ObsRandLenRetCatch
 plot(ObsAges, ObsLengths, xlim=c(0,20), ylim=c(0,400))
+# ***********************************************
 # Assign each fish to inshore or offshore habitat
-moveL50 = 200
+# ***********************************************
+moveL50 = 230
 moveSlope = 0.05
 moveL95 = (log(19)/moveSlope) + moveL50
 Habitat <- rep(0,SampleSize)
@@ -110,96 +70,151 @@ for (i in 1:SampleSize) {
     Habitat[i] = 0
   }
 }
-# Reduce relative sampling intensity in one area (selectivity offshore)
-# at is unlikely that sampling will be of the same intensity in both habitats
+# ***************************************************************
+# Assign relative sampling intensity in inshore and offshore area
+# ***************************************************************
+OffSampIntensity = 0.1
+InshSampIntensity = 1
 x = which(Habitat==0)
 y = which(Habitat==1)
 RandAgeInsh = ObsAges[x]
 RandAgeOff = ObsAges[y]
 RandLenInsh = ObsLengths[x]
 RandLenOff = ObsLengths[y]
-y=which(Habitat==1)
-length(y)
+randnum=runif(length(x),0,1)
+xx=which(randnum<InshSampIntensity)
 randnum=runif(length(y),0,1)
-yy=which(randnum<0.25)
+yy=which(randnum<OffSampIntensity)
+RandAgeInsh = RandAgeInsh[xx]
+RandLenInsh = RandLenInsh[xx]
 RandAgeOff = RandAgeOff[yy]
 RandLenOff = RandLenOff[yy]
+# plot random data
 par(mfrow=c(2,2),mar=c(4,3,2,2))
-plot(RandAgeInsh,RandLenInsh, xlim=c(0,20), ylim=c(0,500), col="red")
-plot(RandAgeOff,RandLenOff, xlim=c(0,20), ylim=c(0,500), col="blue")
-plot(RandAgeOff,RandLenOff, xlim=c(0,20), ylim=c(0,500), col="blue")
+plot(RandAgeInsh,RandLenInsh, xlim=c(0,20), ylim=c(0,400), col="red")
+plot(RandAgeOff,RandLenOff, xlim=c(0,20), ylim=c(0,400), col="blue")
+plot(RandAgeOff,RandLenOff, xlim=c(0,20), ylim=c(0,400), col="blue")
 points(RandAgeInsh,RandLenInsh, col="red")
-plot(RandAgeInsh,RandLenInsh, xlim=c(0,20), ylim=c(0,500), col="red")
+plot(RandAgeInsh,RandLenInsh, xlim=c(0,20), ylim=c(0,400), col="red")
 points(RandAgeOff,RandLenOff, col="blue")
-# Insh
+# Inshore
 lbnd=Res$lbnd
 InshLenCat = trunc(RandLenInsh/10)*10
 histdat = hist(InshLenCat, breaks=c(lbnd,800), plot=F)
 InshLenFreq = histdat$counts
 breaks = histdat$breaks
 plot(lbnd,InshLenFreq,"l")
-# Off
+# Offshore
 OffLenCat = trunc(RandLenOff/10)*10
 histdat = hist(OffLenCat, breaks=c(lbnd,800), plot=F)
 OffLenFreq = histdat$counts
 breaks = histdat$breaks
 lines(lbnd,OffLenFreq,"l",col="blue")
+ObsAge = c(RandAgeInsh,RandAgeOff)
+ObsLen = c(RandLenInsh,RandLenOff)
+Habitat = c(rep(0,length(RandLenInsh)),rep(1,length(RandLenOff)))
+# *******************************************************************
 # plot lengths at specified ages. Lengths of fish in offshore habitat
 # expected to be larger at younger ages
-SpecAge = 1
+# *******************************************************************
 lbnd=Res$lbnd
-x=which(ObsAges >= SpecAge & ObsAges < SpecAge+1 & Habitat == 0)
-InshLenCat = trunc(ObsLengths[x]/10)*10
-histdat = hist(InshLenCat, breaks=c(lbnd,800), plot=F)
-InshLenFreq = histdat$counts
-breaks = histdat$breaks
-x=which(ObsAges >= SpecAge & ObsAges < SpecAge+1 & Habitat == 1)
-OffLenCat = trunc(ObsLengths[x]/10)*10
-histdat = hist(OffLenCat, breaks=c(lbnd,800), plot=F)
-OffLenFreq = histdat$counts
-breaks = histdat$breaks
-ymax=1.2*max(c(InshLenFreq, OffLenFreq))
-plot(lbnd,InshLenFreq,"l",ylim=c(0,ymax))
-lines(lbnd,OffLenFreq, col="blue")
-# Fit size-related movement growth model
-# set parameter bounds
-lnL50MoveUp = log(300)
-lnL50MoveLw = log(50)
-lnSlopeMoveUp = log(0.5)
-lnSlopeMoveLw = log(0.01)
-lnLinfUp = log(350)
-lnLinfLw = log(250)
-lnvbKUp = log(0.8)
-lnvbKLw = log(0.2)
-tzeroLw = -5
-tzeroUp = 1
-CVLw = 0.02
-CVUp = 0.15
-# set starting values for parameters
-InitmoveL50 = rnorm(1,200,20); InitmoveL50
-InitmoveSlope = rnorm(1,0.05,0.002); moveSlope
-InitLinf = rnorm(1,300,20); InitLinf
-InitvbK = rnorm(1,0.5,0.05); InitvbK
-Inittzero = rnorm(1,0,0.05); Inittzero
-InitGrowthcv = rnorm(1,0.1,0.005); InitGrowthcv
-params = c(log(InitmoveL50), log(InitmoveSlope),log(InitLinf), log(InitvbK), Inittzero,log(InitGrowthcv))
-# fit model (takes a while, uses nlminb and Amoeba routine for optimisation)
-FittedRes=GetOffMoveGrowthModResults(params, SampleSize, ObsAges, ObsLengths, Habitat, lnL50MoveUp, lnL50MoveLw,
-                                     lnSlopeMoveUp, lnSlopeMoveLw, lnLinfUp, lnLinfLw, lnvbKUp, lnvbKLw,
-                                     tzeroLw, tzeroUp, CVLw, CVUp)
+par(mfrow=c(3,2))
+for (SpecAge in 1:5) {
+  x=which(RandAgeInsh >= SpecAge & RandAgeInsh < SpecAge+1)
+  InshLenCat = trunc(RandLenInsh[x]/10)*10
+  histdat = hist(InshLenCat, breaks=c(lbnd,800), plot=F)
+  InshLenFreq = histdat$counts
+  breaks = histdat$breaks
+  x=which(RandAgeOff >= SpecAge & RandAgeOff < SpecAge+1)
+  OffLenCat = trunc(RandLenOff[x]/10)*10
+  histdat = hist(OffLenCat, breaks=c(lbnd,800), plot=F)
+  OffLenFreq = histdat$counts
+  breaks = histdat$breaks
+  ymax=1.2*max(c(InshLenFreq, OffLenFreq))
+  plot(lbnd,InshLenFreq,"l",ylim=c(0,ymax), main=paste("Age =",SpecAge))
+  lines(lbnd,OffLenFreq, col="blue")
+}
+# ********************************************
+# Fit traditional von Bertalanffy growth model
+# ********************************************
+nSexes = 1
+DataType=1
+params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
+ObsAge = c(RandAgeInsh,RandAgeOff)
+ObsLen = c(RandLenInsh,RandLenOff)
+Habitat = c(rep(0,length(RandLenInsh)),rep(1,length(RandLenOff)))
+TradvbRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
+TradvbRes$ParamEst
+# ***************************
+# Fit offshore movement model
+# ***************************
+# specify data inputs
+dat <- list(eps = 0.001,
+            lnL50MoveUp = log(300),
+            lnL50MoveLw = log(170),
+            lnSlopeMoveUp = log(0.5),
+            lnSlopeMoveLw = log(0.01),
+            lnLinfUp = log(500),
+            lnLinfLw = log(200),
+            lnvbKUp = log(0.8),
+            lnvbKLw = log(0.2),
+            tzeroLw = -5,
+            tzeroUp = 1,
+            CVLw = 0.01,
+            CVUp = 0.15,
+            DoJitter = FALSE,
+            nJitters = NA,
+            moveL50sd_jitter = 20,
+            moveSlopesd_jitter = 0.002,
+            Linfsd_jitter = 20,
+            vbKsd_jitter = 0.05,
+            tzerosd_jitter = 0.05,
+            CVsd_jitter = 0.005,
+            SampleSize = length(Habitat),
+            Habitat = Habitat,
+            ObsAges = ObsAge,
+            ObsLengths = ObsLen)
+# specify parameters
+params <- list(lnmoveL50 = log(200),
+               lnmoveSlope = log(0.05),
+               lnLinf = log(260),
+               lnvbK = log(0.5),
+               tzero = 0.0,
+               CV = 0.05)
+# Run RTMB model
+FittedRes= GetOffMoveGrowthModResults(dat, params)
+FittedRes$SummaryRes$JitterRes
+FittedRes$SummaryRes$NLL
+FittedRes$SummaryRes$EstParams
 # plot expected mean lengths at age for each habitat
 par(mfrow=c(2,2),mar=c(5,4,2,2))
-x=which(FittedRes$IndivFishRes$Habitat==0)
-plot(FittedRes$IndivFishRes$ObsAges[x],FittedRes$IndivFishRes$ObsLengths[x], xlim=c(0,20), ylim=c(0,400),
+# first habitat
+x=which(dat$Habitat==0)
+plot(dat$ObsAges[x],dat$ObsLengths[x], xlim=c(0,20), ylim=c(0,400),
      col="red",xlab="Age",ylab="Length",bty='n', cex.main=0.8, main="Juv Habitat")
-points(FittedRes$IndivFishRes$ObsAges[x], FittedRes$IndivFishRes$ExpLen[x], col="black")
-
-y=which(FittedRes$IndivFishRes$Habitat==1)
-plot(FittedRes$IndivFishRes$ObsAges[y],FittedRes$IndivFishRes$ObsLengths[y], xlim=c(0,20), ylim=c(0,400),
+points(dat$ObsAges[x], FittedRes$RTMBReport$ExpLen[x], col="black")
+# second habitat
+y=which(dat$Habitat==1)
+plot(dat$ObsAges[y],dat$ObsLengths[y], xlim=c(0,20), ylim=c(0,400),
      col="blue",xlab="Age",ylab="Length",bty='n', cex.main=0.8, main="Adult Habitat")
-points(FittedRes$IndivFishRes$ObsAges[y], FittedRes$IndivFishRes$ExpLen[y], col="black")
-
-plot(FittedRes$IndivFishRes$ObsAges[x], FittedRes$IndivFishRes$ExpLen[x], xlim=c(0,20), ylim=c(0,400),
+points(dat$ObsAges[y], FittedRes$RTMBReport$ExpLen[y], col="black")
+# curves, both habitats
+plot(dat$ObsAges[x], FittedRes$RTMBReport$ExpLen[x], xlim=c(0,20), ylim=c(0,400),
      xlab="Age",ylab="Length",bty='n', col="red")
-points(FittedRes$IndivFishRes$ObsAges[y], FittedRes$IndivFishRes$ExpLen[y], col="blue")
+points(dat$ObsAges[y], FittedRes$RTMBReport$ExpLen[y], col="blue")
+#  overall growth curves trad vs move model
+# trad
+Linf1 = FittedRes$SummaryRes$EstParams[3,1]
+vbK1 = FittedRes$SummaryRes$EstParams[4,1]
+tzero1 = FittedRes$SummaryRes$EstParams[5,1]
+Ages = seq(0,20,0.1)
+ExpLen1 = Linf1 * (1-exp(-vbK1 * (Ages-tzero1)))
+plot(Ages, ExpLen1, xlim=c(0,20), ylim=c(0,300),
+     xlab="Age",ylab="Length",bty='n', col="green")
+# move mod
+Linf2 = TradvbRes$ParamEst[1,1]
+vbk2 =  TradvbRes$ParamEst[2,1]
+tzero2 =  TradvbRes$ParamEst[3,1]
+ExpLen2 = Linf2 * (1-exp(-vbk2 * (Ages-tzero2)))
+points(Ages, ExpLen2, col="brown")
 }

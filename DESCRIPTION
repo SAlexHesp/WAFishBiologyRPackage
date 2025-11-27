@@ -14,7 +14,8 @@ LinkingTo:
     Rcpp
 Imports:
     MASS, 
-    Rcpp
+    Rcpp,
+    RTMB
 Suggests: 
     knitr,
     rmarkdown

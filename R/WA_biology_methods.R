@@ -226,252 +226,202 @@ penfun <- function(x, eps, pen) {
 # Analyses associated with size-related movement growth model
 # ***********************************************************
 
-#' Calculate the probability of seeing an observed length within a juvenile habitat
+#' Calculate negative log-likelihood associated with offshore-movement growth model
 #'
-#' This function returns a calculated probability of seeing an observed length (x) within a juvenile habitat, for
-#' use in growth model with offshore movement
-#'
-#' @keywords internal
-#'
-#' @param params x, MeanLen, Growthsd, moveL50, moveL95
-#'
-#' @return returns probability
-f1_OffMoveMod <- function(x, MeanLen, Growthsd, moveL50, moveL95) { # Opt 1 - insh
-
-  NormProb = suppressWarnings(dnorm(x, mean = MeanLen, sd = Growthsd))
-  if (is.nan(sum(NormProb))) {
-    NormProb = 1e-20
-  }
-
-  ProbHab = 1 - (1 / (1 + exp(-log(19) * (x - moveL50) / (moveL95 - moveL50))))
-  result = NormProb * ProbHab
-  return(result)
-}
-
-#' Calculate the probability of seeing an observed length (x) within an adult  habitat
-#'
-#' This function returns a calculated probability of seeing an observed length within an adult habitat, for
-#' use in growth model with offshore movement
+#' Calculate negative log-likelihood associated with offshore-movement growth model,
+#' for use in RTMB.
 #'
 #' @keywords internal
 #'
-#' @param params x, MeanLen, Growthsd, moveL50, moveL95
+#' @param params parameters to be estimated
 #'
-#' @return returns probability
-f2_OffMoveMod <- function(x, MeanLen, Growthsd, moveL50, moveL95) { # Opt 2 - insh
-
-  NormProb = suppressWarnings(dnorm(x, mean = MeanLen, sd = Growthsd))
-  if (is.nan(sum(NormProb))) {
-    NormProb = 1e-20
-  }
-
-  ProbHab = 1 - (1 / (1 + exp(-log(19) * (x - moveL50) / (moveL95 - moveL50))))
-  result = NormProb * ProbHab * x
-  return(result)
-}
-
-#' Calculate the product of x.f(x), for use in calculating the expected length
-#' of x, i.e. the mean, for fish in a juvenile habitat
-#'
-#' This function returns the product of x.f(x), for use in calculating the expected length
-#' of x, i.e. the mean, for fish in a juvenile habitat
-#'
-#' @keywords internal
-#'
-#' @param params x, MeanLen, Growthsd, moveL50, moveL95
-#'
-#' @return x.f(x)
-f3_OffMoveMod <- function(x, MeanLen, Growthsd, moveL50, moveL95) { # Opt 3 - off
-
-  NormProb = suppressWarnings(dnorm(x, mean = MeanLen, sd = Growthsd))
-  if (is.nan(sum(NormProb))) {
-    NormProb = 1e-20
-  }
-
-  ProbHab = 1 / (1 + exp(-log(19) * (x - moveL50) / (moveL95 - moveL50)))
-  result = NormProb * ProbHab
-  return(result)
-}
-
-#' Calculate the product of x.f(x), for use in calculating the expected length
-#' of x, i.e. the mean, for fish in an adult habitat
-#'
-#' This function returns the product of x.f(x), for use in calculating the expected length
-#' of x, i.e. the mean, for fish in a juvenile habitat
-#'
-#' @keywords internal
-#'
-#' @param params x, MeanLen, Growthsd, moveL50, moveL95
-#'
-#' @return x.f(x)
-f4_OffMoveMod_OffMoveMod <- function(x, MeanLen, Growthsd, moveL50, moveL95) { # Opt 4 - off
-
-  NormProb = suppressWarnings(dnorm(x, mean = MeanLen, sd = Growthsd))
-  if (is.nan(sum(NormProb))) {
-    NormProb = 1e-20
-  }
-
-  ProbHab = 1 / (1 + exp(-log(19) * (x - moveL50) / (moveL95 - moveL50)))
-  result = NormProb * ProbHab * x
-  return(result)
-}
-
-#' Calculate the probability of a fish being in a juvenile habitat from its length
-#'
-#' This function calculates the probability of a fish being in a juvenile habitat from its length
-#'
-#' @keywords internal
-#'
-#' @param params x, MeanLen, Growthsd, moveL50, moveL95
-#'
-#' @return ProbInsh
-CalcProbInsh_OffMoveMod <- function(ObsLen, MeanLen, Growthsd, moveL50, moveL95) {
-
-  a = MeanLen - (5 * Growthsd)
-  b = MeanLen + (5 * Growthsd)
-
-  # Determine the sum over all lengths of the probability
-  # of seeing each length within a sample from the juvenile habitat
-  temp = integrate(f1_OffMoveMod, lower = a, upper = b, rel.tol = 1E-12,
-                   MeanLen = MeanLen, Growthsd = Growthsd, moveL50 = moveL50, moveL95 = moveL95)
-  sum = temp$value
-
-  # Determine the probability of seeing the observed length
-  # within a sample from the juvenile habitat
-  prob = f1_OffMoveMod(ObsLen, MeanLen, Growthsd, moveL50, moveL95)
-
-  # Normalise the probability of seeing the observed length
-  # within a sample from the juvenile habitat
-  if (sum > prob) {
-    ProbInsh = prob / sum
-  } else {
-    ProbInsh = 1E-20
-  }
-
-  return(ProbInsh)
-
-}
-
-#' Calculate the probability of the expected length of a fish being in an adult habitat from its length
-#'
-#' This function calculates the probability of a fish being in an adult habitat from its length
-#'
-#' @keywords internal
-#'
-#' @param params x, MeanLen, Growthsd, moveL50, moveL95
-#'
-#' @return ProbOff
-CalcProbOff_OffMoveMod <- function(ObsLen, MeanLen, Growthsd, moveL50, moveL95) {
-
-  a = MeanLen - (5 * Growthsd)
-  b = MeanLen + (5 * Growthsd)
-
-  # Determine the sum over all lengths of the probability
-  # of seeing each length within a sample from the adult habitat
-  temp = integrate(f3_OffMoveMod, lower = a, upper = b, rel.tol = 1E-12,
-                   MeanLen = MeanLen, Growthsd = Growthsd, moveL50 = moveL50, moveL95 = moveL95)
-  sum = temp$value
-
-  # Determine the probability of seeing the observed length
-  # within a sample from the adult habitat
-  prob = f3_OffMoveMod(ObsLen, MeanLen, Growthsd, moveL50, moveL95)
-
-  # Normalise the probability of seeing the observed length
-  # within a sample from the sheltered adult habitat
-  ProbOff = prob / sum
-
-  if (sum > prob) {
-    ProbOff = prob / sum
-  } else {
-    ProbOff = 1E-20
-  }
-
-  return(ProbOff)
-
-}
-
-#' Calculate expected mean length of fish in the juvenile habitat, given overall mean length
-#' across habitats and specified observed length
-#'
-#' This function calculates the expected mean length of fish in the juvenile habitat, given overall mean length
-#' across habitats and specified observed length
-#'
-#' @keywords internal
-#'
-#' @param params x, MeanLen, Growthsd, moveL50, moveL95
-#'
-#' @return MeanInsh
-CalcMeanLenInsh_OffMoveMod <- function(ObsLen, MeanLen, Growthsd, moveL50, moveL95) {
-
-  a = MeanLen - (5 * Growthsd)
-  b = MeanLen + (5 * Growthsd)
-
-  temp = integrate(f2_OffMoveMod, lower = a, upper = b, rel.tol = 1E-12,
-                   MeanLen = MeanLen, Growthsd = Growthsd, moveL50 = moveL50, moveL95 = moveL95)
-  sumLenProb=temp$value
-
-  temp = integrate(f1_OffMoveMod, lower = a, upper = b, rel.tol = 1E-12,
-                   MeanLen = MeanLen, Growthsd = Growthsd, moveL50 = moveL50, moveL95 = moveL95)
-  sum = temp$value
-  MeanInsh = sumLenProb / sum
-
-  return(MeanInsh)
-
-}
-
-#' Calculate expected mean length of fish in the adult habitat, given overall mean length
-#' across habitats and specified observed length
-#'
-#' This function calculates the expected mean length of fish in the adult habitat, given overall mean length
-#' across habitats and specified observed length
-#'
-#' @keywords internal
-#'
-#' @param params x, MeanLen, Growthsd, moveL50, moveL95
-#'
-#' @return MeanOff
-CalcMeanLenOff_OffMoveMod <- function(ObsLen, MeanLen, Growthsd, moveL50, moveL95) {
-
-  a = MeanLen - (5 * Growthsd)
-  b = MeanLen + (5 * Growthsd)
-
-  temp = integrate(f4_OffMoveMod_OffMoveMod, lower = a, upper = b, rel.tol = 1E-12,
-                   MeanLen = MeanLen, Growthsd = Growthsd, moveL50 = moveL50, moveL95 = moveL95)
-  sumLenProb=temp$value
-
-  temp <- integrate(f3_OffMoveMod, lower = a, upper = b, rel.tol = 1E-12,
-                    MeanLen = MeanLen, Growthsd = Growthsd, moveL50 = moveL50, moveL95 = moveL95)
-  sum = temp$value
-
-  MeanOff = sumLenProb / sum
-
-  return(MeanOff)
-
-}
-
-#' Calculate negative log-likelihood associated with length-at-age data, given
-#' parameters for size-related movement growth model
-#'
-#' This function negative log-likelihood associated with length-at-age data, given
-#' parameters for size-related movement growth model (as described by Hesp et al., 2004)
-#'
-#' @keywords internal
-#'
-#' @param params
-#'
-#' @return NLL
+#' @return  NLL, REPORT and ADREPORT variables
 CalcNLL_OffMoveMod <- function(params) {
 
-  # get params
-  lnmoveL50 = params[1]
-  lnmoveSlope = params[2]
-  lnLinf = params[3]
-  lnvbK = params[4]
-  tzero = params[5]
-  CV = exp(params[6])
+  # https://groups.google.com/g/tmb-users/c/HlPqkfcCa1g
+  "[<-" <- ADoverload("[<-")
+
+  # get parameters
+  RTMB::getAll(dat, params, warn=FALSE)
+
+  # Gauss-Legendre nodes and weights for n = 20
+  nodes <- c(-0.9931285991850949, -0.9639719272779138, -0.9122344282513259,
+             -0.8391169718222188, -0.7463319064601508, -0.6360536807265150,
+             -0.5108670019508271, -0.3737060887154196, -0.2277858511416451,
+             -0.0765265211334973,  0.0765265211334973,  0.2277858511416451,
+             0.3737060887154196,  0.5108670019508271,  0.6360536807265150,
+             0.7463319064601508,  0.8391169718222188,  0.9122344282513259,
+             0.9639719272779138,  0.9931285991850949)
+  weights <- c(0.0176140071391521, 0.0406014298003869, 0.0626720483341091,
+               0.0832767415767048, 0.1019301198172404, 0.1181945319615184,
+               0.1316886384491766, 0.1420961093183820, 0.1491729864726037,
+               0.1527533871307258, 0.1527533871307258, 0.1491729864726037,
+               0.1420961093183820, 0.1316886384491766, 0.1181945319615184,
+               0.1019301198172404, 0.0832767415767048, 0.0626720483341091,
+               0.0406014298003869, 0.0176140071391521)
+
+  x_is_gt_bound_OffMoveMod <- function(x, bound, slope) {
+
+    result = 1.0 / (1.0 + exp(slope * (bound - x)))
+    return (result)
+  }
+
+  x_is_lt_bound_OffMoveMod <- function(x, bound, slope) {
+    result = 1.0 - 1.0 / (1.0 + exp(slope * (bound - x)))
+    return (result)
+  }
+
+  posfun_OffMoveMod <- function (x, eps, pen) {
+    # Assume eps = log(19)/slope
+    slope = log(19.0) / eps
+    bound = eps
+    result = x *  x_is_gt_bound_OffMoveMod(x, bound, slope);
+    return (result)
+  }
+
+  penfun_OffMoveMod <- function(x, eps, pen) {
+    # The argument, pen, is not used but included for consistency with the posfun function above.
+    # Assume eps = log(19)/slope
+    slope = log(19.0) / eps
+    bound = eps
+    result = (x-eps) * (x-eps) * x_is_lt_bound_OffMoveMod(x, bound, slope)
+    return (result)
+  }
+
+  f1_OffMoveMod <- function(x, MeanLen, Growthsd, moveL50, moveL95) {
+
+
+    # Compute normal probability density
+    NormProb <- suppressWarnings(dnorm(x, mean = MeanLen, sd = Growthsd))
+
+    # Logistic selection probability
+    ProbHab <- 1 - (1 / (1 + exp(-log(19) * (x - moveL50) / (moveL95 - moveL50))))
+
+    result <- NormProb * ProbHab
+    return(result)
+  }
+
+  f2_OffMoveMod <- function(x, MeanLen, Growthsd, moveL50, moveL95) {
+
+    NormProb <- suppressWarnings(dnorm(x, mean = MeanLen, sd = Growthsd))
+
+    ProbHab <- 1 - (1 / (1 + exp(-log(19) * (x - moveL50) / (moveL95 - moveL50))))
+
+    result <- NormProb * ProbHab * x
+    return(result)
+  }
+
+  f3_OffMoveMod <- function(x, MeanLen, Growthsd, moveL50, moveL95) {
+
+    NormProb <- suppressWarnings(dnorm(x, mean = MeanLen, sd = Growthsd))
+
+    ProbHab <- 1 / (1 + exp(-log(19) * (x - moveL50) / (moveL95 - moveL50)))
+
+    result <- NormProb * ProbHab
+    return(result)
+  }
+
+  f4_OffMoveMod <- function(x, MeanLen, Growthsd, moveL50, moveL95) {
+
+    NormProb <- suppressWarnings(dnorm(x, mean = MeanLen, sd = Growthsd))
+
+    ProbHab <- 1 / (1 + exp(-log(19) * (x - moveL50) / (moveL95 - moveL50)))
+
+    result <- NormProb * ProbHab * x
+    return(result)
+  }
+
+  # Generalized Gaussian quadrature for any input function f
+  gauss_legendre_integrate_f <- function(f, MeanLen, Growthsd, moveL50, moveL95, a, b) {
+    x <- nodes
+    w <- weights
+
+    # Transform nodes from [-1, 1] to [a, b]
+    t <- ((b - a) / 2) * x + (a + b) / 2
+
+    # Evaluate the passed-in function f at each point
+    # ft <- sapply(t, function(xi) f(xi, MeanLen, Growthsd, moveL50, moveL95))
+
+    # AD-safe evaluation of f()
+    ft <- t * 0  # create an AD vector of correct size
+    for (i in seq_along(t)) {
+      ft[i] <- f(t[i], MeanLen, Growthsd, moveL50, moveL95)
+    }
+    result <- (b - a) / 2 * sum(w * ft)
+    return(result)
+  }
+
+  # Generalized ProbInsh function with function f1_OffMoveMod as input
+  CalcProbInsh_OffMoveMod <- function(f1_OffMoveMod, ObsLen, MeanLen, Growthsd, moveL50, moveL95) {
+
+    a <- MeanLen - 5 * Growthsd
+    b <- MeanLen + 5 * Growthsd
+
+    # Integrate using Gauss-Legendre quadrature
+    sum <- gauss_legendre_integrate_f(f=f1_OffMoveMod, MeanLen, Growthsd, moveL50, moveL95, a, b)
+
+    # Evaluate f at ObsLen
+    prob <- f1_OffMoveMod(ObsLen, MeanLen, Growthsd, moveL50, moveL95)
+
+    # Normalize
+    ProbInsh <- prob / sum
+
+    return(ProbInsh)
+  }
+
+  CalcProbOff_OffMoveMod <- function(f3_OffMoveMod, ObsLen, MeanLen, Growthsd, moveL50, moveL95) {
+
+    # Define integration bounds (±5 SD)
+    a <- MeanLen - 5 * Growthsd
+    b <- MeanLen + 5 * Growthsd
+
+    # Use custom Gaussian quadrature to integrate f over [a, b]
+    # Integrate using Gauss-Legendre quadrature
+    sum <- gauss_legendre_integrate_f(f=f3_OffMoveMod, MeanLen, Growthsd, moveL50, moveL95, a, b)
+
+    # Evaluate f at the observed length
+    prob <- f3_OffMoveMod(ObsLen, MeanLen, Growthsd, moveL50, moveL95)
+
+    # Normalize
+    ProbOff <- prob / sum
+
+
+    return(ProbOff)
+  }
+
+  CalcMeanLenInsh_OffMoveMod <- function(f2_OffMoveMod, f1_OffMoveMod, MeanLen, Growthsd, moveL50, moveL95) {
+
+    a <- MeanLen - 5 * Growthsd
+    b <- MeanLen + 5 * Growthsd
+
+    # Numerator: integrate f2_OffMoveMod over [a, b]
+    numerator <- gauss_legendre_integrate_f(f=f2_OffMoveMod, MeanLen, Growthsd, moveL50, moveL95, a, b)
+
+    # Denominator: integrate f_den over [a, b]
+    denominator <- gauss_legendre_integrate_f(f=f1_OffMoveMod, MeanLen, Growthsd, moveL50, moveL95, a, b)
+
+    MeanInsh <- numerator / max(denominator, 1E-20)
+
+    return(MeanInsh)
+  }
+
+  CalcMeanLenOff_OffMoveMod <- function(f4_OffMoveMod, f3_OffMoveMod, MeanLen, Growthsd, moveL50, moveL95) {
+
+    a = MeanLen - (5 * Growthsd)
+    b = MeanLen + (5 * Growthsd)
+
+    numerator <- gauss_legendre_integrate_f(f=f4_OffMoveMod, MeanLen, Growthsd, moveL50, moveL95, a, b)
+
+    denominator <- gauss_legendre_integrate_f(f=f3_OffMoveMod, MeanLen, Growthsd, moveL50, moveL95, a, b)
+
+    MeanOff = numerator / max(denominator, 1E-20)
+
+    return(MeanOff)
+
+  }
 
   # parameter penalties
-  eps = 0.001
+  # eps = 0.001
   param_pen=0
   L50MovePen=0
   SlopeMovePen=0
@@ -481,56 +431,57 @@ CalcNLL_OffMoveMod <- function(params) {
   CV_pen = 0
 
   # L50Move
-  L50MovePen = penfun(lnmoveL50 - lnL50MoveLw, eps, L50MovePen);
-  temp_parm = lnL50MoveLw + posfun(lnmoveL50 - lnL50MoveLw, eps, L50MovePen);
-  L50MovePen = L50MovePen + penfun(lnL50MoveUp - temp_parm, eps, L50MovePen);
-  temp_parm = lnL50MoveUp - posfun(lnL50MoveUp - temp_parm, eps, L50MovePen);
-  moveL50 = exp(temp_parm);
-  param_pen = param_pen + 1000*L50MovePen;
+  L50MovePen = penfun_OffMoveMod(lnmoveL50 - lnL50MoveLw, eps, L50MovePen)
+  temp_parm = lnL50MoveLw + posfun_OffMoveMod(lnmoveL50 - lnL50MoveLw, eps, L50MovePen)
+  L50MovePen = L50MovePen + penfun_OffMoveMod(lnL50MoveUp - temp_parm, eps, L50MovePen)
+  temp_parm = lnL50MoveUp - posfun_OffMoveMod(lnL50MoveUp - temp_parm, eps, L50MovePen)
+  moveL50 = exp(temp_parm)
+  param_pen = param_pen + 1000*L50MovePen
 
   # SlopeMove
-  SlopeMovePen = penfun(lnmoveSlope - lnSlopeMoveLw, eps, SlopeMovePen);
-  temp_parm = lnSlopeMoveLw + posfun(lnmoveSlope - lnSlopeMoveLw, eps, SlopeMovePen);
-  SlopeMovePen = SlopeMovePen + penfun(lnSlopeMoveUp - temp_parm, eps, SlopeMovePen);
-  temp_parm = lnSlopeMoveUp - posfun(lnSlopeMoveUp - temp_parm, eps, SlopeMovePen);
-  moveSlope = exp(temp_parm);
+  SlopeMovePen = penfun_OffMoveMod(lnmoveSlope - lnSlopeMoveLw, eps, SlopeMovePen)
+  temp_parm = lnSlopeMoveLw + posfun_OffMoveMod(lnmoveSlope - lnSlopeMoveLw, eps, SlopeMovePen)
+  SlopeMovePen = SlopeMovePen + penfun_OffMoveMod(lnSlopeMoveUp - temp_parm, eps, SlopeMovePen)
+  temp_parm = lnSlopeMoveUp - posfun_OffMoveMod(lnSlopeMoveUp - temp_parm, eps, SlopeMovePen)
+  moveSlope = exp(temp_parm)
   param_pen = param_pen + 1000*SlopeMovePen
-  moveL95 <<- (log(19) / moveSlope) + moveL50
+  moveL95 = (log(19) / moveSlope) + moveL50
 
   # Linf
-  Linf_pen = penfun(lnLinf - lnLinfLw, eps, Linf_pen);
-  temp_parm = lnLinfLw + posfun(lnLinf - lnLinfLw, eps, Linf_pen);
-  Linf_pen = Linf_pen + penfun(lnLinfUp - temp_parm, eps, Linf_pen);
-  temp_parm = lnLinfUp - posfun(lnLinfUp - temp_parm, eps, Linf_pen);
-  Linf = exp(temp_parm);
-  param_pen = param_pen + 1000*Linf_pen;
+  Linf_pen = penfun_OffMoveMod(lnLinf - lnLinfLw, eps, Linf_pen)
+  temp_parm = lnLinfLw + posfun_OffMoveMod(lnLinf - lnLinfLw, eps, Linf_pen)
+  Linf_pen = Linf_pen + penfun_OffMoveMod(lnLinfUp - temp_parm, eps, Linf_pen)
+  temp_parm = lnLinfUp - posfun_OffMoveMod(lnLinfUp - temp_parm, eps, Linf_pen)
+  Linf = exp(temp_parm)
+  param_pen = param_pen + 1000*Linf_pen
 
   # vbK
-  vbK_pen = penfun(lnvbK - lnvbKLw, eps, vbK_pen);
-  temp_parm = lnvbKLw + posfun(lnvbK - lnvbKLw, eps, vbK_pen);
-  vbK_pen = vbK_pen + penfun(lnvbKUp - temp_parm, eps, vbK_pen);
-  temp_parm = lnvbKUp - posfun(lnvbKUp - temp_parm, eps, vbK_pen);
-  vbK = exp(temp_parm);
-  param_pen = param_pen + 1000*vbK_pen;
+  vbK_pen = penfun_OffMoveMod(lnvbK - lnvbKLw, eps, vbK_pen)
+  temp_parm = lnvbKLw + posfun_OffMoveMod(lnvbK - lnvbKLw, eps, vbK_pen)
+  vbK_pen = vbK_pen + penfun_OffMoveMod(lnvbKUp - temp_parm, eps, vbK_pen)
+  temp_parm = lnvbKUp - posfun_OffMoveMod(lnvbKUp - temp_parm, eps, vbK_pen)
+  vbK = exp(temp_parm)
+  param_pen = param_pen + 1000*vbK_pen
 
   # tzero
-  tzero_pen = penfun(tzero - tzeroLw, eps, tzero_pen);
-  temp_parm = tzeroLw + posfun(tzero - tzeroLw, eps, tzero_pen);
-  tzero_pen = tzero_pen + penfun(tzeroUp - temp_parm, eps, tzero_pen);
-  temp_parm = tzeroUp - posfun(tzeroUp - temp_parm, eps, tzero_pen);
-  tzero = temp_parm;
-  param_pen = param_pen + 1000*tzero_pen;
+  tzero_pen = penfun_OffMoveMod(tzero - tzeroLw, eps, tzero_pen)
+  temp_parm = tzeroLw + posfun_OffMoveMod(tzero - tzeroLw, eps, tzero_pen)
+  tzero_pen = tzero_pen + penfun_OffMoveMod(tzeroUp - temp_parm, eps, tzero_pen)
+  temp_parm = tzeroUp - posfun_OffMoveMod(tzeroUp - temp_parm, eps, tzero_pen)
+  tzero = temp_parm
+  param_pen = param_pen + 1000*tzero_pen
 
   # cv
-  CV_pen = penfun(CV - CVLw, eps, CV_pen);
-  temp_parm = CVLw + posfun(CV - CVLw, eps, CV_pen);
-  CV_pen = CV_pen + penfun(CVUp - temp_parm, eps, CV_pen);
-  temp_parm = CVUp - posfun(CVUp - temp_parm, eps, CV_pen);
-  CV = temp_parm;
-  param_pen = param_pen + 1000*CV_pen;
+  CV_pen = penfun_OffMoveMod(CV - CVLw, eps, CV_pen)
+  temp_parm = CVLw + posfun_OffMoveMod(CV - CVLw, eps, CV_pen)
+  CV_pen = CV_pen + penfun_OffMoveMod(CVUp - temp_parm, eps, CV_pen)
+  temp_parm = CVUp - posfun_OffMoveMod(CVUp - temp_parm, eps, CV_pen)
+  CV = temp_parm
+  param_pen = param_pen + 1000*CV_pen
 
-  ExpLen = rep(0,SampleSize)
   NLL=0
+  ExpLen = rep(NA,SampleSize)
+  ExpMeanLen = rep(NA,SampleSize)
   for (i in 1:SampleSize) {
 
     ObsAge = ObsAges[i]
@@ -538,66 +489,87 @@ CalcNLL_OffMoveMod <- function(params) {
 
     # est mean length at age from vb growth equation
     MeanLen = Linf * (1-exp(-vbK * (ObsAge - tzero)))
+    ExpMeanLen[i] = MeanLen
 
     # get sd, for mean length at age
     Growthsd = CV * MeanLen
 
     # est mean length of each fish at age, given habitat
     if (Habitat[i] == 0) {
-      ExpLen[i] = CalcMeanLenInsh_OffMoveMod(ObsLen, MeanLen, Growthsd, moveL50, moveL95)
-      ObsProbInsh = CalcProbInsh_OffMoveMod(ObsLen, MeanLen, Growthsd, moveL50, moveL95)
-      NLL1 = -log(ObsProbInsh)
+      ExpLen[i] = CalcMeanLenInsh_OffMoveMod(f2_OffMoveMod, f1_OffMoveMod, MeanLen, Growthsd, moveL50, moveL95)
+      prob <- CalcProbInsh_OffMoveMod(f1_OffMoveMod, ObsLen, MeanLen, Growthsd, moveL50, moveL95)
+      safe_prob <- max(prob, 1e-20)
+      NLL1 <- -log(safe_prob)
     } else {
-      ExpLen[i] = CalcMeanLenOff_OffMoveMod(ObsLen, MeanLen, Growthsd, moveL50, moveL95)
-      ObsProbOff = CalcProbOff_OffMoveMod(ObsLen, MeanLen, Growthsd, moveL50, moveL95)
-      NLL1 = -log(ObsProbOff)
+      ExpLen[i] = CalcMeanLenOff_OffMoveMod(f4_OffMoveMod, f3_OffMoveMod, MeanLen, Growthsd, moveL50, moveL95)
+      prob <- CalcProbOff_OffMoveMod(f3_OffMoveMod, ObsLen, MeanLen, Growthsd, moveL50, moveL95)
+      safe_prob <- max(prob, 1e-20)
+      NLL1 <- -log(safe_prob)
     }
+    NLL = NLL + NLL1
 
-    NLL = NLL + NLL1 + param_pen
+  } # i
 
-  }
-  cat("NLL",NLL,"Linf",Linf,"vbK",vbK,"tzero",tzero,"CV",CV,"L50",moveL50,"Slope",moveSlope, "Pen",param_pen,'\n')
+  NLL = NLL + param_pen
+
+  # RTMB
+  RTMB::REPORT(moveL50)
+  RTMB::REPORT(moveL95)
+  RTMB::REPORT(moveSlope)
+  RTMB::REPORT(Linf)
+  RTMB::REPORT(vbK)
+  RTMB::REPORT(tzero)
+  RTMB::REPORT(CV)
+  RTMB::REPORT(NLL)
+  RTMB::REPORT(L50MovePen)
+  RTMB::REPORT(SlopeMovePen)
+  RTMB::REPORT(Linf_pen)
+  RTMB::REPORT(vbK_pen)
+  RTMB::REPORT(tzero_pen)
+  RTMB::REPORT(CV_pen)
+  RTMB::REPORT(param_pen)
+  RTMB::REPORT(ExpLen)
+  RTMB::REPORT(ExpMeanLen)
+
+  RTMB::ADREPORT(moveL50)
+  RTMB::ADREPORT(moveL95)
+  RTMB::ADREPORT(moveSlope)
+  RTMB::ADREPORT(Linf)
+  RTMB::ADREPORT(vbK)
+  RTMB::ADREPORT(tzero)
+  RTMB::ADREPORT(CV)
 
   return(NLL)
 
 }
 
-#' Fits growth model allowing for size-related movements of fish between 2 habitats
+#' Fits growth model allowing for size-related movements of fish between 2 habitats using RTMB
 #'
-#' This function growth model allowing for size-related movements of fish between 2 habitats,
-#' (see Hesp et al., 2004)
+#' This function is for a von Bertalanffy growth model allowing for size-related movements of fish between 2 habitats,
+#' (see Hesp et al., 2004). In addition to movement parameters, the model can correct for bias in parameter estimates
+#' associated with non-representative sampling across the two habitats (i.e. one under sampled relative to the other),
+#' assuming that sampling is representative within each habitat.
 #'
-#' @param params input param values
-#' @param SampleSize observed sample size for length/age/habitat data
-#' @param ObsAges observed ages
-#' @param ObsLengths observed lengths
-#' @param Habitat observed habitat 0-first habitat, 1=final habitat
-#' @param lnL50MoveUp upper bound movement parameter
-#' @param lnL50MoveLw lower bound movement parameter
-#' @param lnSlopeMoveUp upper bound movement parameter
-#' @param lnSlopeMoveLw lower bound movement parameter
-#' @param lnLinfUp upper bound growth parameter
-#' @param lnLinfLw lower bound growth parameter
-#' @param lnvbKUp upper bound growth parameter
-#' @param lnvbKLw lower bound growth parameter
-#' @param tzeroUp upper bound growth parameter
-#' @param tzeroLw lower bound growth parameter
-#' @param CVLw upper bound growth variation parameter
-#' @param CVUp lower bound growth variation parameter
-#'
-#' @return nll, convergence, SampleSize, ParamEst, params, vcov.params, cor.params, IndivFishRes
+#' @param dat list of all data inputs including following, eps (used in posfun_OffMoveMod penalty), lnL50MoveUp, lnL50MoveLw, lnSlopeMoveUp, lnSlopeMoveLw,
+#' lnLinfUp, lnLinfLw, lnvbKUp, lnvbKLw, tzeroLw, tzeroUp, CVLw, CVUp (parameter bounds), DoJitter (boolean flag for jitter analysis), nJitters,
+#' moveL50sd_jitter, moveSlopesd_jitter, Linfsd_jitter, vbKsd_jitter, tzerosd_jitter, CVsd_jitter, SampleSize, Habitat, ObsAges, ObsLengths,
+#' nodes, weights
+#' @param params lnmoveL50, lnmoveSlope, lnLinf, lnvbK, tzero, CV
+#' @return par, convergence, NLL, sdr, param_est, params_sd, EstParams, JitterRes (SummaryRes), RTMBReport
 #' @examples
+#' library(RTMB)
 #' library(L3Assess)
-#' library(WAFishBiology)
+#' # *****************************************
 #' # simulate some standard length-at-age data
+#' # *****************************************
 #' set.seed(123)
 #' SampleSize=1000 # sample size for retained catches (and same number for released fish, if an MLL is specified)
 #' MaxAge = 20
 #' TimeStep = 1/12 # model timestep (e.g. 1 = annual, 1/12 = monthly)
 #' NatMort = 4.22/12
 #' FishMort = 0.1
-#' MaxLen = 800
-#' LenInc = 10
+#' MaxLen = 600
+#' LenInc = 2
 #' MLL=NA # (minimum legal length) # retention set to 1 for all lengths if MLL set to NA and retention parameters not specified
 #' SelectivityType=2 # 1=selectivity inputted as vector, 2=asymptotic logistic selectivity curve
 #' SelectivityAtLen = NA # selectivity vector
@@ -612,12 +584,13 @@ CalcNLL_OffMoveMod <- function(params) {
 #' RefnceAges = NA
 #' Res=SimLenAndAgeFreqData_EqMod(SampleSize, MaxAge, TimeStep, NatMort, FishMort, MaxLen, LenInc, MLL, SelectivityType,
 #'                                SelParams, RetenParams, SelectivityAtLen, DiscMort, GrowthCurveType, GrowthParams, RefnceAges, CVSizeAtAge)
-#'
 #' ObsAges = Res$ObsDecAgeRetCatch
 #' ObsLengths = Res$ObsRandLenRetCatch
 #' plot(ObsAges, ObsLengths, xlim=c(0,20), ylim=c(0,400))
+#' # ***********************************************
 #' # Assign each fish to inshore or offshore habitat
-#' moveL50 = 200
+#' # ***********************************************
+#' moveL50 = 230
 #' moveSlope = 0.05
 #' moveL95 = (log(19)/moveSlope) + moveL50
 #' Habitat <- rep(0,SampleSize)
@@ -630,191 +603,264 @@ CalcNLL_OffMoveMod <- function(params) {
 #'     Habitat[i] = 0
 #'   }
 #' }
-#' # Reduce relative sampling intensity in one area (selectivity offshore)
-#' # at is unlikely that sampling will be of the same intensity in both habitats
+#' # ***************************************************************
+#' # Assign relative sampling intensity in inshore and offshore area
+#' # ***************************************************************
+#' OffSampIntensity = 0.1
+#' InshSampIntensity = 1
 #' x = which(Habitat==0)
 #' y = which(Habitat==1)
 #' RandAgeInsh = ObsAges[x]
 #' RandAgeOff = ObsAges[y]
 #' RandLenInsh = ObsLengths[x]
 #' RandLenOff = ObsLengths[y]
-#' y=which(Habitat==1)
-#' length(y)
+#' randnum=runif(length(x),0,1)
+#' xx=which(randnum<InshSampIntensity)
 #' randnum=runif(length(y),0,1)
-#' yy=which(randnum<0.25)
+#' yy=which(randnum<OffSampIntensity)
+#' RandAgeInsh = RandAgeInsh[xx]
+#' RandLenInsh = RandLenInsh[xx]
 #' RandAgeOff = RandAgeOff[yy]
 #' RandLenOff = RandLenOff[yy]
+#' # plot random data
 #' par(mfrow=c(2,2),mar=c(4,3,2,2))
-#' plot(RandAgeInsh,RandLenInsh, xlim=c(0,20), ylim=c(0,500), col="red")
-#' plot(RandAgeOff,RandLenOff, xlim=c(0,20), ylim=c(0,500), col="blue")
-#' plot(RandAgeOff,RandLenOff, xlim=c(0,20), ylim=c(0,500), col="blue")
+#' plot(RandAgeInsh,RandLenInsh, xlim=c(0,20), ylim=c(0,400), col="red")
+#' plot(RandAgeOff,RandLenOff, xlim=c(0,20), ylim=c(0,400), col="blue")
+#' plot(RandAgeOff,RandLenOff, xlim=c(0,20), ylim=c(0,400), col="blue")
 #' points(RandAgeInsh,RandLenInsh, col="red")
-#' plot(RandAgeInsh,RandLenInsh, xlim=c(0,20), ylim=c(0,500), col="red")
+#' plot(RandAgeInsh,RandLenInsh, xlim=c(0,20), ylim=c(0,400), col="red")
 #' points(RandAgeOff,RandLenOff, col="blue")
-#' # Insh
+#' # Inshore
 #' lbnd=Res$lbnd
 #' InshLenCat = trunc(RandLenInsh/10)*10
 #' histdat = hist(InshLenCat, breaks=c(lbnd,800), plot=F)
 #' InshLenFreq = histdat$counts
 #' breaks = histdat$breaks
 #' plot(lbnd,InshLenFreq,"l")
-#' # Off
+#' # Offshore
 #' OffLenCat = trunc(RandLenOff/10)*10
 #' histdat = hist(OffLenCat, breaks=c(lbnd,800), plot=F)
 #' OffLenFreq = histdat$counts
 #' breaks = histdat$breaks
 #' lines(lbnd,OffLenFreq,"l",col="blue")
+#' ObsAge = c(RandAgeInsh,RandAgeOff)
+#' ObsLen = c(RandLenInsh,RandLenOff)
+#' Habitat = c(rep(0,length(RandLenInsh)),rep(1,length(RandLenOff)))
+#' # *******************************************************************
 #' # plot lengths at specified ages. Lengths of fish in offshore habitat
 #' # expected to be larger at younger ages
-#' SpecAge = 1
+#' # *******************************************************************
 #' lbnd=Res$lbnd
-#' x=which(ObsAges >= SpecAge & ObsAges < SpecAge+1 & Habitat == 0)
-#' InshLenCat = trunc(ObsLengths[x]/10)*10
-#' histdat = hist(InshLenCat, breaks=c(lbnd,800), plot=F)
-#' InshLenFreq = histdat$counts
-#' breaks = histdat$breaks
-#' x=which(ObsAges >= SpecAge & ObsAges < SpecAge+1 & Habitat == 1)
-#' OffLenCat = trunc(ObsLengths[x]/10)*10
-#' histdat = hist(OffLenCat, breaks=c(lbnd,800), plot=F)
-#' OffLenFreq = histdat$counts
-#' breaks = histdat$breaks
-#' ymax=1.2*max(c(InshLenFreq, OffLenFreq))
-#' plot(lbnd,InshLenFreq,"l",ylim=c(0,ymax))
-#' lines(lbnd,OffLenFreq, col="blue")
-#' # Fit size-related movement growth model
-#' # set parameter bounds
-#' lnL50MoveUp = log(300)
-#' lnL50MoveLw = log(50)
-#' lnSlopeMoveUp = log(0.5)
-#' lnSlopeMoveLw = log(0.01)
-#' lnLinfUp = log(350)
-#' lnLinfLw = log(250)
-#' lnvbKUp = log(0.8)
-#' lnvbKLw = log(0.2)
-#' tzeroLw = -5
-#' tzeroUp = 1
-#' CVLw = 0.02
-#' CVUp = 0.15
-#' # set starting values for parameters
-#' InitmoveL50 = rnorm(1,200,20); InitmoveL50
-#' InitmoveSlope = rnorm(1,0.05,0.002); moveSlope
-#' InitLinf = rnorm(1,300,20); InitLinf
-#' InitvbK = rnorm(1,0.5,0.05); InitvbK
-#' Inittzero = rnorm(1,0,0.05); Inittzero
-#' InitGrowthcv = rnorm(1,0.1,0.005); InitGrowthcv
-#' params = c(log(InitmoveL50), log(InitmoveSlope),log(InitLinf), log(InitvbK), Inittzero,log(InitGrowthcv))
-#' # fit model (takes a while, uses nlminb and Amoeba routine for optimisation)
-#' FittedRes=GetOffMoveGrowthModResults(params, SampleSize, ObsAges, ObsLengths, Habitat, lnL50MoveUp, lnL50MoveLw,
-#'                                      lnSlopeMoveUp, lnSlopeMoveLw, lnLinfUp, lnLinfLw, lnvbKUp, lnvbKLw,
-#'                                      tzeroLw, tzeroUp, CVLw, CVUp)
+#' par(mfrow=c(3,2))
+#' for (SpecAge in 1:5) {
+#'   x=which(RandAgeInsh >= SpecAge & RandAgeInsh < SpecAge+1)
+#'   InshLenCat = trunc(RandLenInsh[x]/10)*10
+#'   histdat = hist(InshLenCat, breaks=c(lbnd,800), plot=F)
+#'   InshLenFreq = histdat$counts
+#'   breaks = histdat$breaks
+#'   x=which(RandAgeOff >= SpecAge & RandAgeOff < SpecAge+1)
+#'   OffLenCat = trunc(RandLenOff[x]/10)*10
+#'   histdat = hist(OffLenCat, breaks=c(lbnd,800), plot=F)
+#'   OffLenFreq = histdat$counts
+#'   breaks = histdat$breaks
+#'   ymax=1.2*max(c(InshLenFreq, OffLenFreq))
+#'   plot(lbnd,InshLenFreq,"l",ylim=c(0,ymax), main=paste("Age =",SpecAge))
+#'   lines(lbnd,OffLenFreq, col="blue")
+#' }
+#' # ********************************************
+#' # Fit traditional von Bertalanffy growth model
+#' # ********************************************
+#' nSexes = 1
+#' DataType=1
+#' params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
+#' ObsAge = c(RandAgeInsh,RandAgeOff)
+#' ObsLen = c(RandLenInsh,RandLenOff)
+#' Habitat = c(rep(0,length(RandLenInsh)),rep(1,length(RandLenOff)))
+#' TradvbRes=GetvonBertalanffyGrowthResults(params, nSexes, DataType, ObsAge, ObsLen, ObsMeanLen=NA, ObsMeanLense=NA)
+#' TradvbRes$ParamEst
+#' # ***************************
+#' # Fit offshore movement model
+#' # ***************************
+#' # specify data inputs
+#' dat <- list(eps = 0.001,
+#'             lnL50MoveUp = log(300),
+#'             lnL50MoveLw = log(170),
+#'             lnSlopeMoveUp = log(0.5),
+#'             lnSlopeMoveLw = log(0.01),
+#'             lnLinfUp = log(500),
+#'             lnLinfLw = log(200),
+#'             lnvbKUp = log(0.8),
+#'             lnvbKLw = log(0.2),
+#'             tzeroLw = -5,
+#'             tzeroUp = 1,
+#'             CVLw = 0.01,
+#'             CVUp = 0.15,
+#'             DoJitter = FALSE,
+#'             nJitters = NA,
+#'             moveL50sd_jitter = 20,
+#'             moveSlopesd_jitter = 0.002,
+#'             Linfsd_jitter = 20,
+#'             vbKsd_jitter = 0.05,
+#'             tzerosd_jitter = 0.05,
+#'             CVsd_jitter = 0.005,
+#'             SampleSize = length(Habitat),
+#'             Habitat = Habitat,
+#'             ObsAges = ObsAge,
+#'             ObsLengths = ObsLen)
+#' # specify parameters
+#' params <- list(lnmoveL50 = log(200),
+#'                lnmoveSlope = log(0.05),
+#'                lnLinf = log(260),
+#'                lnvbK = log(0.5),
+#'                tzero = 0.0,
+#'                CV = 0.05)
+#' # Run RTMB model
+#' FittedRes= GetOffMoveGrowthModResults(dat, params)
+#' FittedRes$SummaryRes$JitterRes
+#' FittedRes$SummaryRes$NLL
+#' FittedRes$SummaryRes$EstParams
 #' # plot expected mean lengths at age for each habitat
 #' par(mfrow=c(2,2),mar=c(5,4,2,2))
-#' x=which(FittedRes$IndivFishRes$Habitat==0)
-#' plot(FittedRes$IndivFishRes$ObsAges[x],FittedRes$IndivFishRes$ObsLengths[x], xlim=c(0,20), ylim=c(0,400),
+#' # first habitat
+#' x=which(dat$Habitat==0)
+#' plot(dat$ObsAges[x],dat$ObsLengths[x], xlim=c(0,20), ylim=c(0,400),
 #'      col="red",xlab="Age",ylab="Length",bty='n', cex.main=0.8, main="Juv Habitat")
-#' points(FittedRes$IndivFishRes$ObsAges[x], FittedRes$IndivFishRes$ExpLen[x], col="black")
-#'
-#' y=which(FittedRes$IndivFishRes$Habitat==1)
-#' plot(FittedRes$IndivFishRes$ObsAges[y],FittedRes$IndivFishRes$ObsLengths[y], xlim=c(0,20), ylim=c(0,400),
+#' points(dat$ObsAges[x], FittedRes$RTMBReport$ExpLen[x], col="black")
+#' # second habitat
+#' y=which(dat$Habitat==1)
+#' plot(dat$ObsAges[y],dat$ObsLengths[y], xlim=c(0,20), ylim=c(0,400),
 #'      col="blue",xlab="Age",ylab="Length",bty='n', cex.main=0.8, main="Adult Habitat")
-#' points(FittedRes$IndivFishRes$ObsAges[y], FittedRes$IndivFishRes$ExpLen[y], col="black")
-#'
-#' plot(FittedRes$IndivFishRes$ObsAges[x], FittedRes$IndivFishRes$ExpLen[x], xlim=c(0,20), ylim=c(0,400),
+#' points(dat$ObsAges[y], FittedRes$RTMBReport$ExpLen[y], col="black")
+#' # curves, both habitats
+#' plot(dat$ObsAges[x], FittedRes$RTMBReport$ExpLen[x], xlim=c(0,20), ylim=c(0,400),
 #'      xlab="Age",ylab="Length",bty='n', col="red")
-#' points(FittedRes$IndivFishRes$ObsAges[y], FittedRes$IndivFishRes$ExpLen[y], col="blue")
+#' points(dat$ObsAges[y], FittedRes$RTMBReport$ExpLen[y], col="blue")
+#' #  overall growth curves trad vs move model
+#' # trad
+#' Linf1 = FittedRes$SummaryRes$EstParams[3,1]
+#' vbK1 = FittedRes$SummaryRes$EstParams[4,1]
+#' tzero1 = FittedRes$SummaryRes$EstParams[5,1]
+#' Ages = seq(0,20,0.1)
+#' ExpLen1 = Linf1 * (1-exp(-vbK1 * (Ages-tzero1)))
+#' plot(Ages, ExpLen1, xlim=c(0,20), ylim=c(0,300),
+#'      xlab="Age",ylab="Length",bty='n', col="green")
+#' # move mod
+#' Linf2 = TradvbRes$ParamEst[1,1]
+#' vbk2 =  TradvbRes$ParamEst[2,1]
+#' tzero2 =  TradvbRes$ParamEst[3,1]
+#' ExpLen2 = Linf2 * (1-exp(-vbk2 * (Ages-tzero2)))
+#' points(Ages, ExpLen2, col="brown")
 #' @export
-GetOffMoveGrowthModResults <- function(params, SampleSize, ObsAges, ObsLengths, Habitat, lnL50MoveUp, lnL50MoveLw,
-                                       lnSlopeMoveUp, lnSlopeMoveLw, lnLinfUp, lnLinfLw, lnvbKUp, lnvbKLw,
-                                       tzeroLw, tzeroUp, CVLw, CVUp) {
+GetOffMoveGrowthModResults <- function(dat, params) {
 
-  # fit model with nlminb
-  cat("fitting with nlminb",'\n')
-  nlmb <- nlminb(params, CalcNLL_OffMoveMod, gradient = NULL, hessian = TRUE)
-  nlmb$objective
+  # set up for RTMB
+  obj <- RTMB::MakeADFun(CalcNLL_OffMoveMod, params)
 
-  # Run Nelder-Mead optimization
-  params <- nlmb$par
-  cat("fitting with Optim: Nelder-Mead",'\n')
-  Amoeb <- optim(params, CalcNLL_OffMoveMod, method = "Nelder-Mead")
-  params <- Amoeb$par
+  # optimising, using nlminb
+  nlmb <- nlminb(obj$par, obj$fn, obj$gr, control=list(eval.max=10000,iter.max=1000,rel.tol=1e-15),silent=T)
 
-  # get estimates
-  Amoeb$value # value of nll
-  Amoeb$convergence
-  Amoeb$par
-
-  # calculate uncertainty for parameter estimates by getting variance-covariance matrix,
-  # from fitted model, to get standard errors
-  hess.out = optimHess(Amoeb$par, CalcNLL_OffMoveMod)
-  vcov.params = solve(hess.out)
-  ses = sqrt(diag(vcov.params)) # asymptotic standard errors of parameter estimates
-  temp = diag(1/sqrt(diag(vcov.params))) # get parameter correlation matrix
-  cor.params = temp %*% vcov.params %*% temp
-
-  EstmoveL50 = c(exp(Amoeb$par[1]), exp(Amoeb$par[1] + c(-1.96, 1.96) * ses[1]))
-  EstmoveSlope = c(exp(Amoeb$par[2]), exp(Amoeb$par[2] + c(-1.96, 1.96) * ses[2]))
-  EstmoveL95 = (log(19) / EstmoveSlope) + EstmoveL50
-  EstLinf <- c(exp(Amoeb$par[3]), exp(Amoeb$par[3] + c(-1.96, 1.96) * ses[3]))
-  EstvbK <- c(exp(Amoeb$par[4]), exp(Amoeb$par[4] + c(-1.96, 1.96) * ses[4]))
-  Esttzero <- c(Amoeb$par[5], Amoeb$par[5] + c(-1.96, 1.96) * ses[5])
-  EstCV <- c(exp(Amoeb$par[6]), exp(Amoeb$par[6] + c(-1.96, 1.96) * ses[6]))
-
-  ParamEst = t(data.frame(moveL50=round(EstmoveL50,1), moveSlope=round(EstmoveSlope,3),
-                          DerivedL95=round(EstmoveL95,1),
-                          Linf=round(EstLinf,1), vbK=round(EstvbK,3),
-                          tzero=round(Esttzero,2), CV=round(EstCV,3)))
-  colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
-
-
-  # store value of objective function
-  nll = Amoeb$value
-
-  # store convergence value
-  convergence = Amoeb$convergence
-
-  # get expected length for each fish, in its habitat
-  ExpLen = rep(NA,SampleSize)
-  for (i in 1:SampleSize) {
-
-    ObsAge = ObsAges[i]
-    ObsLen = ObsLengths[i]
-
-    # est mean length at age from vb growth equation
-    Linf = ParamEst[4,1]
-    vbK = ParamEst[5,1]
-    tzero = ParamEst[6,1]
-
-    MeanLen = Linf * (1-exp(-vbK * (ObsAge - tzero)))
-
-    # get sd, for mean length at age
-    CV = ParamEst[7,1]
-    Growthsd = CV * MeanLen
-    moveL50 = ParamEst[1,1]
-    moveL95 = ParamEst[3,1]
-
-    # est mean length of each fish at age, given habitat
-    if (Habitat[i] == 0) {
-      ExpLen[i] = CalcMeanLenInsh_OffMoveMod(ObsLen, MeanLen, Growthsd, moveL50, moveL95)
-    } else {
-      ExpLen[i] = CalcMeanLenOff_OffMoveMod(ObsLen, MeanLen, Growthsd, moveL50, moveL95)
-    }
+  for (i in 1:20) { # repeat fit several times to help ensure optimal solution
+    obj$par = nlmb$par
+    nlmb <- nlminb(obj$par, obj$fn, obj$gr, control=list(eval.max=10000,iter.max=1000,rel.tol=1e-15),silent=T)
   }
 
-  IndivFishRes = data.frame(ObsAges=ObsAges, ObsLengths=ObsLengths,
-                            Habitat=Habitat, ExpLen=ExpLen)
+  # get estimates from ADreport
+  if (dat$DoJitter == F) {
+    sdr <- RTMB::sdreport(obj)
+    par=nlmb$par
+    convergence=nlmb$convergence
+    NLL=nlmb$objective
+  }
 
-  # store all results as a list object
-  results = list(nll = nll,
-                 convergence = convergence,
-                 SampleSize = SampleSize,
-                 ParamEst = ParamEst,
-                 params = nlmb$par,
-                 vcov.params = vcov.params,
-                 cor.params = cor.params,
-                 IndivFishRes = IndivFishRes)
+  ObjFuncBest = nlmb$objective
+  JitterRes= NA
+  if (dat$DoJitter == T) {
+    JitterRes = data.frame(matrix(nrow=dat$nJitters, ncol=15))
+    colnames(JitterRes) = c("Trial","Converge","NLL","L50Init","L50","L95Init","L95",
+                            "LinfInit","Linf","vbKInit","vbK","tzeroInit","tzero","CVInit","CV")
 
+    for (j in 1:dat$nJitters) {
+      cat("jitter",j,'\n')
 
-  return(results)
+      params <- list(
+        lnmoveL50 = log(rnorm(1, moveL50, dat$moveL50sd_jitter)),
+        lnmoveSlope = log(rnorm(1, moveSlope, dat$moveSlopesd_jitter)),
+        lnLinf = log(rnorm(1, Linf, dat$Linfsd_jitter)),
+        lnvbK = log(rnorm(1, vbK, dat$vbKsd_jitter)),
+        tzero = rnorm(1, 0, dat$tzerosd_jitter),
+        CV = rnorm(1, 0.05, dat$CVsd_jitter))
+
+      # optimising, using nlminb
+      obj <- MakeADFun(CalcNLL_OffMoveMod, params)
+      nlmb <- nlminb(obj$par, obj$fn, obj$gr, control=list(eval.max=10000,iter.max=1000,rel.tol=1e-15),silent=T)
+
+      for (i in 1:20) { # repeat fit several times to help ensure optimal solution
+        obj$par = nlmb$par
+        nlmb <- nlminb(obj$par, obj$fn, obj$gr, control=list(eval.max=10000,iter.max=1000,rel.tol=1e-15),silent=T)
+      }
+      JitterRes[j,1] = j
+      JitterRes[j,2] = nlmb$convergence
+      JitterRes[j,3] = nlmb$objective
+      JitterRes[j,4] = exp(params$lnmoveL50)
+      JitterRes[j,5] = exp(nlmb$par[1])
+      JitterRes[j,6] = (log(19) / exp(params$lnmoveSlope)) + exp(params$lnmoveL50)
+      JitterRes[j,7] = exp(nlmb$par[2])
+      JitterRes[j,8] = exp(params$lnLinf)
+      JitterRes[j,9] = exp(nlmb$par[3])
+      JitterRes[j,10] = exp(params$lnvbK)
+      JitterRes[j,11] = exp(nlmb$par[4])
+      JitterRes[j,12] = params$tzero
+      JitterRes[j,13] = nlmb$par[5]
+      JitterRes[j,14] = params$CV
+      JitterRes[j,15] = nlmb$par[6]
+
+      if (j == 1 | nlmb$objective < ObjFuncBest) {
+        # get estimates from ADreport
+        sdr <- RTMB::sdreport(obj)
+        par=nlmb$par
+        convergence=nlmb$convergence
+        NLL=nlmb$objective
+      }
+    } # j
+  } # do jitter
+
+  param_est = as.list(sdr, "Est", report=TRUE)
+  params_sd = as.list(sdr, "Std", report=TRUE)
+
+  EstmoveL50 = c(param_est$moveL50, param_est$moveL50 - 1.96 * params_sd$moveL50,
+                 param_est$moveL50 + 1.96 * params_sd$moveL50)
+  EstmoveL95 = c(param_est$moveL95, param_est$moveL95 - 1.96 * params_sd$moveL95,
+                 param_est$moveL95 + 1.96 * params_sd$moveL95)
+  EstLinf = c(param_est$Linf, param_est$Linf - 1.96 * params_sd$Linf,
+              param_est$Linf + 1.96 * params_sd$Linf)
+  EstvbK = c(param_est$vbK, param_est$vbK - 1.96 * params_sd$vbK,
+             param_est$vbK + 1.96 * params_sd$vbK)
+  Esttzero = c(param_est$tzero, param_est$tzero - 1.96 * params_sd$tzero,
+               param_est$tzero + 1.96 * params_sd$tzero)
+  EstCV = c(param_est$CV, param_est$CV - 1.96 * params_sd$CV,
+            param_est$CV + 1.96 * params_sd$CV)
+
+  EstParams <- round(t(data.frame(EstmoveL50=EstmoveL50,
+                                  EstmoveL95=EstmoveL95,
+                                  EstLinf=EstLinf,
+                                  EstvbK=EstvbK,
+                                  Esttzero=Esttzero,
+                                  EstCV=EstCV)),3)
+
+  colnames(EstParams) = c("Estimate","lw_95%CL","up_95%CL")
+  SummaryRes <- list(par=par,
+                     convergence=convergence,
+                     NLL=NLL,
+                     sdr=sdr,
+                     param_est=param_est,
+                     params_sd=params_sd,
+                     EstParams=EstParams,
+                     JitterRes=JitterRes)
+
+  Results = list(SummaryRes=SummaryRes,
+                 RTMBReport=obj$report())
+
+  return(Results)
 
 }
 
