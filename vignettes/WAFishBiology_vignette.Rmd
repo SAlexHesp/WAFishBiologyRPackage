@@ -107,12 +107,12 @@ where $n$ is the number of fish and $\hat{\sigma}$ is the standard deviation, ca
 
 ### Objective function for fitting a von Bertalanffy growth curve to length-at-age data, when tzero is constrained by a prior
 
-When small fish are absent, one approach to improve the estimates of the growth parameters is to constrain tzero using an informative penalty prior. Assuming a normal distribution for the prior, the above-described negative log-likelihood is modified to include the normal penalty, i.e.
+When small fish are absent, one approach to improve the estimates of the growth parameters is to constrain tzero and Linf using informative penalty priors. Assuming a normal distribution for each prior, the above-described negative log-likelihood is modified to include the normal penalty, i.e.
 
 $$
-\lambda=\frac{n}{2}\bigg[\ln(2\pi)+2\ln(\hat{\sigma})+1\bigg] + \frac{1}{2}\ln(2\pi\sigma^2_p)+\frac{(t_0-\hat{t}_0)^2}{2\sigma^2_p}
+\lambda=\frac{n}{2}\bigg[\ln(2\pi)+2\ln(\hat{\sigma})+1\bigg] + \frac{1}{2}\ln(2\pi\sigma^2_p)+\frac{(t_0-\hat{t}_0)^2}{2\sigma^2_1} + \frac{1}{2}\ln(2\pi\sigma^2_p)+\frac{(L_{\infty}-\hat{L}_{\infty})^2}{2\sigma^2_2}
 $$
-where $t_0$ is the value for the hypothetical age at zero length parameter being estimated, $\hat{t}_0$ is the mean for the the prior for this parameter (as inputted by the user) and $\sigma_p$ is the standard deviation for the prior (also inputted by the user). 
+where $t_0$ and $L_{\infty}$ are the values for the hypothetical age at zero length and asymptotic length parameters being estimated, respectively, $\hat{t}_0$ and $\hat{L}_{\infty}$ are the mean values for the priors for these respective parameters (as inputted by the user) and $\sigma_1$ and $\sigma_2$ is their standard deviations (also inputted by the user). 
 
 
 ### Objective function for fitting a sex-specific von Bertalanffy growth curves to length-at-age data, when sex was not recorded

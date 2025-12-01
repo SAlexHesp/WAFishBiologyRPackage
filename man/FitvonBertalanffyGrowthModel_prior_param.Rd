@@ -11,7 +11,9 @@ FitvonBertalanffyGrowthModel_prior_param(
   ObsAge,
   ObsLen,
   tzero_mean,
-  tzero_sd
+  tzero_sd,
+  Linf_mean,
+  Linf_sd
 )
 }
 \arguments{

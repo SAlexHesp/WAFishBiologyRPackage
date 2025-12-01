@@ -3230,8 +3230,14 @@ CalcNLL_GrowthCurve_prior_param <- function (params) {
 
   ExpLen = CalcLengthAtAge_vonBertalanffyGrowthCurve(params)
 
-  if (length(params) == 3) tzero = params[3]
-  if (length(params) == 6) tzero = params[5:6]
+  if (length(params) == 3) {
+    Linf = params[1]
+    tzero = params[3]
+  }
+  if (length(params) == 6) {
+    Linf = params[1:2]
+    tzero = params[5:6]
+  }
 
   if (DataType == 1) {
     if (length(params) == 3) { # single sex
@@ -3241,7 +3247,7 @@ CalcNLL_GrowthCurve_prior_param <- function (params) {
       stdev = sqrt(sumSqResid/nObs)
       NLL = 0
       NLL = (nObs/2) * (log(2 * pi) + 2 * log(stdev) + 1)
-      NLL = NLL - dnorm(tzero,tzero_mean,tzero_sd,log=T) # this is the penalty function
+      NLL = NLL - dnorm(tzero,tzero_mean,tzero_sd,log=T) - dnorm(Linf,Linf_mean,Linf_sd,log=T)
       Objfunc = NLL
     }
     else { # two sexes
@@ -3256,7 +3262,7 @@ CalcNLL_GrowthCurve_prior_param <- function (params) {
       stdev = sqrt(sumSqResid/nObs)
       NLL = 0
       NLL = (nObs/2) * (log(2 * pi) + 2 * log(stdev) + 1)
-      NLL = NLL - dnorm(tzero[1],tzero_mean,tzero_sd,log=T) - - dnorm(tzero[2],tzero_mean,tzero_sd,log=T) # this is the penalty function
+      NLL = NLL - dnorm(tzero[1],tzero_mean,tzero_sd,log=T) - dnorm(tzero[2],tzero_mean,tzero_sd,log=T) - dnorm(Linf,Linf_mean,Linf_sd,log=T)
       Objfunc = NLL
     }
   }
@@ -3550,7 +3556,7 @@ FitvonBertalanffyGrowthModel <- function(params, nSexes, DataType, ObsAge, ObsLe
 #' @param tzero_sd standard deviation for tzero (user specified)
 #'
 #' @return stored output from internal R nlminb optimisation function (nlmb)
-FitvonBertalanffyGrowthModel_prior_param <- function (params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd) {
+FitvonBertalanffyGrowthModel_prior_param <- function (params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd, Linf_mean, Linf_sd) {
 
   nlmb <- nlminb(params, CalcNLL_GrowthCurve_prior_param, gradient = NULL,
                  hessian = TRUE, control = list(trace = 1, eval.max = 1000,
@@ -4005,36 +4011,48 @@ GetvonBertalanffyGrowthResults <- function(params, nSexes, DataType, ObsAge, Obs
 #' DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 #' nSexes=1
 #' params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
-#' tzero_mean=-1.5 # specify prior mean
-#' tzero_sd=1.0 # specify prior sd
-#' FittedRes=GetvonBertalanffyGrowthResults_prior_param(params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd)
+#' tzero_mean=0 # specify prior mean
+#' tzero_sd=0.5 # specify prior sd
+#' Linf_mean = max(ObsLen)
+#' Linf_sd = 0.1 * Linf_mean
+#' FittedRes=GetvonBertalanffyGrowthResults_prior_param(params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd, Linf_mean, Linf_sd)
 #' FittedRes$ParamEst
 #' PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
 #'                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
 #'                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
-#' # posterior
-#' Esttzero_mean = unlist(FittedRes$par[3])
 #' vcov.params = FittedRes$vcov.params
 #' ses = sqrt(diag(vcov.params))
+#' EstLinf_mean = exp(unlist(FittedRes$par[1]))
+#' EstLinf_sd = exp(unlist(ses[1]))
+#' Esttzero_mean = unlist(FittedRes$par[3])
 #' Esttzero_sd = unlist(ses[3])
-#' # plot to compare prior vs posterior - scaled density plot
+#' # plot to compare - scaled density plot
+#' prior_data <- rnorm(1000,Linf_mean,Linf_sd)
+#' posterior_data <- rnorm(1000,EstLinf_mean,EstLinf_sd)
+#' hist(prior_data)
+#' hist(prior_data, breaks = seq(0,1200,1), freq = FALSE,
+#'      col = NA, border = NA, xlim = c(0,1200), ylim=c(0,1),
+#'      xlab = "Value", ylab = "Density", main="Linf", cex.main=1.0)
+#' lines(density(prior_data),     col = "blue", lwd = 2)
+#' lines(density(posterior_data), col = "red",  lwd = 2)
+#' legend("topright", legend = c("Prior", "Posterior"),
+#'        lwd=2, col=c("blue","red"),
+#'        border = NA, bty='n')
 #' prior_data <- rnorm(1000,tzero_mean,tzero_sd)
 #' posterior_data <- rnorm(1000,Esttzero_mean,Esttzero_sd)
-#' hist(prior_data, breaks = seq(-10,3,0.2), freq = FALSE,
-#'      col = NA, border = NA, xlim = c(-5,1), ylim=c(0,1),
-#'      xlab = "Value", ylab = "Density", main="tzero", cex.main=0.8)
+#' hist(prior_data, breaks = seq(-5,5,0.2), freq = FALSE,
+#'      col = NA, border = NA, xlim = c(-5,5), ylim=c(0,1),
+#'      xlab = "Value", ylab = "Density", main="tzero", cex.main=1.0)
 #' lines(density(prior_data),     col = "blue", lwd = 2)
 #' lines(density(posterior_data), col = "red",  lwd = 2)
 #' legend("topright", legend = c("Prior", "Posterior"),
 #'        lwd=2, col=c("blue","red"),
 #'        border = NA, bty='n')
 #' @export
-GetvonBertalanffyGrowthResults_prior_param <- function (params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd) {
+GetvonBertalanffyGrowthResults_prior_param <- function (params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd, Linf_mean, Linf_sd) {
 
-  nlmb = FitvonBertalanffyGrowthModel_prior_param(params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd)
-  nlmb$objective
-  nlmb$convergence
-  nlmb$par
+  nlmb = FitvonBertalanffyGrowthModel_prior_param(params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd, Linf_mean, Linf_sd)
+
   hess.out = optimHess(nlmb$par, CalcNLL_GrowthCurve_prior_param)
   vcov.params = solve(hess.out)
   ses = sqrt(diag(vcov.params))
@@ -4200,7 +4218,6 @@ GetConfidenceLimitsForGrowthCurve <- function(GrowthEqn, nSexes, DataType, Ref_a
   Fem.sim.growth.est=NA; Fem.sim.growth.low=NA; Fem.sim.growth.up=NA
   Mal.sim.growth.est=NA; Mal.sim.growth.low=NA; Mal.sim.growth.up=NA
   sims.params=NA  # required for GrowthEqn=4
-
   if (GrowthEqn == 1) { # von Bertalanffy
     sims = data.frame(MASS::mvrnorm(n = 1000, params, vcov.params))
     if (nSexes==1) { # single or combined sex

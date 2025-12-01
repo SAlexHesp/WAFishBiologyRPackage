@@ -452,17 +452,21 @@ vbK, and tzero):</p>
 <h3>Objective function for fitting a von Bertalanffy growth curve to
 length-at-age data, when tzero is constrained by a prior</h3>
 <p>When small fish are absent, one approach to improve the estimates of
-the growth parameters is to constrain tzero using an informative penalty
-prior. Assuming a normal distribution for the prior, the above-described
-negative log-likelihood is modified to include the normal penalty,
-i.e.</p>
+the growth parameters is to constrain tzero and Linf using informative
+penalty priors. Assuming a normal distribution for each prior, the
+above-described negative log-likelihood is modified to include the
+normal penalty, i.e.</p>
 <p><span class="math display">\[
 \lambda=\frac{n}{2}\bigg[\ln(2\pi)+2\ln(\hat{\sigma})+1\bigg] +
-\frac{1}{2}\ln(2\pi\sigma^2_p)+\frac{(t_0-\hat{t}_0)^2}{2\sigma^2_p}
-\]</span> where <span class="math inline">\(t_0\)</span> is the value
-for the hypothetical age at zero length parameter being estimated, <span class="math inline">\(\hat{t}_0\)</span> is the mean for the the prior
-for this parameter (as inputted by the user) and <span class="math inline">\(\sigma_p\)</span> is the standard deviation for
-the prior (also inputted by the user).</p>
+\frac{1}{2}\ln(2\pi\sigma^2_p)+\frac{(t_0-\hat{t}_0)^2}{2\sigma^2_1} +
+\frac{1}{2}\ln(2\pi\sigma^2_p)+\frac{(L_{\infty}-\hat{L}_{\infty})^2}{2\sigma^2_2}
+\]</span> where <span class="math inline">\(t_0\)</span> and <span class="math inline">\(L_{\infty}\)</span> are the values for the
+hypothetical age at zero length and asymptotic length parameters being
+estimated, respectively, <span class="math inline">\(\hat{t}_0\)</span>
+and <span class="math inline">\(\hat{L}_{\infty}\)</span> are the mean
+values for the priors for these respective parameters (as inputted by
+the user) and <span class="math inline">\(\sigma_1\)</span> and <span class="math inline">\(\sigma_2\)</span> is their standard deviations
+(also inputted by the user).</p>
 </div>
 <div id="objective-function-for-fitting-a-sex-specific-von-bertalanffy-growth-curves-to-length-at-age-data-when-sex-was-not-recorded" class="section level3">
 <h3>Objective function for fitting a sex-specific von Bertalanffy growth

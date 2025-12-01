@@ -11,7 +11,9 @@ GetvonBertalanffyGrowthResults_prior_param(
   ObsAge,
   ObsLen,
   tzero_mean,
-  tzero_sd
+  tzero_sd,
+  Linf_mean,
+  Linf_sd
 )
 }
 \arguments{
@@ -104,24 +106,38 @@ PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, Ob
 DataType=1  # 1=lengths at age data for individual fish, 2=mean length at age and sd data from mixture analysis
 nSexes=1
 params = c(log(400),log(0.3),0) # log(Linf), log(k), tzero
-tzero_mean=-1.5 # specify prior mean
-tzero_sd=1.0 # specify prior sd
-FittedRes=GetvonBertalanffyGrowthResults_prior_param(params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd)
+tzero_mean=0 # specify prior mean
+tzero_sd=0.5 # specify prior sd
+Linf_mean = max(ObsLen)
+Linf_sd = 0.1 * Linf_mean
+FittedRes=GetvonBertalanffyGrowthResults_prior_param(params, nSexes, DataType, ObsAge, ObsLen, tzero_mean, tzero_sd, Linf_mean, Linf_sd)
 FittedRes$ParamEst
 PlotFittedGrowthCurve(DataType, nSexes, GrowthEqn, ObsAge, ObsLen, ObsSex=NA, ObsMeanLen,
                       ObsMeanLense, params, Ref_ages, plotages, ymax=NA, xmax=NA, yint=NA, xint=NA,
                       GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, PlotCLs=T, FittedRes)
-# posterior
-Esttzero_mean = unlist(FittedRes$par[3])
 vcov.params = FittedRes$vcov.params
 ses = sqrt(diag(vcov.params))
+EstLinf_mean = exp(unlist(FittedRes$par[1]))
+EstLinf_sd = exp(unlist(ses[1]))
+Esttzero_mean = unlist(FittedRes$par[3])
 Esttzero_sd = unlist(ses[3])
-# plot to compare prior vs posterior - scaled density plot
+# plot to compare - scaled density plot
+prior_data <- rnorm(1000,Linf_mean,Linf_sd)
+posterior_data <- rnorm(1000,EstLinf_mean,EstLinf_sd)
+hist(prior_data)
+hist(prior_data, breaks = seq(0,1200,1), freq = FALSE,
+     col = NA, border = NA, xlim = c(0,1200), ylim=c(0,1),
+     xlab = "Value", ylab = "Density", main="Linf", cex.main=1.0)
+lines(density(prior_data),     col = "blue", lwd = 2)
+lines(density(posterior_data), col = "red",  lwd = 2)
+legend("topright", legend = c("Prior", "Posterior"),
+       lwd=2, col=c("blue","red"),
+       border = NA, bty='n')
 prior_data <- rnorm(1000,tzero_mean,tzero_sd)
 posterior_data <- rnorm(1000,Esttzero_mean,Esttzero_sd)
-hist(prior_data, breaks = seq(-10,3,0.2), freq = FALSE,
-     col = NA, border = NA, xlim = c(-5,1), ylim=c(0,1),
-     xlab = "Value", ylab = "Density", main="tzero", cex.main=0.8)
+hist(prior_data, breaks = seq(-5,5,0.2), freq = FALSE,
+     col = NA, border = NA, xlim = c(-5,5), ylim=c(0,1),
+     xlab = "Value", ylab = "Density", main="tzero", cex.main=1.0)
 lines(density(prior_data),     col = "blue", lwd = 2)
 lines(density(posterior_data), col = "red",  lwd = 2)
 legend("topright", legend = c("Prior", "Posterior"),
