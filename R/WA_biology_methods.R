@@ -3856,7 +3856,7 @@ GetvonBertalanffyGrowthResults <- function(params, nSexes, DataType, ObsAge, Obs
     EstLinf = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
     EstvbK = c(exp(nlmb$par[2]), exp(nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
     Esttzero <- c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
-    ParamEst = t(data.frame(Linf=round(EstLinf,1), vbK=round(EstvbK,2), tzero=round(Esttzero,2)))
+    ParamEst = t(data.frame(Linf=round(EstLinf,3), vbK=round(EstvbK,3), tzero=round(Esttzero,3)))
     colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
     nObs = length(ObsAge)
 
@@ -3869,8 +3869,8 @@ GetvonBertalanffyGrowthResults <- function(params, nSexes, DataType, ObsAge, Obs
       MalEstvbK = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
       FemEsttzero <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
       MalEsttzero <- c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
-      ParamEst = t(data.frame(FemLinf=round(FemEstLinf,1), FemvbK=round(FemEstvbK,2), Femtzero=round(FemEsttzero,2),
-                              MalLinf=round(MalEstLinf,1), MalvbK=round(MalEstvbK,2), Maltzero=round(MalEsttzero,2)))
+      ParamEst = t(data.frame(FemLinf=round(FemEstLinf,3), FemvbK=round(FemEstvbK,3), Femtzero=round(FemEsttzero,3),
+                              MalLinf=round(MalEstLinf,3), MalvbK=round(MalEstvbK,3), Maltzero=round(MalEsttzero,3)))
     }
     if (is.vector(ObsAge)) { # separate sexes, with sex unknown
       FemEstLinf = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
@@ -3879,16 +3879,16 @@ GetvonBertalanffyGrowthResults <- function(params, nSexes, DataType, ObsAge, Obs
         EstvbK = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
         Esttzero <- c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
         Estsd <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
-        ParamEst = t(data.frame(FemLinf=round(FemEstLinf,1), MalLinf=round(MalEstLinf,1), vbK=round(EstvbK,2),
-                                tzero=round(Esttzero,2), sd=round(Estsd,2)))
+        ParamEst = t(data.frame(FemLinf=round(FemEstLinf,3), MalLinf=round(MalEstLinf,3), vbK=round(EstvbK,3),
+                                tzero=round(Esttzero,3), sd=round(Estsd,3)))
       }
       if (length(params)==6) { # common k
         EstvbK = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
         FemEsttzero <- c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
         MalEsttzero <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
         Estsd <- c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
-        ParamEst = t(data.frame(FemLinf=round(FemEstLinf,1), MalLinf=round(MalEstLinf,1), vbK=round(EstvbK,2),
-                                Femtzero=round(FemEsttzero,2), Maltzero=round(MalEsttzero,2), sd=round(Estsd,2)))
+        ParamEst = t(data.frame(FemLinf=round(FemEstLinf,3), MalLinf=round(MalEstLinf,3), vbK=round(EstvbK,3),
+                                Femtzero=round(FemEsttzero,3), Maltzero=round(MalEsttzero,3), sd=round(Estsd,3)))
       }
       if (length(params)==7) { # separate k
         FemEstvbK = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
@@ -3896,9 +3896,9 @@ GetvonBertalanffyGrowthResults <- function(params, nSexes, DataType, ObsAge, Obs
         FemEsttzero <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
         MalEsttzero <- c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
         Estsd <- c(nlmb$par[7], nlmb$par[7] + c(-1.96, 1.96) * ses[7])
-        ParamEst = t(data.frame(FemLinf=round(FemEstLinf,1), MalLinf=round(MalEstLinf,1), FemvbK=round(FemEstvbK,2),
-                                MalvbK=round(MalEstvbK,2), Femtzero=round(FemEsttzero,2), Maltzero=round(MalEsttzero,2),
-                                sd=round(Estsd,2)))
+        ParamEst = t(data.frame(FemLinf=round(FemEstLinf,3), MalLinf=round(MalEstLinf,3), FemvbK=round(FemEstvbK,3),
+                                MalvbK=round(MalEstvbK,3), Femtzero=round(FemEsttzero,3), Maltzero=round(MalEsttzero,3),
+                                sd=round(Estsd,3)))
       }
     }
     colnames(ParamEst) = c("Estimate","lw_95%CL","up_95%CL")
@@ -4061,10 +4061,8 @@ GetvonBertalanffyGrowthResults_prior_param <- function (params, nSexes, DataType
   if (nSexes == 1) {
     EstLinf = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
     EstvbK = c(exp(nlmb$par[2]), exp(nlmb$par[2] + c(-1.96, 1.96) * ses[2]))
-    Esttzero <- c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) *
-                    ses[3])
-    ParamEst = t(data.frame(Linf = round(EstLinf, 1), vbK = round(EstvbK,
-                                                                  2), tzero = round(Esttzero, 2)))
+    Esttzero <- c(nlmb$par[3], nlmb$par[3] + c(-1.96, 1.96) * ses[3])
+    ParamEst = t(data.frame(Linf = round(EstLinf, 3), vbK = round(EstvbK, 3), tzero = round(Esttzero, 3)))
     colnames(ParamEst) = c("Estimate", "lw_95%CL", "up_95%CL")
     nObs = length(ObsAge)
   }
@@ -4076,9 +4074,9 @@ GetvonBertalanffyGrowthResults_prior_param <- function (params, nSexes, DataType
       MalEstvbK = c(exp(nlmb$par[4]), exp(nlmb$par[4] + c(-1.96, 1.96) * ses[4]))
       FemEsttzero <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
       MalEsttzero <- c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
-      ParamEst = t(data.frame(FemLinf = round(FemEstLinf, 1), FemvbK = round(FemEstvbK, 2),
-                              Femtzero = round(FemEsttzero, 2), MalLinf = round(MalEstLinf, 1),
-                              MalvbK = round(MalEstvbK, 2), Maltzero = round(MalEsttzero, 2)))
+      ParamEst = t(data.frame(FemLinf = round(FemEstLinf, 3), FemvbK = round(FemEstvbK, 3),
+                              Femtzero = round(FemEsttzero, 3), MalLinf = round(MalEstLinf, 3),
+                              MalvbK = round(MalEstvbK, 3), Maltzero = round(MalEsttzero, 3)))
     }
     if (is.vector(ObsAge)) {
       FemEstLinf = c(exp(nlmb$par[1]), exp(nlmb$par[1] + c(-1.96, 1.96) * ses[1]))
@@ -4087,17 +4085,17 @@ GetvonBertalanffyGrowthResults_prior_param <- function (params, nSexes, DataType
         EstvbK = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
         Esttzero <- c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
         Estsd <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
-        ParamEst = t(data.frame(FemLinf = round(FemEstLinf,1), MalLinf = round(MalEstLinf, 1),
-                                vbK = round(EstvbK,2), tzero = round(Esttzero, 2), sd = round(Estsd,2)))
+        ParamEst = t(data.frame(FemLinf = round(FemEstLinf,3), MalLinf = round(MalEstLinf, 3),
+                                vbK = round(EstvbK,3), tzero = round(Esttzero, 3), sd = round(Estsd,3)))
       }
       if (length(params) == 6) {
         EstvbK = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
         FemEsttzero <- c(nlmb$par[4], nlmb$par[4] + c(-1.96, 1.96) * ses[4])
         MalEsttzero <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
         Estsd <- c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
-        ParamEst = t(data.frame(FemLinf = round(FemEstLinf,1), MalLinf = round(MalEstLinf, 1),
-                                vbK = round(EstvbK,2), Femtzero = round(FemEsttzero, 2),
-                                Maltzero = round(MalEsttzero,2), sd = round(Estsd, 2)))
+        ParamEst = t(data.frame(FemLinf = round(FemEstLinf,3), MalLinf = round(MalEstLinf, 3),
+                                vbK = round(EstvbK,3), Femtzero = round(FemEsttzero, 3),
+                                Maltzero = round(MalEsttzero,3), sd = round(Estsd, 3)))
       }
       if (length(params) == 7) {
         FemEstvbK = c(exp(nlmb$par[3]), exp(nlmb$par[3] + c(-1.96, 1.96) * ses[3]))
@@ -4105,9 +4103,9 @@ GetvonBertalanffyGrowthResults_prior_param <- function (params, nSexes, DataType
         FemEsttzero <- c(nlmb$par[5], nlmb$par[5] + c(-1.96, 1.96) * ses[5])
         MalEsttzero <- c(nlmb$par[6], nlmb$par[6] + c(-1.96, 1.96) * ses[6])
         Estsd <- c(nlmb$par[7], nlmb$par[7] + c(-1.96, 1.96) * ses[7])
-        ParamEst = t(data.frame(FemLinf = round(FemEstLinf,1), MalLinf = round(MalEstLinf, 1),
-                                FemvbK = round(FemEstvbK,2), MalvbK = round(MalEstvbK, 2),
-                                Femtzero = round(FemEsttzero,2), Maltzero = round(MalEsttzero, 2), sd = round(Estsd,2)))
+        ParamEst = t(data.frame(FemLinf = round(FemEstLinf,3), MalLinf = round(MalEstLinf, 3),
+                                FemvbK = round(FemEstvbK,3), MalvbK = round(MalEstvbK, 3),
+                                Femtzero = round(FemEsttzero,3), Maltzero = round(MalEsttzero, 3), sd = round(Estsd,3)))
       }
     }
     colnames(ParamEst) = c("Estimate", "lw_95%CL", "up_95%CL")
