@@ -11,7 +11,8 @@ GetLogisticMaturityCurveResultsErrOpt2(
   CurveType,
   ObsLen,
   ObsAgeCl,
-  ObsMatCat
+  ObsMatCat,
+  nTrials
 )
 }
 \arguments{
@@ -28,14 +29,16 @@ GetLogisticMaturityCurveResultsErrOpt2(
 \item{ObsAgeCl}{vector of observed age classes (set to NA for length model)}
 
 \item{ObsMatCat}{vector of observed maturity categories (0=immature, 1=mature)}
+
+\item{nTrials}{number of boostrap trails}
 }
 \value{
-negative log-likelihood (nll), nlminb convergence diagnostic (convergence), sample size (SampleSize)
-maturity parameter estimates with lower and upper 95 percent confidence limits (ParamEst), point estimates
-for growth parameters (params), variance-covariance matrix (vcov.params)
+for each bootstrap trial, negative log-likelihood (ResampNLL), maturity parameter estimates with lower and upper 95 percent confidence limits (ResampParamEst),
+parameter point estimates for each trial (ResampParams), and overall sample size (SampleSize)
 }
 \description{
 This function fits a logistic maturity curve to a sample of maturity-at-length data
 by minimising the negative log-likelihood associated with the parameters and data, using nlminb.
 Estimates of uncertainty are derived from boostrap resampling
 }
+\keyword{internal}

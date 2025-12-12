@@ -40,3 +40,4 @@ by minimising the negative log-likelihood associated with the parameters and dat
 Estimates of uncertainty are based on asymtotic error approximations from estimated variance
 covariance matrix
 }
+\keyword{internal}

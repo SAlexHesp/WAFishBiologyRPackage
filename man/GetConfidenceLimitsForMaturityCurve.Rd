@@ -5,8 +5,9 @@
 \title{Get confidence limits for the fitted maturity curve}
 \usage{
 GetConfidenceLimitsForMaturityCurve(
-  params,
   ErrOpt,
+  ResampParams,
+  params,
   vcov.params,
   CurveType,
   nSexes,
@@ -16,9 +17,11 @@ GetConfidenceLimitsForMaturityCurve(
 )
 }
 \arguments{
-\item{params}{c(L50,L95) or c(A50, A95) length or age-based logistic maturity parameters}
-
 \item{ErrOpt}{1=varcov approx, 2=boostrap}
+
+\item{ResampParams}{c(L50,L95) or c(A50, A95) length or age-based logistic maturity parameters from resampling trials}
+
+\item{params}{c(L50,L95) or c(A50, A95) length or age-based logistic maturity parameters}
 
 \item{vcov.params}{estimated variance-covariance matrix for maturity parameters}
 
@@ -37,4 +40,51 @@ scatter plot of length-at-age data
 }
 \description{
 Function uses parametric resample to produce 95 percent confidence limits for a fitted maturity curve
+}
+\examples{
+# Simulate some data
+set.seed(123)
+MaxAge = 20
+MinLen = 0
+MaxLen = 400
+LenInc = 20
+# single sex/combined sexes
+nSexes = 1
+nSamples = 300
+CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
+Linf = 300
+vbK = 0.3
+tzero = 0
+CVSizeAtAge = 0.1
+GrowthParams = c(Linf, vbK, tzero, CVSizeAtAge)
+L50 = 220
+L95 = 270
+Pmax = 1.0
+MaturityParams = c(L50, L95, Pmax)
+res=SimulateLengthAtMaturityData(nSamples, CurveType, nSexes, MaxAge, MinLen, MaxLen, LenInc, GrowthParams, MaturityParams)
+# fit model to synthetic data
+ObsAgeCl=NA
+ObsLen=res$ObsLen
+ObsMatCat=res$ObsMatCat
+LogisticModType = 1 # 1=length, 2=age
+CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
+ErrOpt = 1 # 1=varcov approx, 2=bootstrap
+nTrials = NA
+# 2 parameter model symmetric curve
+InitL50 = 200
+InitL95 = 250
+params = c(InitL50, InitL95) # without Pmax parameter
+Res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt, nTrials) # get length-at-maturity results
+# Save results required to get confidence limits for curve
+ResampParams=Res$ResampParams
+params=Res$params
+vcov.params=Res$vcov.params
+plotlengths=res$plotlengths
+plotlengthrange=c(min(plotlengths),max(plotlengths))
+plotages=NA
+# get confidence limits for curve, for specified x axis values
+result=GetConfidenceLimitsForMaturityCurve(ErrOpt, ResampParams, params, vcov.params, CurveType, nSexes, LogisticModType, plotlengthrange, plotages)
+plot(result$sim.mat.xvals,result$sim.mat.est,"l")
+lines(result$sim.mat.xvals, result$sim.mat.low,col="blue",lty="dotted")
+lines(result$sim.mat.xvals, result$sim.mat.up,col="blue",lty="dotted")
 }

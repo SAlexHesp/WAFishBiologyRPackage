@@ -152,7 +152,7 @@ InitQ = 2 # related to y(0) value
 InitB = 6 # the growth rate
 InitV = 3 # affects near which asymptote maximum growth occurs
 params = c(log(InitQ), InitB, log(InitV)) # without Pmax parameter
-Res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt) # get age-at-maturity results
+Res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt, nTrials) # get age-at-maturity results
 Res$ParamEst
 AgeCl = res$AgeClasses
 PropMat = res$PropMat
