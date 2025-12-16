@@ -23,7 +23,9 @@ PlotFittedAgeAtMaturityCurve(
   ShowSampSizes,
   ShowLegend,
   PlotCLs,
-  ErrOpt
+  ErrOpt,
+  nTrials,
+  FittedRes
 )
 }
 \arguments{
@@ -62,6 +64,10 @@ PlotFittedAgeAtMaturityCurve(
 \item{PlotCLs}{logical (set to TRUE to show 95 percent confidence limits for curve)}
 
 \item{ErrOpt}{method for uncertainty calculation (1=varcov approx, 2=bootstrap)}
+
+\item{nTrials}{number of boostrap trials if ErrOpt=2, otherwise set to NA}
+
+\item{FittedRes}{Outputs of fitted spawning duration model using the function GetLogisticMaturityCurveResults}
 }
 \description{
 This function fits a logistic maturity curve to maturity-at-age data. Various plotting
@@ -87,14 +93,16 @@ ObsAgeCl=res$ObsAgeCl
 ObsMatCat=res$ObsMatCat
 LogisticModType = 2 # 1=length, 2=age
 ErrOpt = 1 # 1=varcov approx, 2=bootstrap
+nTrials = NA
 plotages=res$plotages
 # 2 parameter model
 InitA50 = 3
 InitA95 = 5
 params = c(InitA50, InitA95) # without Pmax parameter
+# result = GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen=NA, ObsAgeCl, ObsMatCat, ErrOpt, nTrials)
 PlotFittedAgeAtMaturityCurve(params, CurveType, nSexes, ObsAgeCl, ObsMatCat, AgeCl, PropMat, AgeClSampSize, plotages,
                              xmax=20, xint=2, GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, SampSizelab_cex = NA,
-                             ShowSampSizes=FALSE, ShowLegend=FALSE, PlotCLs=FALSE, ErrOpt)
+                             ShowSampSizes=FALSE, ShowLegend=FALSE, PlotCLs=TRUE, ErrOpt, nTrials, FittedRes=NA)
 # plot model fitted to separate sexes (simultaneously)
 # generate synthetic data
 MinAge = 0
@@ -118,8 +126,10 @@ ObsMatCat = as.matrix(t(data.frame(FemObsMatCat=FemObsMatCat,MalObsMatCat=MalObs
 InitA50 = c(3,3)
 InitA95 = c(5,5)
 params = c(InitA50, InitA95) # without Pmax parameter
+FittedRes=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt, nTrials) # get age-at-maturity results
 LogisticModType=2
 ErrOpt = 1 # 1=varcov approx, 2=bootstrap
+nTrials = NA
 plotages=res$Femplotages # plotting routine assumes the same age range for females and males
 FemPropMat=res$FemPropMat
 MalPropMat=res$MalPropMat
@@ -129,9 +139,11 @@ MalAgeClSampSize=res$MalAgeClSampSize
 AgeClSampSize = as.matrix(t(data.frame(FemAgeClSampSize=FemAgeClSampSize,MalAgeClSampSize=MalAgeClSampSize)))
 PlotFittedAgeAtMaturityCurve(params, CurveType, nSexes, ObsAgeCl, ObsMatCat, AgeCl, PropMat, AgeClSampSize, plotages,
                              xmax=20, xint=2, GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, SampSizelab_cex = NA,
-                             ShowSampSizes=FALSE, ShowLegend=FALSE, PlotCLs=FALSE, ErrOpt)
+                             ShowSampSizes=FALSE, ShowLegend=FALSE, PlotCLs=TRUE, ErrOpt, nTrials, FittedRes)
 # generate synthetic age at maturity data, single sex, 3 parameter model
-set.seed(144)
+set.seed(123)
+ErrOpt = 2 # 1=varcov approx, 2=bootstrap
+nTrials = 100
 MinAge = 0
 MaxAge = 20
 nSexes = 1
@@ -147,18 +159,17 @@ ObsLen=NA
 ObsAgeCl=res$ObsAgeCl
 ObsMatCat=res$ObsMatCat
 LogisticModType = 2 # 1=length, 2=age
-ErrOpt = 1 # 1=varcov approx, 2=bootstrap
 InitQ = 2 # related to y(0) value
 InitB = 6 # the growth rate
 InitV = 3 # affects near which asymptote maximum growth occurs
 params = c(log(InitQ), InitB, log(InitV)) # without Pmax parameter
-Res=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt, nTrials) # get age-at-maturity results
-Res$ParamEst
+FittedRes=GetLogisticMaturityCurveResults(params, nSexes, LogisticModType, CurveType, ObsLen, ObsAgeCl, ObsMatCat, ErrOpt, nTrials) # get age-at-maturity results
+FittedRes$ResampParamEst
 AgeCl = res$AgeClasses
 PropMat = res$PropMat
 AgeClSampSize=res$AgeClSampSize
 plotages = seq(MinAge, MaxAge, 0.1)
 PlotFittedAgeAtMaturityCurve(params, CurveType, nSexes, ObsAgeCl, ObsMatCat, AgeCl, PropMat, AgeClSampSize, plotages,
                              xmax=20, xint=2, GraphTitle=NA, xaxis_lab=NA, yaxis_lab=NA, SampSizelab_cex = 0.8,
-                             ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=TRUE, ErrOpt)
+                             ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=TRUE, ErrOpt, nTrials, FittedRes)
 }

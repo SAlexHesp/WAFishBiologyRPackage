@@ -24,7 +24,8 @@ PlotFittedLengthAtMaturityCurve(
   ShowLegend,
   PlotCLs,
   ErrOpt,
-  nTrials
+  nTrials,
+  FittedRes
 )
 }
 \arguments{
@@ -65,6 +66,8 @@ PlotFittedLengthAtMaturityCurve(
 \item{ErrOpt}{method for uncertainty calculation (1=varcov approx, 2=bootstrap)}
 
 \item{nTrials}{number of bootstrap trials for ErrOpt=2, otherwise set to NA}
+
+\item{FittedRes}{Outputs of fitted spawning duration model using the function GetLogisticMaturityCurveResults}
 }
 \value{
 fitted curve on scatter plot with maturity-at-length data
@@ -82,7 +85,7 @@ MinLen = 0
 MaxLen = 400
 LenInc = 20
 nSexes = 1
-nSamples = 300
+nSamples = 500
 CurveType = 1 # 1 = symmetric logistic, 2 = asymmetric logistic
 Linf = 300
 vbK = 0.3
@@ -118,11 +121,11 @@ params = c(InitL50, InitL95) # without Pmax parameter
 # params = c(InitPmax_logit, InitL50, InitL95) # with Pmax parameter
 PlotFittedLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
                                 xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm", yaxis_lab="Prop. mature",
-                                SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=FALSE, ErrOpt, nTrials)
+                                SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=FALSE, ErrOpt, nTrials, FittedRes=NA)
 # 3 parameter model asymmetric curve
 CurveType = 2 # 1 = symmetric logistic, 2 = asymmetric logistic
 ErrOpt = 2 # 1=varcov approx, 2=bootstrap
-nTrials = 200
+nTrials = 100
 Q = 20
 B = 200
 V = 2
@@ -140,7 +143,7 @@ InitV = 1.5
 params = c(InitQ, InitB, InitV) # with Pmax parameter
 PlotFittedLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
                                 xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm", yaxis_lab="Prop. mature",
-                                SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=FALSE, ErrOpt, nTrials)
+                                SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=TRUE, ErrOpt, nTrials, FittedRes=NA)
 # plot model fitted to separate sexes (simultaneously)
 # generate synthetic data
 set.seed(123)
@@ -188,5 +191,5 @@ plotlengthrange = as.matrix(t(data.frame(Females=c(min(Femplotlengths),max(Fempl
 midpt=res$midpt
 PlotFittedLengthAtMaturityCurve(params, CurveType, nSexes, ObsLen, ObsMatCat, LenClSampSize, midpt, PropMat, plotlengthrange,
                                 xmax=400, xint=50, GraphTitle=NA, xaxis_lab="Total length, mm", yaxis_lab="Prop. mature",
-                                SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=TRUE, ErrOpt, nTrials)
+                                SampSizelab_cex=NA, ShowSampSizes=TRUE, ShowLegend=FALSE, PlotCLs=TRUE, ErrOpt, nTrials, FittedRes=NA)
 }

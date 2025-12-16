@@ -415,9 +415,9 @@ SimulateWeightLengthData()
 
 ## Reproductive analysis 
 
-A logistic function may be used to describe the probability of a fish being mature at a given length (or age). The routines implemented allow for either a single curve to be fitted to the data, or two curves (i.e. females and males, or area 1 and area 2) to be fitted simultaneously. In the latter case, common variance is assumed for the two curves. Several alternative logistic functions are available, including models with fixed height (at 1), variable height, symmetric curves and asymmetric curves.  
+A logistic function may be used to describe the probability of a fish being mature at a given length (or age). The routines implemented allow for either a single curve to be fitted to the data, or two curves (i.e. for females and males, or area 1 and area 2) to be fitted simultaneously. Several alternative logistic functions are available, including models with fixed height (at 1), variable height, symmetric curves and asymmetric curves. Confidence limits for the parameter estimates and curves are calculated either based on asymptotic approximations (i.e. derived from estimated variance-convariance matrix), from by resampling with replacement (i.e. bootstrapping). In the latter case, the number of random samples, to which the maturity model is fitted, may be specified by the user.
 
-### Logistic size and age at maturity (or sex change) curves
+### Typical symmetric logistic size and age at maturity (or sex change) curves
 
 The probability, $P$, of a fish, of length $L$ being mature, may be described using the following symmetric logistic function
 $$
@@ -425,11 +425,13 @@ $$
 $$
 where P_{max} is the maximum proportion of fish that are mature, $L_{50}$ and $L_{95}$ are the lengths at which 50 and 95% of fish are mature, respectively. The same form of equation may be used to describe the probability of maturity of fish at age, replacing $L$ with fish age, and $L_{50}$ and $L_{95}$ with $A_{50}$ and $A_{95}$, i.e. the ages at which 50 and 95% of fish are mature, respectively. In cases where $P_{\max}$ can be assumed to be equal to 1, only two parameters (either $L_{50}$ and $L_{95}$, or $A_{50}$ and $A_{95}$) are input into the model. 
 
-For some WA species for which there was evidence that a logistic curve allowing for asymmetry would provide a better fit to available maturity data, the following logistic curve (derived from Richard's generalised logistic curve) has been used
+### Asymmetric logistic size and age at maturity (or sex change) curves
+
+For some WA species a logistic curve allowing for asymmetry provides a better fit to available maturity data. The following logistic curve (derived from Richard's generalised logistic curve) has been used previously
 $$
 \rho = {P_{\max}/((1+Q\exp(-BL))^{1/V})}
 $$
-where $P_{max}$, $Q$, $B$ and $v$ are estimated parameters. Thus, similar to above, if $P_{max}$ can be assumed to equal one, 3 parameters need to be estimated. Some subsequent explorations of this model, using simulated data, have shown that this form of model can be difficult to fit, associated with high parameter correlations. To reduce parameter correlations, in WAFishBiology, the following reparameterised version is used
+where $P_{max}$, $Q$, $B$ and $v$ are estimated parameters. Thus, similar to above, if $P_{max}$ can be assumed to equal one, 3 parameters need to be estimated. Some subsequent explorations of this model using simulated data, however, have shown that this form of model can be difficult to fit, due to high parameter correlations. To reduce parameter correlations as much as possible, in WAFishBiology, the following reparameterised version is used
 
 $$
 \rho = P_{max}(1 + \exp(-x))^{-V}
@@ -438,7 +440,7 @@ where $x$ represented scaled length (or age) data, calculated as
 $$
 x = (L - B) / Q
 $$
-In the above model, the parameter $Q$ controls the 'spread' over which the maturity curve is changing, $B$ is the inflection point of the curve and $V$ controls the level of curve asymmetry. The standard symmetric logistic maturity curves are fitted using nlminb (as with most models in WAFishBiology), whereas asymmetric logistic maturity curves are fitted using the "Nelda-Mead" method, within Optim, as this latter optimisation method can be more robust when relatively high parameter correlations exist.  
+In the above model, the parameter $Q$ controls the 'spread' over which the maturity curve is changing, $B$ is the inflection point of the curve and $V$ controls the level of curve asymmetry. The logistic maturity curves are fitted using nlminb (as with most models in WAFishBiology). To obtain confidence limits for the parameters of asymmetric curves, it is recommended to use bootstrapping, as this method is likely to be more reliable (than asymptotic error approximations) when estimated parameters are highly correlated.
 
 
 #### Objective function for fitting size or age at maturity (or sex change) curves
